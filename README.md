@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -21,227 +20,225 @@ html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--white);min-height:100vh;max-width:520px;margin:0 auto}
 
 /* ── LOGIN ── */
-#loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,var(–navy-dark),var(–navy));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:30px}
+#loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,var(--navy-dark),var(--navy));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:30px}
 #loginScreen .login-logo{font-size:48px;margin-bottom:16px}
-#loginScreen h1{font-family:‘Playfair Display’,serif;font-size:26px;color:var(–gold);margin-bottom:6px;text-align:center}
-#loginScreen p{font-size:13px;color:var(–gray-400);margin-bottom:32px;text-align:center;letter-spacing:.5px;text-transform:uppercase}
-#loginScreen input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(200,151,42,.4);border-radius:var(–radius-sm);padding:14px 16px;font-family:‘DM Sans’,sans-serif;font-size:16px;color:var(–white);text-align:center;letter-spacing:3px;margin-bottom:12px}
-#loginScreen input:focus{outline:none;border-color:var(–gold);background:rgba(255,255,255,.12)}
-#loginScreen input::placeholder{letter-spacing:1px;color:var(–gray-400)}
-#loginBtn{width:100%;background:linear-gradient(135deg,var(–gold),var(–gold-light));color:var(–navy-dark);border:none;border-radius:var(–radius-sm);padding:14px;font-family:‘DM Sans’,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px}
+#loginScreen h1{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);margin-bottom:6px;text-align:center}
+#loginScreen p{font-size:13px;color:var(--gray-400);margin-bottom:32px;text-align:center;letter-spacing:.5px;text-transform:uppercase}
+#loginScreen input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(200,151,42,.4);border-radius:var(--radius-sm);padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--white);text-align:center;letter-spacing:3px;margin-bottom:12px}
+#loginScreen input:focus{outline:none;border-color:var(--gold);background:rgba(255,255,255,.12)}
+#loginScreen input::placeholder{letter-spacing:1px;color:var(--gray-400)}
+#loginBtn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy-dark);border:none;border-radius:var(--radius-sm);padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px}
 #loginError{font-size:13px;color:#e07070;text-align:center;min-height:18px}
 #loginScreen .login-hint{font-size:11px;color:rgba(255,255,255,.2);margin-top:20px;text-align:center}
 
 /* ── APP SHELL ── */
 #appShell{display:none}
-.app-header{background:linear-gradient(135deg,var(–navy-dark),var(–navy));padding:16px 18px 12px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(–gold)}
+.app-header{background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:16px 18px 12px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--gold)}
 .header-row{display:flex;align-items:center;justify-content:space-between}
-.brand-name{font-family:‘Playfair Display’,serif;font-size:16px;font-weight:700;color:var(–gold);line-height:1.1}
-.brand-sub{font-size:9px;color:var(–gray-400);letter-spacing:1.5px;text-transform:uppercase}
+.brand-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold);line-height:1.1}
+.brand-sub{font-size:9px;color:var(--gray-400);letter-spacing:1.5px;text-transform:uppercase}
 .header-right{display:flex;align-items:center;gap:10px}
-.header-date{font-size:11px;color:var(–gray-400);text-align:right}
-.logout-btn{background:none;border:1px solid rgba(200,151,42,.3);color:var(–gold);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:‘DM Sans’,sans-serif;letter-spacing:.5px}
+.header-date{font-size:11px;color:var(--gray-400);text-align:right}
+.logout-btn{background:none;border:1px solid rgba(200,151,42,.3);color:var(--gold);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px}
 
 /* STATS STRIP */
-.stats-strip{background:var(–navy);padding:10px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-bottom:1px solid rgba(200,151,42,.2)}
-.stat-card{background:rgba(255,255,255,.05);border-radius:var(–radius-sm);padding:7px 5px;text-align:center;border:1px solid rgba(200,151,42,.12)}
-.stat-label{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(–gray-400);margin-bottom:2px}
-.stat-val{font-family:‘Playfair Display’,serif;font-size:14px;color:var(–gold);font-weight:700}
+.stats-strip{background:var(--navy);padding:10px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-bottom:1px solid rgba(200,151,42,.2)}
+.stat-card{background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:7px 5px;text-align:center;border:1px solid rgba(200,151,42,.12)}
+.stat-label{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:2px}
+.stat-val{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);font-weight:700}
 
 /* NAV */
-.nav-tabs{background:var(–navy-dark);display:flex;padding:8px 10px 0;gap:3px;border-bottom:1px solid rgba(200,151,42,.2);overflow-x:auto;scrollbar-width:none}
+.nav-tabs{background:var(--navy-dark);display:flex;padding:8px 10px 0;gap:3px;border-bottom:1px solid rgba(200,151,42,.2);overflow-x:auto;scrollbar-width:none}
 .nav-tabs::-webkit-scrollbar{display:none}
-.tab-btn{background:none;border:none;color:var(–gray-400);font-family:‘DM Sans’,sans-serif;font-size:10px;font-weight:500;padding:7px 10px;border-radius:8px 8px 0 0;cursor:pointer;white-space:nowrap;transition:all .2s;position:relative;bottom:-1px}
-.tab-btn.active{background:var(–cream);color:var(–navy-dark);font-weight:700}
-.tab-btn:not(.active):hover{color:var(–gold)}
+.tab-btn{background:none;border:none;color:var(--gray-400);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;padding:7px 10px;border-radius:8px 8px 0 0;cursor:pointer;white-space:nowrap;transition:all .2s;position:relative;bottom:-1px}
+.tab-btn.active{background:var(--cream);color:var(--navy-dark);font-weight:700}
+.tab-btn:not(.active):hover{color:var(--gold)}
 
 /* MAIN */
-.main-content{background:var(–cream);min-height:calc(100vh - 175px);padding:14px}
+.main-content{background:var(--cream);min-height:calc(100vh - 175px);padding:14px}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
 /* SECTION HEADER */
-.section-title{font-family:‘Playfair Display’,serif;font-size:18px;color:var(–navy-dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.section-badge{background:var(–gold);color:var(–navy-dark);font-family:‘DM Sans’,sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
-.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(–gold);margin-bottom:8px}
+.section-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--navy-dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-badge{background:var(--gold);color:var(--navy-dark);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
 
 /* CARDS */
-.card{background:var(–white);border-radius:var(–radius);padding:14px;margin-bottom:12px;box-shadow:var(–shadow);border:1px solid var(–gray-200)}
-.card h3{font-size:11px;font-weight:700;color:var(–navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid var(–gold)}
+.card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--gray-200)}
+.card h3{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid var(--gold)}
 
 /* FORM */
 .field-row{margin-bottom:10px}
-.field-row label{display:block;font-size:11px;font-weight:600;color:var(–gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.field-row input,.field-row select,.field-row textarea{width:100%;background:var(–gray-100);border:1.5px solid var(–gray-200);border-radius:var(–radius-sm);padding:9px 11px;font-family:‘DM Sans’,sans-serif;font-size:14px;color:var(–navy-dark);-webkit-appearance:none;transition:border-color .2s}
-.field-row input:focus,.field-row select:focus,.field-row textarea:focus{outline:none;border-color:var(–gold);background:var(–white)}
+.field-row label{display:block;font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.field-row input,.field-row select,.field-row textarea{width:100%;background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:9px 11px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--navy-dark);-webkit-appearance:none;transition:border-color .2s}
+.field-row input:focus,.field-row select:focus,.field-row textarea:focus{outline:none;border-color:var(--gold);background:var(--white)}
 .field-row textarea{resize:vertical;min-height:56px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 
 /* BUTTONS */
-.btn-primary{background:linear-gradient(135deg,var(–gold),var(–gold-light));color:var(–navy-dark);border:none;border-radius:var(–radius-sm);padding:12px 18px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:700;width:100%;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(200,151,42,.3)}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy-dark);border:none;border-radius:var(--radius-sm);padding:12px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;width:100%;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(200,151,42,.3)}
 .btn-primary:active{transform:scale(.98)}
-.btn-secondary{background:var(–navy);color:var(–white);border:none;border-radius:var(–radius-sm);padding:9px 14px;font-family:‘DM Sans’,sans-serif;font-size:13px;font-weight:600;cursor:pointer}
-.btn-sm{background:var(–navy);color:var(–gold);border:none;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:‘DM Sans’,sans-serif}
-.btn-danger{background:none;border:1.5px solid var(–red);color:var(–red);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:‘DM Sans’,sans-serif}
-.btn-success{background:var(–green);color:var(–white);border:none;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:‘DM Sans’,sans-serif}
+.btn-secondary{background:var(--navy);color:var(--white);border:none;border-radius:var(--radius-sm);padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.btn-sm{background:var(--navy);color:var(--gold);border:none;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-danger{background:none;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-success{background:var(--green);color:var(--white);border:none;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
 
 /* TYPE CHIPS */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{background:var(–gray-100);border:2px solid var(–gray-200);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:500;color:var(–gray-600);cursor:pointer;transition:all .2s}
-.chip.selected{background:var(–navy);border-color:var(–navy);color:var(–gold);font-weight:600}
+.chip{background:var(--gray-100);border:2px solid var(--gray-200);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:500;color:var(--gray-600);cursor:pointer;transition:all .2s}
+.chip.selected{background:var(--navy);border-color:var(--navy);color:var(--gold);font-weight:600}
 .chip.confirmed.selected{background:#1a7a4a;border-color:#1a7a4a;color:#fff}
 .chip.pending.selected{background:#b07d10;border-color:#b07d10;color:#fff}
-.chip.completed.selected{background:var(–navy);border-color:var(–navy);color:var(–gold)}
-.chip.cancelled.selected{background:var(–red);border-color:var(–red);color:#fff}
+.chip.completed.selected{background:var(--navy);border-color:var(--navy);color:var(--gold)}
+.chip.cancelled.selected{background:var(--red);border-color:var(--red);color:#fff}
 
 /* NOTARY COUNT */
-.notary-count-row{background:linear-gradient(135deg,var(–navy),var(–navy-light));border-radius:var(–radius-sm);padding:10px 12px;margin-bottom:10px}
-.notary-count-row label{color:var(–gold)!important}
-.notary-count-row input{background:rgba(255,255,255,.12)!important;border-color:rgba(200,151,42,.4)!important;color:var(–white)!important;font-size:18px!important;font-weight:700!important;text-align:center}
+.notary-count-row{background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px}
+.notary-count-row label{color:var(--gold)!important}
+.notary-count-row input{background:rgba(255,255,255,.12)!important;border-color:rgba(200,151,42,.4)!important;color:var(--white)!important;font-size:18px!important;font-weight:700!important;text-align:center}
 .notary-count-note{font-size:10px;color:rgba(255,255,255,.5);margin-top:4px}
 
 /* APPT CARD */
-.appt-card{background:var(–white);border-radius:var(–radius);padding:12px;margin-bottom:9px;box-shadow:var(–shadow);border:1px solid var(–gray-200);border-left:4px solid var(–navy)}
-.appt-card.type-depo{border-left-color:var(–blue)}
-.appt-card.type-ron{border-left-color:var(–purple)}
-.appt-card.type-apostille{border-left-color:var(–gold)}
-.appt-card.type-general{border-left-color:var(–green)}
+.appt-card{background:var(--white);border-radius:var(--radius);padding:12px;margin-bottom:9px;box-shadow:var(--shadow);border:1px solid var(--gray-200);border-left:4px solid var(--navy)}
+.appt-card.type-depo{border-left-color:var(--blue)}
+.appt-card.type-ron{border-left-color:var(--purple)}
+.appt-card.type-apostille{border-left-color:var(--gold)}
+.appt-card.type-general{border-left-color:var(--green)}
 .appt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
-.type-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:3px 7px;border-radius:4px;background:var(–navy);color:var(–gold)}
-.type-tag.depo{background:var(–blue);color:#fff}
-.type-tag.ron{background:var(–purple);color:#fff}
-.type-tag.apostille{background:var(–gold);color:var(–navy-dark)}
-.type-tag.general{background:var(–green);color:#fff}
+.type-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:3px 7px;border-radius:4px;background:var(--navy);color:var(--gold)}
+.type-tag.depo{background:var(--blue);color:#fff}
+.type-tag.ron{background:var(--purple);color:#fff}
+.type-tag.apostille{background:var(--gold);color:var(--navy-dark)}
+.type-tag.general{background:var(--green);color:#fff}
 .status-badge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px}
 .badge-confirmed{background:#e8f8ef;color:#1a7a4a}
 .badge-pending{background:#fef9e7;color:#b07d10}
-.badge-completed{background:#eaf0fb;color:var(–navy)}
-.badge-cancelled{background:#fdeaea;color:var(–red)}
-.appt-client{font-size:14px;font-weight:700;color:var(–navy-dark);margin-bottom:2px}
-.appt-meta{font-size:11px;color:var(–gray-600);margin-bottom:5px}
+.badge-completed{background:#eaf0fb;color:var(--navy)}
+.badge-cancelled{background:#fdeaea;color:var(--red)}
+.appt-client{font-size:14px;font-weight:700;color:var(--navy-dark);margin-bottom:2px}
+.appt-meta{font-size:11px;color:var(--gray-600);margin-bottom:5px}
 .pills{display:flex;gap:5px;flex-wrap:wrap}
-.pill{background:var(–gray-100);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:var(–navy-dark)}
+.pill{background:var(--gray-100);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:var(--navy-dark)}
 .pill.earned{background:#e8f8ef;color:#1a7a4a}
-.pill.exp{background:#fdeaea;color:var(–red)}
-.pill.miles{background:#eaf0fb;color:var(–navy)}
-.pill.notary{background:linear-gradient(135deg,var(–navy),var(–navy-light));color:var(–gold)}
+.pill.exp{background:#fdeaea;color:var(--red)}
+.pill.miles{background:#eaf0fb;color:var(--navy)}
+.pill.notary{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:var(--gold)}
 .appt-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 
 /* FILTER */
 .filter-bar{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .filter-bar::-webkit-scrollbar{display:none}
-.filter-pill{background:var(–white);border:1.5px solid var(–gray-200);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;color:var(–gray-600);cursor:pointer;white-space:nowrap;font-family:‘DM Sans’,sans-serif;transition:all .2s}
-.filter-pill.active{background:var(–navy);color:var(–gold);border-color:var(–navy)}
+.filter-pill{background:var(--white);border:1.5px solid var(--gray-200);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;color:var(--gray-600);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .2s}
+.filter-pill.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 .month-row{display:flex;gap:8px;margin-bottom:10px}
-.month-row select{background:var(–white);border:1.5px solid var(–gray-200);border-radius:var(–radius-sm);padding:7px 10px;font-size:12px;color:var(–navy-dark);font-family:‘DM Sans’,sans-serif;flex:1;-webkit-appearance:none}
+.month-row select{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:7px 10px;font-size:12px;color:var(--navy-dark);font-family:'DM Sans',sans-serif;flex:1;-webkit-appearance:none}
 
 /* EMPTY */
-.empty-state{text-align:center;padding:32px 16px;color:var(–gray-400)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--gray-400)}
 .empty-icon{font-size:32px;margin-bottom:8px}
 .empty-state p{font-size:13px}
 
 /* APOSTILLE TRACKER */
-.apostille-card{background:var(–white);border-radius:var(–radius);padding:13px;margin-bottom:10px;box-shadow:var(–shadow);border:1px solid var(–gray-200);border-left:4px solid var(–gold)}
+.apostille-card{background:var(--white);border-radius:var(--radius);padding:13px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--gray-200);border-left:4px solid var(--gold)}
 .apostille-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.apostille-client{font-size:14px;font-weight:700;color:var(–navy-dark);margin-bottom:2px}
-.apostille-doc{font-size:12px;color:var(–gray-600);margin-bottom:6px}
-.progress-bar-wrap{background:var(–gray-100);border-radius:6px;height:8px;margin-bottom:6px;overflow:hidden}
-.progress-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(–gold),var(–gold-light));transition:width .4s ease}
+.apostille-client{font-size:14px;font-weight:700;color:var(--navy-dark);margin-bottom:2px}
+.apostille-doc{font-size:12px;color:var(--gray-600);margin-bottom:6px}
+.progress-bar-wrap{background:var(--gray-100);border-radius:6px;height:8px;margin-bottom:6px;overflow:hidden}
+.progress-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width .4s ease}
 .stage-dots{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
-.stage-dot{font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;background:var(–gray-100);color:var(–gray-400)}
+.stage-dot{font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;background:var(--gray-100);color:var(--gray-400)}
 .stage-dot.done{background:#e8f8ef;color:#1a7a4a}
-.stage-dot.current{background:var(–navy);color:var(–gold)}
+.stage-dot.current{background:var(--navy);color:var(--gold)}
 .apost-fee{font-size:13px;font-weight:700;color:#1a7a4a}
 
 /* TAX ESTIMATOR */
-.tax-box{background:linear-gradient(135deg,var(–navy-dark),var(–navy));border-radius:var(–radius);padding:16px;margin-bottom:12px;border:1px solid rgba(200,151,42,.25)}
-.tax-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(–gold);margin-bottom:12px}
+.tax-box{background:linear-gradient(135deg,var(--navy-dark),var(--navy));border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid rgba(200,151,42,.25)}
+.tax-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
 .tax-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)}
 .tax-row:last-child{border-bottom:none}
 .tax-label{font-size:12px;color:rgba(255,255,255,.65)}
-.tax-val{font-family:‘Playfair Display’,serif;font-size:15px;color:var(–white);font-weight:700}
-.tax-val.gold{color:var(–gold)}
+.tax-val{font-family:'Playfair Display',serif;font-size:15px;color:var(--white);font-weight:700}
+.tax-val.gold{color:var(--gold)}
 .tax-val.green{color:#4ecf7f}
 .tax-val.red{color:#e07070}
 .tax-note{font-size:10px;color:rgba(255,255,255,.3);margin-top:10px;line-height:1.6;font-style:italic}
-.quarter-card{background:var(–white);border-radius:var(–radius-sm);padding:12px;margin-bottom:8px;border-left:4px solid var(–navy);border:1px solid var(–gray-200);border-left:4px solid var(–navy)}
-.quarter-card.due-soon{border-left-color:var(–red)}
-.quarter-card.paid{border-left-color:var(–green)}
+.quarter-card{background:var(--white);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;border-left:4px solid var(--navy);border:1px solid var(--gray-200);border-left:4px solid var(--navy)}
+.quarter-card.due-soon{border-left-color:var(--red)}
+.quarter-card.paid{border-left-color:var(--green)}
 .q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.q-name{font-size:13px;font-weight:700;color:var(–navy-dark)}
-.q-due{font-size:11px;color:var(–gray-400)}
-.q-amount{font-family:‘Playfair Display’,serif;font-size:18px;font-weight:700;color:var(–navy-dark)}
+.q-name{font-size:13px;font-weight:700;color:var(--navy-dark)}
+.q-due{font-size:11px;color:var(--gray-400)}
+.q-amount{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy-dark)}
 .q-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;cursor:pointer}
-.q-status.unpaid{background:#fdeaea;color:var(–red)}
+.q-status.unpaid{background:#fdeaea;color:var(--red)}
 .q-status.paid{background:#e8f8ef;color:#1a7a4a}
 
 /* GOAL TRACKER */
-.goal-card{background:var(–white);border-radius:var(–radius);padding:14px;margin-bottom:10px;box-shadow:var(–shadow);border:1px solid var(–gray-200)}
+.goal-card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--gray-200)}
 .goal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.goal-month{font-family:‘Playfair Display’,serif;font-size:16px;font-weight:700;color:var(–navy-dark)}
-.goal-pct{font-family:‘Playfair Display’,serif;font-size:20px;font-weight:700}
-.goal-bar-wrap{background:var(–gray-100);border-radius:6px;height:10px;margin-bottom:8px;overflow:hidden}
+.goal-month{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy-dark)}
+.goal-pct{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.goal-bar-wrap{background:var(--gray-100);border-radius:6px;height:10px;margin-bottom:8px;overflow:hidden}
 .goal-bar{height:100%;border-radius:6px;transition:width .5s ease}
 .goal-details{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center}
-.goal-detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(–gray-400);margin-bottom:2px}
-.goal-detail-val{font-size:13px;font-weight:700;color:var(–navy-dark)}
+.goal-detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:2px}
+.goal-detail-val{font-size:13px;font-weight:700;color:var(--navy-dark)}
 .goal-actions{display:flex;gap:6px;margin-top:8px}
-.set-goal-form{background:var(–gray-100);border-radius:var(–radius-sm);padding:10px;margin-top:8px;display:none}
+.set-goal-form{background:var(--gray-100);border-radius:var(--radius-sm);padding:10px;margin-top:8px;display:none}
 
 /* PLATFORM TRACKER (built-in to signing tracker) */
-.platform-card{background:var(–white);border-radius:var(–radius-sm);padding:11px 13px;margin-bottom:7px;box-shadow:var(–shadow);border:1px solid var(–gray-200);display:flex;justify-content:space-between;align-items:center}
-.platform-name{font-size:13px;font-weight:700;color:var(–navy-dark)}
-.platform-count{font-size:11px;color:var(–gray-400)}
-.platform-owed{font-family:‘Playfair Display’,serif;font-size:17px;font-weight:700}
-.platform-owed.owed{color:var(–red)}
+.platform-card{background:var(--white);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:7px;box-shadow:var(--shadow);border:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.platform-name{font-size:13px;font-weight:700;color:var(--navy-dark)}
+.platform-count{font-size:11px;color:var(--gray-400)}
+.platform-owed{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.platform-owed.owed{color:var(--red)}
 .platform-owed.clear{color:#1a7a4a}
 
 /* DASHBOARD */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.dash-card{background:var(–white);border-radius:var(–radius);padding:14px;box-shadow:var(–shadow);text-align:center;border:1px solid var(–gray-200)}
-.dash-label{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(–gray-400);font-weight:600;margin-bottom:4px}
-.dash-val{font-family:‘Playfair Display’,serif;font-size:22px;font-weight:700}
+.dash-card{background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);text-align:center;border:1px solid var(--gray-200)}
+.dash-label{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);font-weight:600;margin-bottom:4px}
+.dash-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
 
 /* MILEAGE */
-.mile-card{background:var(–white);border-radius:var(–radius);padding:11px 13px;margin-bottom:7px;box-shadow:var(–shadow);border:1px solid var(–gray-200);display:flex;justify-content:space-between;align-items:center}
-.mile-desc{font-size:12px;font-weight:600;color:var(–navy-dark)}
-.mile-date{font-size:10px;color:var(–gray-400)}
-.mile-val{font-family:‘Playfair Display’,serif;font-size:15px;color:var(–navy);font-weight:700;text-align:right}
-.mile-ded{font-size:10px;color:var(–green);font-weight:600;text-align:right}
+.mile-card{background:var(--white);border-radius:var(--radius);padding:11px 13px;margin-bottom:7px;box-shadow:var(--shadow);border:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.mile-desc{font-size:12px;font-weight:600;color:var(--navy-dark)}
+.mile-date{font-size:10px;color:var(--gray-400)}
+.mile-val{font-family:'Playfair Display',serif;font-size:15px;color:var(--navy);font-weight:700;text-align:right}
+.mile-ded{font-size:10px;color:var(--green);font-weight:600;text-align:right}
 
 /* IRS NOTE / NOTICE */
-.irs-note{background:linear-gradient(135deg,var(–navy),var(–navy-light));border-radius:var(–radius-sm);padding:9px 11px;font-size:11px;color:rgba(255,255,255,.8);margin-top:8px;border-left:3px solid var(–gold)}
-.irs-note strong{color:var(–gold)}
-.notice{background:#e8f3fb;border-left:3px solid var(–blue);border-radius:var(–radius-sm);padding:8px 11px;font-size:11px;color:#1a4a6a;margin-bottom:8px}
+.irs-note{background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:var(--radius-sm);padding:9px 11px;font-size:11px;color:rgba(255,255,255,.8);margin-top:8px;border-left:3px solid var(--gold)}
+.irs-note strong{color:var(--gold)}
+.notice{background:#e8f3fb;border-left:3px solid var(--blue);border-radius:var(--radius-sm);padding:8px 11px;font-size:11px;color:#1a4a6a;margin-bottom:8px}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.88);z-index:200;align-items:flex-end}
 .modal-overlay.open{display:flex}
-.modal-sheet{background:var(–cream);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:18px 14px 32px;animation:slideUp .3s ease}
+.modal-sheet{background:var(--cream);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:18px 14px 32px;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:38px;height:4px;background:var(–gray-200);border-radius:2px;margin:0 auto 14px}
-.modal-title{font-family:‘Playfair Display’,serif;font-size:19px;color:var(–navy-dark);margin-bottom:14px}
+.modal-handle{width:38px;height:4px;background:var(--gray-200);border-radius:2px;margin:0 auto 14px}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--navy-dark);margin-bottom:14px}
 
 /* MILEAGE MODE */
-.modeBtn{flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:‘DM Sans’,sans-serif;transition:all .2s}
-.modeBtn.active{background:var(–navy);color:var(–gold);border:2px solid var(–navy)}
-.modeBtn.inactive{background:var(–gray-100);color:var(–gray-600);border:2px solid var(–gray-200)}
+.modeBtn{flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.modeBtn.active{background:var(--navy);color:var(--gold);border:2px solid var(--navy)}
+.modeBtn.inactive{background:var(--gray-100);color:var(--gray-600);border:2px solid var(--gray-200)}
 
 /* TOAST */
-.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(100px);background:var(–navy-dark);color:var(–gold);padding:10px 22px;border-radius:30px;font-size:12px;font-weight:600;border:1px solid var(–gold);z-index:999;transition:transform .3s ease;white-space:nowrap}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy-dark);color:var(--gold);padding:10px 22px;border-radius:30px;font-size:12px;font-weight:600;border:1px solid var(--gold);z-index:999;transition:transform .3s ease;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
-.divider{height:1px;background:var(–gray-200);margin:12px 0}
+.divider{height:1px;background:var(--gray-200);margin:12px 0}
 </style>
-
 </head>
 <body>
 
 <!-- ══════════════════════════════════════════
      LOGIN SCREEN
 ══════════════════════════════════════════ -->
-
 <div id="loginScreen">
   <div class="login-logo">⚓</div>
   <h1>NBK Command Center</h1>
@@ -255,7 +252,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 <!-- ══════════════════════════════════════════
      APP SHELL
 ══════════════════════════════════════════ -->
-
 <div id="appShell">
 
 <div class="app-header">
@@ -288,12 +284,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
   <button class="tab-btn" onclick="showTab('expenses')">💳 Expenses</button>
   <button class="tab-btn" onclick="showTab('tax')">🧾 Tax</button>
   <button class="tab-btn" onclick="showTab('goals')">🎯 Goals</button>
+  <button class="tab-btn" onclick="showTab('exports')">📥 Export</button>
 </div>
 
 <div class="main-content">
 
 <!-- ── DASHBOARD ── -->
-
 <div id="tab-dashboard" class="tab-content active">
   <div class="section-title">Dashboard</div>
 
@@ -312,28 +308,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
   </div>
 
   <!-- Goal progress on dashboard -->
-
   <div class="card" id="d-goal-section">
     <h3>Monthly Goal Progress</h3>
     <div id="d-goal-content"><p style="font-size:13px;color:var(--gray-400)">Set a goal in the 🎯 Goals tab to see progress here.</p></div>
   </div>
 
   <!-- Active apostille jobs -->
-
   <div class="card">
     <h3>Active Apostille Jobs</h3>
     <div id="d-apostille-active"><p style="font-size:13px;color:var(--gray-400)">No active apostille jobs.</p></div>
   </div>
 
   <!-- Platform balances -->
-
   <div class="card">
     <h3>Platform Balances Owed</h3>
     <div id="d-platforms"><p style="font-size:13px;color:var(--gray-400)">No unpaid platform fees tracked yet.</p></div>
   </div>
 
   <!-- Next tax payment -->
-
   <div class="card">
     <h3>Next Estimated Tax Payment</h3>
     <div id="d-next-tax"><p style="font-size:13px;color:var(--gray-400)">Check the 🧾 Tax tab to see payment schedule.</p></div>
@@ -341,7 +333,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ── APPOINTMENTS ── -->
-
 <div id="tab-appointments" class="tab-content">
   <div class="section-title">Appointments <span class="section-badge" id="apptCount">0</span></div>
   <div class="filter-bar">
@@ -360,7 +351,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ── APOSTILLE TRACKER ── -->
-
 <div id="tab-apostille" class="tab-content">
   <div class="section-title">Apostille Jobs <span class="section-badge" id="apostilleCount">0</span></div>
 
@@ -375,12 +365,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ── EXPENSES & MILEAGE ── -->
-
 <div id="tab-expenses" class="tab-content">
   <div class="section-title">Expenses & Mileage</div>
 
   <!-- Expense form -->
-
   <div class="card">
     <h3>Log Expense</h3>
     <div class="field-row">
@@ -400,7 +388,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
   </div>
 
   <!-- Mileage form -->
-
   <div class="card">
     <h3>Log Mileage</h3>
     <div class="field-row"><label>Description</label><input type="text" id="m-desc" placeholder="e.g. SOS trip, supply run"></div>
@@ -444,7 +431,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ── TAX ESTIMATOR ── -->
-
 <div id="tab-tax" class="tab-content">
   <div class="section-title">Tax Estimator</div>
 
@@ -463,7 +449,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
   </div>
 
   <!-- Depo income input -->
-
   <div class="card">
     <h3>Add Deposition Income (1099)</h3>
     <p style="font-size:12px;color:var(--gray-600);margin-bottom:10px">Enter your total deposition income separately — this is contractor income not subject to the same SE tax calculation as notary work.</p>
@@ -484,12 +469,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ── GOALS ── -->
-
 <div id="tab-goals" class="tab-content">
   <div class="section-title">Revenue Goals</div>
 
   <!-- Set goal form -->
-
   <div class="card">
     <h3>Set Monthly Goal</h3>
     <div class="two-col">
@@ -513,6 +496,86 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
   <div id="goalsList"><div class="empty-state"><div class="empty-icon">🎯</div><p>No goals set yet.</p></div></div>
 </div>
 
+<!-- ── EXPORTS ── -->
+<div id="tab-exports" class="tab-content">
+  <div class="section-title">Export Center</div>
+
+  <!-- MONTHLY EXPORT -->
+  <div class="card">
+    <h3>📅 Monthly Export</h3>
+    <p style="font-size:12px;color:var(--gray-600);margin-bottom:12px">Download all data for a specific month. Do this at the end of each month to build your year-end file.</p>
+    <div class="two-col">
+      <div class="field-row">
+        <label>Month</label>
+        <select id="exp-month">
+          <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+          <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+          <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+          <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Year</label>
+        <select id="exp-year">
+          <option value="2026">2026</option><option value="2027">2027</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="exportMonthly()" style="margin-bottom:8px">📥 Download Monthly CSV</button>
+    <div id="monthly-preview" style="background:var(--gray-100);border-radius:var(--radius-sm);padding:10px;font-size:12px;color:var(--gray-600);display:none"></div>
+  </div>
+
+  <!-- YEAR END PACKAGE -->
+  <div class="card">
+    <h3>📊 Year-End Tax Package</h3>
+    <p style="font-size:12px;color:var(--gray-600);margin-bottom:12px">Downloads 4 files formatted for your accountant — appointments, expenses, mileage, and a tax summary. Export these in January each year.</p>
+    <div class="field-row">
+      <label>Tax Year</label>
+      <select id="exp-tax-year">
+        <option value="2026">2026</option><option value="2027">2027</option>
+      </select>
+    </div>
+
+    <!-- Tax year preview -->
+    <div class="tax-box" id="yearPreviewBox" style="margin-bottom:12px">
+      <div class="tax-title">📋 Year Preview</div>
+      <div class="tax-row"><span class="tax-label">Total Appointments</span><span class="tax-val gold" id="yp-appts">—</span></div>
+      <div class="tax-row"><span class="tax-label">Gross Income (notary)</span><span class="tax-val green" id="yp-income">—</span></div>
+      <div class="tax-row"><span class="tax-label">Deposition Income (1099)</span><span class="tax-val gold" id="yp-depo">—</span></div>
+      <div class="tax-row"><span class="tax-label">Total Expenses</span><span class="tax-val red" id="yp-expenses">—</span></div>
+      <div class="tax-row"><span class="tax-label">Total Miles</span><span class="tax-val" id="yp-miles">—</span></div>
+      <div class="tax-row"><span class="tax-label">Mile Deduction</span><span class="tax-val green" id="yp-milededuct">—</span></div>
+      <div class="tax-row"><span class="tax-label">Total Notarizations</span><span class="tax-val gold" id="yp-notarizations">—</span></div>
+      <div class="tax-row"><span class="tax-label">Estimated SE Tax</span><span class="tax-val red" id="yp-setax">—</span></div>
+    </div>
+
+    <button class="btn-primary" onclick="exportYearPackage()" style="margin-bottom:6px">📦 Download Full Year Package</button>
+    <p style="font-size:11px;color:var(--gray-400);text-align:center">Downloads 4 CSV files — appointments, expenses, mileage, tax summary</p>
+  </div>
+
+  <!-- INDIVIDUAL EXPORTS -->
+  <div class="card">
+    <h3>📋 Individual Exports</h3>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn-secondary" onclick="exportAllAppointments()" style="width:100%;text-align:left;padding:11px 14px">📋 All Appointments (complete history)</button>
+      <button class="btn-secondary" onclick="exportAllExpenses()" style="width:100%;text-align:left;padding:11px 14px">💳 All Expenses</button>
+      <button class="btn-secondary" onclick="exportAllMileage()" style="width:100%;text-align:left;padding:11px 14px">🚗 All Mileage Log</button>
+      <button class="btn-secondary" onclick="exportApostilleJobs()" style="width:100%;text-align:left;padding:11px 14px">🌐 All Apostille Jobs</button>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS -->
+  <div class="card">
+    <h3>📁 Recommended Workflow</h3>
+    <div style="font-size:13px;color:var(--gray-700);line-height:1.8">
+      <div style="padding:6px 0;border-bottom:1px solid var(--gray-100);display:flex;gap:8px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">1.</span>At the end of each month, tap <strong>Monthly Export</strong> and save the CSV to a folder in Google Drive called "NBK 2026 Monthly Reports"</div>
+      <div style="padding:6px 0;border-bottom:1px solid var(--gray-100);display:flex;gap:8px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">2.</span>Name each file clearly — e.g. <strong>NBK_April_2026.csv</strong></div>
+      <div style="padding:6px 0;border-bottom:1px solid var(--gray-100);display:flex;gap:8px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">3.</span>In January, run <strong>Year-End Tax Package</strong> and send all 4 files to your accountant</div>
+      <div style="padding:6px 0;display:flex;gap:8px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">4.</span>Keep all monthly CSVs as backup — they stack your full year history even if you change devices</div>
+    </div>
+  </div>
+</div>
+
 </div><!-- end main-content -->
 </div><!-- end appShell -->
 
@@ -521,7 +584,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 ══════════════════════════════════════════ -->
 
 <!-- ADD APPOINTMENT MODAL -->
-
 <div class="modal-overlay" id="addApptModal">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -606,7 +668,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- EDIT APPOINTMENT MODAL -->
-
 <div class="modal-overlay" id="editApptModal">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -644,7 +705,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- ADD APOSTILLE MODAL -->
-
 <div class="modal-overlay" id="addApostilleModal">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -676,7 +736,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 </div>
 
 <!-- EDIT APOSTILLE MODAL -->
-
 <div class="modal-overlay" id="editApostilleModal">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -712,7 +771,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy-dark);color:var(--wh
 <!-- ══════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════ -->
-
 <script>
 // ── CONSTANTS
 const IRS_RATE = 0.70;
@@ -792,12 +850,22 @@ function showTab(tab) {
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['dashboard','appointments','apostille','expenses','tax','goals'][i]===tab);
+    b.classList.toggle('active',['dashboard','appointments','apostille','expenses','tax','goals','exports'][i]===tab);
   });
   if(tab==='dashboard') renderDashboard();
   if(tab==='tax') renderTax();
   if(tab==='goals') renderGoals();
   if(tab==='apostille') renderApostille();
+  if(tab==='exports') { updateYearPreview(); updateMonthDefault(); }
+}
+
+function updateMonthDefault(){
+  const now=new Date();
+  const mo=document.getElementById('exp-month');
+  const yr=document.getElementById('exp-year');
+  if(mo&&!mo.dataset.set){ mo.value=String(now.getMonth()+1).padStart(2,'0'); mo.dataset.set='1'; }
+  if(yr&&!yr.dataset.set){ yr.value=now.getFullYear(); yr.dataset.set='1'; }
+  document.getElementById('exp-tax-year').value=now.getFullYear();
 }
 
 // ── HELPERS
@@ -1392,16 +1460,238 @@ function populateMonthFilters(){
 // ── RENDER ALL
 function renderAll(){renderAppts();renderExpenses();renderMileage();renderStatsStrip();populateMonthFilters();}
 
-// ── CSV EXPORT
-function exportCSV(){
-  let csv='Type,Client,Date,Time,Location,Company,Status,Notarizations,Fee,Paid,Expenses,Miles,Notes\n';
-  appointments.forEach(a=>{csv+=[a.type,a.client,a.date,a.time,a.location,a.company,a.status,a.notaryCount||0,a.fee,a.paid,a.expense,a.miles,`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement('a');
-  link.href=url;link.download='NBK_Data_'+new Date().toISOString().slice(0,10)+'.csv';link.click();
-  showToast('📥 CSV downloaded!');
+// ── CSV EXPORT SYSTEM
+function dlCSV(content, filename) {
+  const blob = new Blob([content], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = filename; link.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
+
+function exportMonthly() {
+  const mo = document.getElementById('exp-month').value;
+  const yr = document.getElementById('exp-year').value;
+  const key = yr + '-' + mo;
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  const filtAppts = appointments.filter(a => a.date?.startsWith(key));
+  const filtExp = expenses.filter(e => e.date?.startsWith(key));
+  const filtMile = mileage.filter(m => m.date?.startsWith(key));
+
+  if(!filtAppts.length && !filtExp.length && !filtMile.length) {
+    showToast('⚠️ No data found for ' + monthName); return;
+  }
+
+  // Build combined monthly CSV
+  let csv = 'NBK BUSINESS TRACKER — ' + monthName.toUpperCase() + '\n';
+  csv += 'Exported: ' + new Date().toLocaleDateString('en-US') + '\n\n';
+
+  // APPOINTMENTS
+  csv += 'APPOINTMENTS\n';
+  csv += 'Type,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees ($),Total Fee ($),Paid,Expenses ($),Miles,Mile Deduction ($),Notes\n';
+  filtAppts.forEach(a => {
+    const notaryFees = (a.notaryCount||0) * TX_FEE;
+    const mileDed = (a.miles||0) * IRS_RATE;
+    csv += [
+      a.type, a.client, a.date, a.time||'', a.location||'', a.company||'',
+      a.status, a.notaryCount||0, notaryFees.toFixed(2), (a.fee||0).toFixed(2),
+      a.paid, (a.expense||0).toFixed(2), a.miles||0, mileDed.toFixed(2),
+      `"${(a.notes||'').replace(/"/g,'""')}"`
+    ].join(',') + '\n';
+  });
+
+  // SUMMARY ROW
+  const totalIncome = filtAppts.reduce((s,a)=>s+(a.fee||0),0);
+  const totalNotarizations = filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0);
+  const totalApptExp = filtAppts.reduce((s,a)=>s+(a.expense||0),0);
+  const totalApptMiles = filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.miles||0),0);
+  csv += `\nMONTH TOTALS,,,,,,, ${totalNotarizations}, $${(totalNotarizations*TX_FEE).toFixed(2)}, $${totalIncome.toFixed(2)},,,${totalApptMiles.toFixed(1)},$${(totalApptMiles*IRS_RATE).toFixed(2)}\n`;
+
+  // EXPENSES
+  csv += '\nEXPENSES\n';
+  csv += 'Category,Description,Amount ($),Date\n';
+  filtExp.forEach(e => { csv += [e.cat, e.desc, e.amount.toFixed(2), e.date].join(',') + '\n'; });
+  const totalStandExp = filtExp.reduce((s,e)=>s+e.amount,0);
+  csv += `TOTAL,,$${totalStandExp.toFixed(2)}\n`;
+
+  // MILEAGE
+  csv += '\nSTANDALONE MILEAGE\n';
+  csv += 'Description,Miles,Deduction ($),Date\n';
+  filtMile.forEach(m => { csv += [m.desc, m.miles, (m.miles*IRS_RATE).toFixed(2), m.date].join(',') + '\n'; });
+  const totalStandMiles = filtMile.reduce((s,m)=>s+m.miles,0);
+  csv += `TOTAL,${totalStandMiles.toFixed(1)},$${(totalStandMiles*IRS_RATE).toFixed(2)}\n`;
+
+  // MONTH SUMMARY
+  const totalAllExp = totalApptExp + totalStandExp;
+  const totalAllMiles = totalApptMiles + totalStandMiles;
+  csv += '\nMONTH SUMMARY\n';
+  csv += `Gross Income,$${totalIncome.toFixed(2)}\n`;
+  csv += `Total Expenses,$${totalAllExp.toFixed(2)}\n`;
+  csv += `Total Miles,${totalAllMiles.toFixed(1)}\n`;
+  csv += `Mile Deduction,$${(totalAllMiles*IRS_RATE).toFixed(2)}\n`;
+  csv += `Net (before tax),$${(totalIncome-totalAllExp-(totalAllMiles*IRS_RATE)).toFixed(2)}\n`;
+  csv += `Total Notarizations,${totalNotarizations}\n`;
+  csv += `Notary State Fees,$${(totalNotarizations*TX_FEE).toFixed(2)}\n`;
+
+  // Show preview
+  const preview = document.getElementById('monthly-preview');
+  preview.style.display = 'block';
+  preview.innerHTML = `✅ <strong>${monthName}:</strong> ${filtAppts.length} appointments · $${totalIncome.toFixed(2)} income · ${totalNotarizations} notarizations · ${totalAllMiles.toFixed(1)} miles`;
+
+  dlCSV(csv, `NBK_${monthName.replace(' ','_')}.csv`);
+  showToast('📥 ' + monthName + ' exported!');
+}
+
+function exportYearPackage() {
+  const yr = document.getElementById('exp-tax-year').value;
+  const yearAppts = appointments.filter(a => a.date?.startsWith(yr));
+  const yearExp = expenses.filter(e => e.date?.startsWith(yr));
+  const yearMile = mileage.filter(m => m.date?.startsWith(yr));
+  const nonDepo = yearAppts.filter(a => a.type !== 'depo');
+  const depoAppts = yearAppts.filter(a => a.type === 'depo');
+
+  const gross = nonDepo.reduce((s,a)=>s+(a.fee||0),0);
+  const depoIncome = depoAppts.reduce((s,a)=>s+(a.fee||0),0);
+  const apptExp = yearAppts.reduce((s,a)=>s+(a.expense||0),0);
+  const standExp = yearExp.reduce((s,e)=>s+e.amount,0);
+  const totalExp = apptExp + standExp;
+  const apptMiles = nonDepo.reduce((s,a)=>s+(a.miles||0),0);
+  const standMiles = yearMile.reduce((s,m)=>s+m.miles,0);
+  const totalMiles = apptMiles + standMiles;
+  const mileDeduct = totalMiles * IRS_RATE;
+  const totalNotarizations = nonDepo.reduce((s,a)=>s+(a.notaryCount||0),0);
+  const netSE = Math.max(0, gross - totalExp - mileDeduct);
+  const seTax = netSE * 0.9235 * 0.153;
+  const fedTax = Math.max(0, netSE - seTax/2) * 0.22;
+
+  // FILE 1 — Appointments
+  let csv1 = `NBK APPOINTMENTS — TAX YEAR ${yr}\n`;
+  csv1 += 'Type,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees,Total Fee,Paid,Appt Expenses,Miles,Mile Deduction,Notes\n';
+  yearAppts.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{
+    csv1 += [a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,
+      a.notaryCount||0,((a.notaryCount||0)*TX_FEE).toFixed(2),(a.fee||0).toFixed(2),
+      a.paid,(a.expense||0).toFixed(2),a.miles||0,((a.miles||0)*IRS_RATE).toFixed(2),
+      `"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';
+  });
+  dlCSV(csv1, `NBK_${yr}_Appointments.csv`);
+
+  // FILE 2 — Expenses
+  let csv2 = `NBK EXPENSES — TAX YEAR ${yr}\n`;
+  csv2 += 'Category,Description,Amount,Date\n';
+  yearExp.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv2+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
+  csv2 += `\nTOTAL,,$${standExp.toFixed(2)}\n`;
+  csv2 += `Appointment Expenses (included above),,$${apptExp.toFixed(2)}\n`;
+  csv2 += `GRAND TOTAL EXPENSES,,$${totalExp.toFixed(2)}\n`;
+  dlCSV(csv2, `NBK_${yr}_Expenses.csv`);
+
+  // FILE 3 — Mileage
+  let csv3 = `NBK MILEAGE LOG — TAX YEAR ${yr}\n`;
+  csv3 += 'Description,Miles,Deduction,Date,Source\n';
+  const allMile=[
+    ...nonDepo.filter(a=>a.miles).map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'})),
+    ...yearMile.map(m=>({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}))
+  ].sort((a,b)=>a.date>b.date?1:-1);
+  allMile.forEach(m=>{csv3+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date,m.src].join(',')+'\n';});
+  csv3+=`\nTOTAL MILES,${totalMiles.toFixed(1)},$${mileDeduct.toFixed(2)}\n`;
+  csv3+=`IRS Rate,${IRS_RATE}/mile\n`;
+  dlCSV(csv3, `NBK_${yr}_Mileage.csv`);
+
+  // FILE 4 — Tax Summary (for accountant)
+  let csv4 = `NBK TAX SUMMARY — ${yr}\nNotarized By Kristy LLC\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\n`;
+  csv4 += 'SELF-EMPLOYMENT INCOME (NOTARY WORK)\n';
+  csv4 += `Gross Notary Income,$${gross.toFixed(2)}\n`;
+  csv4 += `Total Notarizations,${totalNotarizations}\n`;
+  csv4 += `TX State Notary Fees ($10 each),$${(totalNotarizations*TX_FEE).toFixed(2)}\n\n`;
+  csv4 += '1099 CONTRACTOR INCOME (DEPOSITION)\n';
+  csv4 += `Deposition Income (DepoDirect/Esquire),$${depoIncome.toFixed(2)}\n`;
+  csv4 += `Deposition Appointments,${depoAppts.length}\n\n`;
+  csv4 += 'DEDUCTIONS\n';
+  csv4 += `Total Business Expenses,$${totalExp.toFixed(2)}\n`;
+  csv4 += `Total Business Miles,${totalMiles.toFixed(1)}\n`;
+  csv4 += `IRS Mileage Rate,$${IRS_RATE}/mile\n`;
+  csv4 += `Mileage Deduction,$${mileDeduct.toFixed(2)}\n\n`;
+  csv4 += 'SE TAX ESTIMATE (NOTARY INCOME ONLY)\n';
+  csv4 += `Net SE Income,$${netSE.toFixed(2)}\n`;
+  csv4 += `SE Tax (15.3% × 92.35%),$${seTax.toFixed(2)}\n`;
+  csv4 += `½ SE Tax Deduction,$${(seTax/2).toFixed(2)}\n`;
+  csv4 += `Est. Federal Income Tax (22%),$${fedTax.toFixed(2)}\n`;
+  csv4 += `Total Estimated Tax,$${(seTax+fedTax).toFixed(2)}\n\n`;
+  csv4 += 'APPOINTMENT BREAKDOWN BY TYPE\n';
+  csv4 += 'Type,Count,Total Revenue,Notarizations\n';
+  ['loan','depo','ron','apostille','general'].forEach(t=>{
+    const ta=yearAppts.filter(a=>a.type===t);
+    if(!ta.length)return;
+    csv4+=[typeLabel(t),ta.length,ta.reduce((s,a)=>s+(a.fee||0),0).toFixed(2),ta.reduce((s,a)=>s+(a.notaryCount||0),0)].join(',')+'\n';
+  });
+  csv4 += '\nQUARTERLY PAYMENTS\n';
+  csv4 += 'Quarter,Due Date,Est. Amount,Status\n';
+  const perQ=((seTax+fedTax)/4).toFixed(2);
+  [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 16, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{
+    csv4+=`${q[0]},$${perQ},${q[1]},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;
+  });
+  csv4 += '\n* This summary is an estimate. Consult your tax professional for accurate filing.\n';
+  csv4 += '* Deposition income from DepoDirect/Esquire reported separately on 1099-NEC.\n';
+  dlCSV(csv4, `NBK_${yr}_Tax_Summary_For_Accountant.csv`);
+
+  showToast('📦 Year package downloaded — 4 files!');
+}
+
+function exportAllAppointments(){
+  let csv='Type,Client,Date,Time,Location,Company,Status,Notarizations,Fee,Paid,Expenses,Miles,Notes\n';
+  appointments.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{
+    csv+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';
+  });
+  dlCSV(csv,'NBK_All_Appointments_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('📥 All appointments exported!');
+}
+function exportAllExpenses(){
+  let csv='Category,Description,Amount,Date\n';
+  expenses.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
+  dlCSV(csv,'NBK_All_Expenses_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('📥 All expenses exported!');
+}
+function exportAllMileage(){
+  let csv='Description,Miles,Deduction,Date\n';
+  const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))].sort((a,b)=>a.date>b.date?1:-1);
+  all.forEach(m=>{csv+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date].join(',')+'\n';});
+  dlCSV(csv,'NBK_All_Mileage_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('📥 All mileage exported!');
+}
+function exportApostilleJobs(){
+  let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Notes\n';
+  apostilleJobs.forEach(j=>{csv+=[j.client,j.doctype,j.country||'',j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',j.tracking||'',`"${(j.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
+  dlCSV(csv,'NBK_Apostille_Jobs_'+new Date().toISOString().slice(0,10)+'.csv');
+  showToast('📥 Apostille jobs exported!');
+}
+
+function updateYearPreview(){
+  const yr=document.getElementById('exp-tax-year')?.value||new Date().getFullYear().toString();
+  const ya=appointments.filter(a=>a.date?.startsWith(yr));
+  const ye=expenses.filter(e=>e.date?.startsWith(yr));
+  const ym=mileage.filter(m=>m.date?.startsWith(yr));
+  const nd=ya.filter(a=>a.type!=='depo');
+  const gross=nd.reduce((s,a)=>s+(a.fee||0),0);
+  const depo=ya.filter(a=>a.type==='depo').reduce((s,a)=>s+(a.fee||0),0);
+  const totalExp=ya.reduce((s,a)=>s+(a.expense||0),0)+ye.reduce((s,e)=>s+e.amount,0);
+  const apptMiles=nd.reduce((s,a)=>s+(a.miles||0),0);
+  const standMiles=ym.reduce((s,m)=>s+m.miles,0);
+  const totalMiles=apptMiles+standMiles;
+  const totalN=nd.reduce((s,a)=>s+(a.notaryCount||0),0);
+  const netSE=Math.max(0,gross-totalExp-totalMiles*IRS_RATE);
+  const seTax=netSE*0.9235*0.153;
+  document.getElementById('yp-appts').textContent=ya.length;
+  document.getElementById('yp-income').textContent='$'+gross.toFixed(2);
+  document.getElementById('yp-depo').textContent='$'+depo.toFixed(2);
+  document.getElementById('yp-expenses').textContent='$'+totalExp.toFixed(2);
+  document.getElementById('yp-miles').textContent=totalMiles.toFixed(1)+' mi';
+  document.getElementById('yp-milededuct').textContent='$'+(totalMiles*IRS_RATE).toFixed(2);
+  document.getElementById('yp-notarizations').textContent=totalN;
+  document.getElementById('yp-setax').textContent='~$'+seTax.toFixed(2);
+}
+
+// ── CSV EXPORT (legacy — kept for compatibility)
+function exportCSV(){ exportAllAppointments(); }
 
 // ── MODAL CLOSE ON OVERLAY CLICK
 document.querySelectorAll('.modal-overlay').forEach(m=>{
@@ -1411,6 +1701,5 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 // ── PASSWORD ENTER KEY
 document.getElementById('pwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 </script>
-
 </body>
 </html>
