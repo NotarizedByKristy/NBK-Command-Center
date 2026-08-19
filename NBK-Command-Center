@@ -1596,8 +1596,8 @@ body {
     <div class="card-header"><div class="card-header-accent"></div>Deposition Income (1099)</div>
     <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:12px">Enter deposition income separately — not subject to the same SE tax calculation as notary work.</p>
     <div class="two-col">
-      <div class="field"><label>Depo Income YTD ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
-      <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
+      <div class="field"><label>Depo Income YTD ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="renderTax();save()"></div>
+      <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="renderTax();save()"></div>
     </div>
     <div class="tax-box" style="margin-bottom:0">
       <div class="tax-title">🎙️ Deposition 1099 Summary</div>
@@ -1639,6 +1639,15 @@ body {
 <!-- ── EXPORTS ── -->
 <div id="tab-exports" class="tab-content">
   <div class="page-title">Export Center</div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Full Backup &amp; Restore</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">CSV files are for your accountant. <strong style="color:var(--ink-deep)">This</strong> is what restores your Command Center if this device is lost or the browser clears its data. Download one every month and keep it in Drive.</p>
+    <button class="archive-btn" onclick="backupAll()">💾 Download Full Backup</button>
+    <button class="btn-secondary" onclick="document.getElementById('restoreFile').click()" style="width:100%;padding:13px">↺ Restore From Backup</button>
+    <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restoreAll(event)">
+    <div id="backup-status" class="export-success"></div>
+  </div>
 
   <div class="card">
     <div class="card-header"><div class="card-header-accent"></div>Monthly Archive</div>
@@ -1902,8 +1911,12 @@ const TX_FEE   = 10;
 const STORED_HASH = 'b3c4f9e8d2a17c5b0e6f3d9a8b2e4c7f1a5d8b3e6c9f2a4d7b0e3c6f9a2d5b8';
 
 async function hashPassword(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  // crypto.subtle is unavailable over file:// and plain http — never let that lock you out
+  try {
+    if (typeof crypto === 'undefined' || !crypto.subtle || !crypto.subtle.digest) return null;
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  } catch (e) { return null; }
 }
 async function login() {
   const pw = document.getElementById('pwInput').value;
@@ -1934,6 +1947,7 @@ let mileage        = JSON.parse(localStorage.getItem('nbk_mileage')   || '[]');
 let apostilleJobs  = JSON.parse(localStorage.getItem('nbk_apostille') || '[]');
 let goals          = JSON.parse(localStorage.getItem('nbk_goals')     || '[]');
 let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
+let depoData       = JSON.parse(localStorage.getItem('nbk_depo')      || '{"income":"","expense":""}');
 
 let selectedType   = 'loan';
 let selectedStatus = 'confirmed';
@@ -1951,6 +1965,7 @@ function save() {
   localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
   localStorage.setItem('nbk_goals',     JSON.stringify(goals));
   localStorage.setItem('nbk_quarters',  JSON.stringify(quarterlyStatus));
+  localStorage.setItem('nbk_depo',      JSON.stringify(depoData));
   // Phase 1: save indicator
   const ind = document.getElementById('saveIndicator');
   if (ind) {
@@ -1989,13 +2004,15 @@ function initApp() {
   });
   const gm = document.getElementById('goal-month');
   if(gm) gm.value = String(now.getMonth()+1).padStart(2,'0');
+  const dIn0=document.getElementById('depo-income-input'), dEx0=document.getElementById('depo-expense-input');
+  if(dIn0) dIn0.value = depoData.income || '';
+  if(dEx0) dEx0.value = depoData.expense || '';
   populateMonthFilters();
   renderAll();
-  renderTax();
   renderGoals();
-  renderQuarterly();
   renderApostille();
   renderDashboard();
+  renderTax();   // renderTax() renders the quarterly cards with real amounts — must run last
 }
 
 if(sessionStorage.getItem('nbk_auth')==='1') {
@@ -2409,8 +2426,11 @@ function renderTax(){
   const fedTax=Math.max(0,netSE-seDeduct)*0.22;
   const totalTax=seTax+fedTax;
   const perQtr=totalTax/4;
-  const depoIncome=parseFloat(document.getElementById('depo-income-input')?.value)||0;
-  const depoExp=parseFloat(document.getElementById('depo-expense-input')?.value)||0;
+  const dIn=document.getElementById('depo-income-input'), dEx=document.getElementById('depo-expense-input');
+  if(dIn) depoData.income = dIn.value;
+  if(dEx) depoData.expense = dEx.value;
+  const depoIncome=parseFloat(depoData.income)||0;
+  const depoExp=parseFloat(depoData.expense)||0;
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
   set('t-gross','$'+gross.toFixed(2));
   set('t-expenses','-$'+totalExp.toFixed(2));
@@ -2619,6 +2639,59 @@ function populateMonthFilters(){
 }
 
 function renderAll(){renderAppts();renderExpenses();renderMileage();renderStatsStrip();populateMonthFilters();}
+
+// ── FULL BACKUP / RESTORE (JSON — restores everything, unlike CSV)
+function backupAll(){
+  try{
+    const payload={
+      _format:'nbk-command-center-backup',
+      _version:1,
+      _exported:new Date().toISOString(),
+      appointments, expenses, mileage, apostilleJobs, goals, quarterlyStatus, depoData
+    };
+    const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+    const name='NBK_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=name;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),20000);
+    const st=document.getElementById('backup-status');
+    if(st){st.style.display='block';st.innerHTML='✅ Backed up '+appointments.length+' appointments · '+expenses.length+' expenses · '+mileage.length+' mileage entries · '+apostilleJobs.length+' apostille jobs';}
+    showToast('💾 Backup downloaded');
+  }catch(err){showToast('⚠️ Backup failed: '+(err.message||'unknown'));}
+}
+function restoreAll(ev){
+  const f=ev.target.files&&ev.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(d._format!=='nbk-command-center-backup'||!Array.isArray(d.appointments))throw new Error('Not a Command Center backup file');
+      const summary=(d.appointments||[]).length+' appointments, '+(d.expenses||[]).length+' expenses, '+(d.mileage||[]).length+' mileage entries, '+(d.apostilleJobs||[]).length+' apostille jobs';
+      if(!confirm('Restore '+summary+'?\n\nThis REPLACES everything currently on this device. Backed up from: '+(d._exported?new Date(d._exported).toLocaleDateString('en-US'):'unknown date')))return;
+      appointments   = d.appointments   || [];
+      expenses       = d.expenses       || [];
+      mileage        = d.mileage        || [];
+      apostilleJobs  = d.apostilleJobs  || [];
+      goals          = d.goals          || [];
+      quarterlyStatus= d.quarterlyStatus|| {};
+      depoData       = d.depoData       || {income:'',expense:''};
+      save();
+      const dIn=document.getElementById('depo-income-input'), dEx=document.getElementById('depo-expense-input');
+      if(dIn) dIn.value = depoData.income  || '';
+      if(dEx) dEx.value = depoData.expense || '';
+      populateMonthFilters(); renderAll(); renderGoals(); renderApostille(); renderDashboard(); renderTax();
+      const st=document.getElementById('backup-status');
+      if(st){st.style.display='block';st.innerHTML='✅ Restored '+summary;}
+      showToast('✓ Backup restored');
+    }catch(err){
+      showToast('⚠️ '+(err.message||'Could not read that file'));
+    }
+  };
+  r.readAsText(f);
+  ev.target.value='';
+}
 
 // ── CSV EXPORTS (identical to fixed file)
 function dlCSV(content,filename){const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
