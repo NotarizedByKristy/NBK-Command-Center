@@ -673,6 +673,14 @@ body {
   border-color: var(--gold-mid) !important;
   box-shadow: 0 0 0 3px var(--gold-ghost) !important;
 }
+.journal-toggle {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(200,151,42,.18);
+  position: relative;
+}
+.journal-toggle input { width: 22px; height: 22px; accent-color: var(--gold-hero); flex: none; }
+.journal-toggle span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.75); }
 .notary-hint {
   font-size: 10px;
   color: rgba(255,255,255,.3);
@@ -1459,6 +1467,11 @@ body {
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>SE-Exempt Notarial Fees · §1402(c)</div>
+    <div id="d-exempt"><p style="font-size:13px;color:rgba(11,24,41,.4)">No notarial fees recorded yet this year.</p></div>
+  </div>
+
   <div class="card" id="d-goal-section">
     <div class="card-header"><div class="card-header-accent"></div>Monthly Goal</div>
     <div id="d-goal-content"><p style="font-size:13px;color:rgba(11,24,41,.4)">Set a goal in Goals tab to see progress here.</p></div>
@@ -1580,16 +1593,19 @@ body {
 
   <div class="tax-box">
     <div class="tax-title">SE Tax Breakdown — <span id="taxYear">2026</span></div>
-    <div class="tax-row"><span class="tax-lbl">Gross Self-Employment Income</span><span class="tax-val gold" id="t-gross">$0</span></div>
-    <div class="tax-row"><span class="tax-lbl">Business Expenses</span><span class="tax-val red" id="t-expenses">$0</span></div>
-    <div class="tax-row"><span class="tax-lbl">Mileage Deduction ($0.70/mi)</span><span class="tax-val red" id="t-mileage">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Gross Notary Business Income</span><span class="tax-val gold" id="t-gross">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Less: Exempt Notarial Fees §1402(c)</span><span class="tax-val green" id="t-exempt">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Income Subject to SE Tax</span><span class="tax-val" id="t-se-subject">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Business Expenses (SE share)</span><span class="tax-val red" id="t-expenses">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Mileage Deduction (SE share)</span><span class="tax-val red" id="t-mileage">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Net SE Income</span><span class="tax-val" id="t-net">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">SE Tax (15.3% × 92.35%)</span><span class="tax-val red" id="t-se-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">SE Deduction (½ SE Tax)</span><span class="tax-val green" id="t-se-deduct">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Est. Federal Income Tax (22%)</span><span class="tax-val red" id="t-fed-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Total Estimated Tax</span><span class="tax-val gold" id="t-total-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Per Quarter (÷4)</span><span class="tax-val green" id="t-per-quarter">$0</span></div>
-    <div class="tax-note">Estimates only. Based on SE income from notary work (excluding W-2/1099 deposition income). Consult your tax professional. Deposition income from DepoDirect/Esquire reported separately on 1099.</div>
+    <div class="tax-note" id="t-exempt-source" style="font-style:normal;color:rgba(232,184,75,.75);margin-top:4px"></div>
+    <div class="tax-note">Fees for notarial acts are excluded from self-employment tax under IRC §1402(c) — they remain subject to income tax. Exempt figures come from your journal where an appointment is marked as recorded there, and from the notarization count where it isn't. Expenses are allocated proportionally; your accountant may allocate differently. Estimates only. Deposition income reported separately on 1099.</div>
   </div>
 
   <div class="card">
@@ -1751,7 +1767,8 @@ body {
       <label>📋 Number of Notarizations</label>
       <input type="number" id="f-notary-count" placeholder="0" min="0" step="1">
     </div>
-    <div class="notary-hint">Each = $10 TX state fee · tracks SE tax basis</div>
+    <div class="notary-hint">Only used when this appointment is NOT in the journal</div>
+    <label class="journal-toggle"><input type="checkbox" id="f-journaled" checked><span>Recorded in The Anchored Journal</span></label>
   </div>
   <div class="two-col" style="margin-top:12px">
     <div class="field"><label>Fee Charged ($)</label><input type="number" id="f-fee" placeholder="0.00" step="0.01"></div>
@@ -1814,7 +1831,8 @@ body {
       <label>📋 Notarizations</label>
       <input type="number" id="edit-notary-count" placeholder="0" min="0">
     </div>
-    <div class="notary-hint">Tracks SE tax basis</div>
+    <div class="notary-hint">Only used when this appointment is NOT in the journal</div>
+    <label class="journal-toggle"><input type="checkbox" id="edit-journaled"><span>Recorded in The Anchored Journal</span></label>
   </div>
   <div class="two-col" style="margin-top:12px">
     <div class="field"><label>Fee ($)</label><input type="number" id="edit-fee" step="0.01"></div>
@@ -1956,6 +1974,47 @@ let apostilleFilter= 'all';
 let apptMileMode   = 'manual';
 let standaloneMileMode = 'manual';
 
+// ── ANCHORED JOURNAL BRIDGE (read-only)
+// The journal app lives on the same domain, so its records are readable here.
+// This code NEVER writes to the journal's storage — the record book stays untouched.
+const JOURNAL_KEY = 'nbk_journal_v1';
+function journalEntries(){
+  try {
+    const raw = localStorage.getItem(JOURNAL_KEY);
+    if(!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
+  } catch(e) { return []; }
+}
+// Notarial-act fees actually charged, per the journal. Voided entries excluded.
+function journalNotarialFees(prefix){
+  return journalEntries()
+    .filter(e => !e.void && typeof e.dt === 'string' && e.dt.startsWith(prefix))
+    .reduce((s,e) => s + (parseFloat(e.fee) || 0), 0);
+}
+function journalEntryCount(prefix){
+  return journalEntries().filter(e => !e.void && typeof e.dt === 'string' && e.dt.startsWith(prefix)).length;
+}
+// Estimated exempt fees for appointments NOT recorded in the journal
+function unjournaledExempt(prefix){
+  return appointments
+    .filter(a => a.type !== 'depo' && a.journaled !== true && a.date && a.date.startsWith(prefix))
+    .reduce((s,a) => s + ((a.notaryCount||0) * TX_FEE), 0);
+}
+function unjournaledCount(prefix){
+  return appointments.filter(a => a.type!=='depo' && a.journaled!==true && a.date && a.date.startsWith(prefix) && (a.notaryCount||0) > 0).length;
+}
+// §1402(c): fees for notarial acts are excluded from self-employment tax.
+function exemptBreakdown(prefix, grossCap){
+  const fromJournal = journalNotarialFees(prefix);
+  const fromAppts   = unjournaledExempt(prefix);
+  let total = fromJournal + fromAppts;
+  let capped = false;
+  if(typeof grossCap === 'number' && total > grossCap){ total = Math.max(0,grossCap); capped = true; }
+  return { fromJournal, fromAppts, total, capped,
+           journalCount: journalEntryCount(prefix), apptCount: unjournaledCount(prefix) };
+}
+
 // ── SAVE with indicator
 let saveTimer;
 function save() {
@@ -2090,6 +2149,7 @@ function saveAppointment(){
     company:document.getElementById('f-company').value,
     status:selectedStatus,
     notaryCount: selectedType==='depo' ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
+    journaled: selectedType==='depo' ? false : document.getElementById('f-journaled').checked,
     fee:parseFloat(document.getElementById('f-fee').value)||0,
     paid:document.getElementById('f-paid').value,
     expense:parseFloat(document.getElementById('f-expense').value)||0,
@@ -2103,6 +2163,7 @@ function saveAppointment(){
 function resetApptForm(){
   ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-paid').value='unpaid';
+  document.getElementById('f-journaled').checked=true;
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.remove('selected'));
   document.querySelector('#typeChips .chip[data-val="loan"]').classList.add('selected');
@@ -2168,6 +2229,7 @@ function editAppt(id){
   document.getElementById('edit-company').value=a.company||'';
   document.getElementById('edit-status').value=a.status;
   document.getElementById('edit-notary-count').value=a.notaryCount||'';
+  document.getElementById('edit-journaled').checked = a.journaled===true;
   document.getElementById('edit-fee').value=a.fee||'';
   document.getElementById('edit-paid').value=a.paid||'unpaid';
   document.getElementById('edit-expense').value=a.expense||'';
@@ -2189,6 +2251,7 @@ function saveEdit(){
     company:document.getElementById('edit-company').value,
     status:document.getElementById('edit-status').value,
     notaryCount:isDepo?0:(parseInt(document.getElementById('edit-notary-count').value)||0),
+    journaled:isDepo?false:document.getElementById('edit-journaled').checked,
     fee:parseFloat(document.getElementById('edit-fee').value)||0,
     paid:document.getElementById('edit-paid').value,
     expense:parseFloat(document.getElementById('edit-expense').value)||0,
@@ -2420,12 +2483,21 @@ function renderTax(){
   const apptMiles=nonDepo.reduce((s,a)=>s+(a.miles||0),0);
   const standMiles=mileage.filter(m=>m.date?.startsWith(year)).reduce((s,m)=>s+m.miles,0);
   const mileDeduction=(apptMiles+standMiles)*IRS_RATE;
-  const netSE=Math.max(0,gross-totalExp-mileDeduction);
-  const seTax=netSE*0.9235*0.153;
-  const seDeduct=seTax/2;
-  const fedTax=Math.max(0,netSE-seDeduct)*0.22;
-  const totalTax=seTax+fedTax;
-  const perQtr=totalTax/4;
+  // §1402(c): notarial act fees are excluded from SE tax (still income-taxable)
+  const ex = exemptBreakdown(String(year), gross);
+  const seSubject = Math.max(0, gross - ex.total);
+  // allocate expenses/mileage proportionally to the SE-taxable share of income
+  const seShare = gross > 0 ? seSubject / gross : 0;
+  const seExp   = totalExp * seShare;
+  const seMile  = mileDeduction * seShare;
+  const netSE   = Math.max(0, seSubject - seExp - seMile);
+  const seTax   = netSE*0.9235*0.153;
+  const seDeduct= seTax/2;
+  // income tax applies to ALL net business income, exempt portion included
+  const netAll  = Math.max(0, gross - totalExp - mileDeduction);
+  const fedTax  = Math.max(0, netAll - seDeduct)*0.22;
+  const totalTax= seTax+fedTax;
+  const perQtr  = totalTax/4;
   const dIn=document.getElementById('depo-income-input'), dEx=document.getElementById('depo-expense-input');
   if(dIn) depoData.income = dIn.value;
   if(dEx) depoData.expense = dEx.value;
@@ -2433,9 +2505,18 @@ function renderTax(){
   const depoExp=parseFloat(depoData.expense)||0;
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
   set('t-gross','$'+gross.toFixed(2));
-  set('t-expenses','-$'+totalExp.toFixed(2));
-  set('t-mileage','-$'+mileDeduction.toFixed(2));
+  set('t-exempt','-$'+ex.total.toFixed(2));
+  set('t-se-subject','$'+seSubject.toFixed(2));
+  set('t-expenses','-$'+seExp.toFixed(2));
+  set('t-mileage','-$'+seMile.toFixed(2));
   set('t-net','$'+netSE.toFixed(2));
+  const srcEl=document.getElementById('t-exempt-source');
+  if(srcEl){
+    const bits=[];
+    if(ex.fromJournal>0) bits.push('$'+ex.fromJournal.toFixed(2)+' from '+ex.journalCount+' journal entr'+(ex.journalCount===1?'y':'ies'));
+    if(ex.fromAppts>0)   bits.push('$'+ex.fromAppts.toFixed(2)+' estimated from '+ex.apptCount+' unjournaled appointment'+(ex.apptCount===1?'':'s'));
+    srcEl.textContent = bits.length ? 'Exempt total: '+bits.join(' · ') + (ex.capped?' (capped at gross income)':'') : 'No exempt notarial fees recorded yet for '+year+'.';
+  }
   set('t-se-tax','$'+seTax.toFixed(2));
   set('t-se-deduct','-$'+seDeduct.toFixed(2));
   set('t-fed-tax','$'+fedTax.toFixed(2));
@@ -2548,6 +2629,23 @@ function renderDashboard(){
   if(dAppts){ dAppts.textContent=monthAppts.length; }
   const dNot=document.getElementById('d-notarizations');
   if(dNot){ dNot.textContent=notarizations; }
+
+  // §1402(c) exempt notarial fees — year to date
+  const yrKey=String(now.getFullYear());
+  const yrGross=appointments.filter(a=>a.type!=='depo'&&a.date&&a.date.startsWith(yrKey)).reduce((s,a)=>s+(a.fee||0),0);
+  const exYTD=exemptBreakdown(yrKey, yrGross);
+  const exEl=document.getElementById('d-exempt');
+  if(exEl){
+    if(exYTD.total>0){
+      const parts=[];
+      if(exYTD.fromJournal>0) parts.push('<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--parchment-2)"><span style="color:rgba(11,24,41,.5)">From journal ('+exYTD.journalCount+' entries)</span><span style="font-weight:700;color:var(--ink-deep)">$'+exYTD.fromJournal.toFixed(2)+'</span></div>');
+      if(exYTD.fromAppts>0)   parts.push('<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--parchment-2)"><span style="color:rgba(11,24,41,.5)">Estimated ('+exYTD.apptCount+' unjournaled)</span><span style="font-weight:700;color:var(--amber)">$'+exYTD.fromAppts.toFixed(2)+'</span></div>');
+      exEl.innerHTML='<div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--green);line-height:1">$'+exYTD.total.toFixed(2)+'</div>'+
+        '<div style="font-size:11px;color:rgba(11,24,41,.45);margin:3px 0 10px">excluded from self-employment tax this year</div>'+parts.join('');
+    } else {
+      exEl.innerHTML='<p style="font-size:13px;color:rgba(11,24,41,.4)">No notarial fees recorded yet this year. Record entries in The Anchored Journal, or enter a notarization count on appointments not kept there.</p>';
+    }
+  }
 
   // Goal ring (Phase 2)
   const moKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
@@ -2729,8 +2827,13 @@ function exportYearPackage(){
   const gross=nd.reduce((s,a)=>s+(a.fee||0),0),depoIncome=da.reduce((s,a)=>s+(a.fee||0),0);
   const ae=ya.reduce((s,a)=>s+(a.expense||0),0),se=ye.reduce((s,e)=>s+e.amount,0),totalExp=ae+se;
   const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm,mileDeduct=totalMiles*IRS_RATE;
-  const tn=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-mileDeduct);
-  const seTax=netSE*0.9235*0.153,fedTax=Math.max(0,netSE-seTax/2)*0.22;
+  const tn=nd.reduce((s,a)=>s+(a.notaryCount||0),0);
+  const exY=exemptBreakdown(String(yr), gross);
+  const seSubjectY=Math.max(0,gross-exY.total);
+  const shareY=gross>0?seSubjectY/gross:0;
+  const netSE=Math.max(0,seSubjectY-totalExp*shareY-mileDeduct*shareY);
+  const netAllY=Math.max(0,gross-totalExp-mileDeduct);
+  const seTax=netSE*0.9235*0.153,fedTax=Math.max(0,netAllY-seTax/2)*0.22;
   let csv1=`NBK APPOINTMENTS — TAX YEAR ${yr}\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees,Total Fee,Paid,Appt Expenses,Miles,Mile Deduction,Notes\n`;
   ya.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv1+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,((a.notaryCount||0)*TX_FEE).toFixed(2),(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,((a.miles||0)*IRS_RATE).toFixed(2),`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
   dlCSV(csv1,`NBK_${yr}_Appointments.csv`);
@@ -2742,7 +2845,7 @@ function exportYearPackage(){
   [...nd.filter(a=>a.miles).map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'})),...ym.map(m=>({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}))].sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv3+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date,m.src].join(',')+'\n';});
   csv3+=`\nTOTAL MILES,${totalMiles.toFixed(1)},$${mileDeduct.toFixed(2)}\nIRS Rate,$${IRS_RATE}/mile\n`;
   dlCSV(csv3,`NBK_${yr}_Mileage.csv`);
-  let csv4=`NBK TAX SUMMARY — ${yr}\nNotarized By Kristy LLC\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSELF-EMPLOYMENT INCOME\nGross Notary Income,$${gross.toFixed(2)}\nTotal Notarizations,${tn}\nTX State Notary Fees,$${(tn*TX_FEE).toFixed(2)}\n\n1099 CONTRACTOR INCOME\nDeposition Income,$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n\nDEDUCTIONS\nTotal Business Expenses,$${totalExp.toFixed(2)}\nTotal Business Miles,${totalMiles.toFixed(1)}\nMileage Deduction,$${mileDeduct.toFixed(2)}\n\nSE TAX ESTIMATE\nNet SE Income,$${netSE.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${seTax.toFixed(2)}\n½ SE Tax Deduction,$${(seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(seTax+fedTax).toFixed(2)}\n\nAPPOINTMENT BREAKDOWN\nType,Count,Total Revenue,Notarizations\n`;
+  let csv4=`NBK TAX SUMMARY — ${yr}\nNotarized By Kristy LLC\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nNOTARY BUSINESS INCOME\nGross Notary Income,$${gross.toFixed(2)}\nExempt Notarial Act Fees (IRC 1402(c)),$${exY.total.toFixed(2)}\n  - documented in notary journal,$${exY.fromJournal.toFixed(2)}\n  - estimated from notarization counts,$${exY.fromAppts.toFixed(2)}\nIncome Subject to SE Tax,$${seSubjectY.toFixed(2)}\nTotal Notarizations Logged,${tn}\n\n1099 CONTRACTOR INCOME\nDeposition Income,$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n\nDEDUCTIONS\nTotal Business Expenses,$${totalExp.toFixed(2)}\nTotal Business Miles,${totalMiles.toFixed(1)}\nMileage Deduction,$${mileDeduct.toFixed(2)}\n\nSE TAX ESTIMATE\n* Expenses and mileage allocated proportionally to SE-taxable income\nNet SE Income,$${netSE.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${seTax.toFixed(2)}\n½ SE Tax Deduction,$${(seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(seTax+fedTax).toFixed(2)}\n\nAPPOINTMENT BREAKDOWN\nType,Count,Total Revenue,Notarizations\n`;
   ['loan','depo','ron','apostille','general'].forEach(t=>{const ta=ya.filter(a=>a.type===t);if(!ta.length)return;csv4+=[typeLabel(t),ta.length,ta.reduce((s,a)=>s+(a.fee||0),0).toFixed(2),ta.reduce((s,a)=>s+(a.notaryCount||0),0)].join(',')+'\n';});
   const perQ=((seTax+fedTax)/4).toFixed(2);
   csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Due Date,Est. Amount,Status\n`;
