@@ -1666,6 +1666,14 @@ body {
   </div>
 
   <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Journal Import · §1402(c) Source</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">iPhone keeps each Home Screen app's data separate, so this app can't read the journal directly. Once a month: open The Anchored Journal → Backup → <strong style="color:var(--ink-deep)">Download backup file</strong>, then load it here. Your exempt notarial fees then come from what you actually charged.</p>
+    <button class="btn-secondary" onclick="document.getElementById('journalFile').click()" style="width:100%;padding:13px">📓 Import Journal Backup</button>
+    <input type="file" id="journalFile" accept=".json,application/json" style="display:none" onchange="importJournal(event)">
+    <div id="journal-status" class="export-success" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
     <div class="card-header"><div class="card-header-accent"></div>Monthly Archive</div>
     <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">Download all data for a specific month. Archive at end of each month.</p>
     <div class="two-col">
@@ -1966,6 +1974,7 @@ let apostilleJobs  = JSON.parse(localStorage.getItem('nbk_apostille') || '[]');
 let goals          = JSON.parse(localStorage.getItem('nbk_goals')     || '[]');
 let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
 let depoData       = JSON.parse(localStorage.getItem('nbk_depo')      || '{"income":"","expense":""}');
+let journalImport  = JSON.parse(localStorage.getItem('nbk_journal_import') || '{"entries":[],"importedAt":null}');
 
 let selectedType   = 'loan';
 let selectedStatus = 'confirmed';
@@ -1979,12 +1988,61 @@ let standaloneMileMode = 'manual';
 // This code NEVER writes to the journal's storage — the record book stays untouched.
 const JOURNAL_KEY = 'nbk_journal_v1';
 function journalEntries(){
+  // Direct read works when both apps share a browser container (e.g. desktop, or both in Safari).
+  // On iOS each Home Screen app is sandboxed, so the imported copy is used instead.
   try {
     const raw = localStorage.getItem(JOURNAL_KEY);
-    if(!raw) return [];
-    const list = JSON.parse(raw);
-    return Array.isArray(list) ? list : [];
-  } catch(e) { return []; }
+    if(raw){
+      const list = JSON.parse(raw);
+      if(Array.isArray(list) && list.length) return list;
+    }
+  } catch(e) {}
+  return Array.isArray(journalImport.entries) ? journalImport.entries : [];
+}
+function journalSourceLabel(){
+  try {
+    const raw = localStorage.getItem(JOURNAL_KEY);
+    if(raw){ const l=JSON.parse(raw); if(Array.isArray(l)&&l.length) return 'live'; }
+  } catch(e) {}
+  return journalImport.importedAt ? 'imported' : 'none';
+}
+function importJournal(ev){
+  const f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      const list = Array.isArray(d) ? d : (Array.isArray(d.entries) ? d.entries : null);
+      if(!list) throw new Error('That does not look like an Anchored Journal backup');
+      const ok = list.filter(e => e && typeof e.dt === 'string');
+      journalImport = { entries: ok, importedAt: new Date().toISOString() };
+      save();
+      renderTax(); renderDashboard(); renderJournalStatus();
+      showToast('✓ Imported ' + ok.length + ' journal entries');
+    } catch(err) {
+      showToast('⚠️ ' + (err.message || 'Could not read that file'));
+    }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+function renderJournalStatus(){
+  const el = document.getElementById('journal-status');
+  if(!el) return;
+  const src = journalSourceLabel();
+  const n = journalEntries().length;
+  if(src === 'live'){
+    el.style.display='block';
+    el.innerHTML = '✅ Reading your journal directly — ' + n + ' entries available.';
+  } else if(src === 'imported'){
+    el.style.display='block';
+    el.innerHTML = '✅ Using an imported journal — ' + n + ' entries, loaded ' + new Date(journalImport.importedAt).toLocaleDateString('en-US') + '.';
+  } else {
+    el.style.display='block';
+    el.style.background='var(--amber-bg)'; el.style.color='var(--amber)'; el.style.borderColor='rgba(154,98,0,.2)';
+    el.innerHTML = '⚠️ No journal loaded yet. Exempt fees fall back to notarization counts until you import a journal backup.';
+  }
 }
 // Notarial-act fees actually charged, per the journal. Voided entries excluded.
 function journalNotarialFees(prefix){
@@ -2025,6 +2083,7 @@ function save() {
   localStorage.setItem('nbk_goals',     JSON.stringify(goals));
   localStorage.setItem('nbk_quarters',  JSON.stringify(quarterlyStatus));
   localStorage.setItem('nbk_depo',      JSON.stringify(depoData));
+  localStorage.setItem('nbk_journal_import', JSON.stringify(journalImport));
   // Phase 1: save indicator
   const ind = document.getElementById('saveIndicator');
   if (ind) {
@@ -2091,7 +2150,7 @@ function showTab(tab) {
   if(tab==='tax')       renderTax();
   if(tab==='goals')     renderGoals();
   if(tab==='apostille') renderApostille();
-  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); }
+  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderJournalStatus(); }
 }
 
 function updateMonthDefault() {
@@ -2745,7 +2804,7 @@ function backupAll(){
       _format:'nbk-command-center-backup',
       _version:1,
       _exported:new Date().toISOString(),
-      appointments, expenses, mileage, apostilleJobs, goals, quarterlyStatus, depoData
+      appointments, expenses, mileage, apostilleJobs, goals, quarterlyStatus, depoData, journalImport
     };
     const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
     const name='NBK_Backup_'+new Date().toISOString().slice(0,10)+'.json';
@@ -2775,6 +2834,7 @@ function restoreAll(ev){
       goals          = d.goals          || [];
       quarterlyStatus= d.quarterlyStatus|| {};
       depoData       = d.depoData       || {income:'',expense:''};
+      journalImport  = d.journalImport  || {entries:[],importedAt:null};
       save();
       const dIn=document.getElementById('depo-income-input'), dEx=document.getElementById('depo-expense-input');
       if(dIn) dIn.value = depoData.income  || '';
