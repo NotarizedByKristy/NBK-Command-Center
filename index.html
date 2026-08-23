@@ -2839,11 +2839,9 @@ function initApp() {
   renderDashboard();
 }
 
-if(sessionStorage.getItem('nbk_auth')==='1') {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appShell').style.display    = 'block';
-  initApp();
-}
+// NOTE: Startup auth check moved to the END of this script.
+// It must run after ALL let/const declarations to avoid
+// "Cannot access X before initialization" (Temporal Dead Zone) errors.
 
 // ── TABS with transition (Phase 1)
 function showTab(tab) {
@@ -4134,6 +4132,17 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 
 // ── ENTER KEY LOGIN
 document.getElementById('pwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+// ══════════════════════════════════════════
+// STARTUP — must be the LAST thing in this script.
+// Every let/const above is now initialized, so
+// initApp() can safely reach all of them.
+// ══════════════════════════════════════════
+if (sessionStorage.getItem('nbk_auth') === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display    = 'block';
+  initApp();
+}
 
 </script>
 </body>
