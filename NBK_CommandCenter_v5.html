@@ -1,0 +1,4140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NBK Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Epilogue:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  /* Core palette */
+  --ink:        #0B1829;
+  --ink-deep:   #060f1a;
+  --ink-mid:    #152338;
+  --ink-lift:   #1e3350;
+  --ink-rim:    #243d5e;
+
+  /* Gold hierarchy — used by importance only */
+  --gold-hero:  #E8B84B;   /* primary CTA, hero numbers */
+  --gold-mid:   #C8972A;   /* secondary labels, borders */
+  --gold-dim:   #8a6518;   /* tertiary, disabled-ish */
+  --gold-ghost: rgba(200,151,42,.12);
+  --gold-glow:  rgba(232,184,75,.18);
+
+  /* Cream content area */
+  --parchment:  #F7F4EE;
+  --parchment-2:#EFEBE2;
+  --white:      #FFFFFF;
+
+  /* Semantic */
+  --green:      #1C7A50;
+  --green-bg:   #EAF5EE;
+  --red:        #B33A2A;
+  --red-bg:     #FCECEA;
+  --blue:       #1D5FA8;
+  --blue-bg:    #E8F0FB;
+  --amber:      #9A6200;
+  --amber-bg:   #FEF6E4;
+  --purple:     #6B3FA0;
+
+  /* Type */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-ui:      'Epilogue', system-ui, sans-serif;
+
+  /* Spacing */
+  --r:    12px;   /* base radius */
+  --r-lg: 18px;
+  --r-sm: 8px;
+
+  /* Shadow scale */
+  --s0: 0 1px 3px rgba(6,15,26,.06);
+  --s1: 0 4px 16px rgba(6,15,26,.08);
+  --s2: 0 8px 32px rgba(6,15,26,.12);
+  --s3: 0 16px 48px rgba(6,15,26,.18);
+}
+
+/* ════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-ui);
+  background: var(--ink-deep);
+  color: var(--white);
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ════════════════════════════════════════
+   NOISE TEXTURE OVERLAY
+   Applied via ::before on dark surfaces
+════════════════════════════════════════ */
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
+}
+.noise > * { position: relative; z-index: 1; }
+
+/* ════════════════════════════════════════
+   LOGIN SCREEN
+════════════════════════════════════════ */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 28px;
+  background: var(--ink-deep);
+  overflow: hidden;
+}
+
+/* Animated radial background */
+#loginScreen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,151,42,.07) 0%, transparent 70%);
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+#loginScreen::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,151,42,.05) 0%, transparent 70%);
+  bottom: -100px; right: -80px;
+  animation: pulseGlow 8s ease-in-out infinite reverse;
+}
+@keyframes pulseGlow {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: .6; }
+  50%       { transform: translateX(-50%) scale(1.15); opacity: 1; }
+}
+
+/* NBK Monogram Badge */
+.login-badge {
+  position: relative; z-index: 1;
+  margin-bottom: 28px;
+  animation: badgeDrop .8s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badgeDrop {
+  from { opacity: 0; transform: translateY(-30px) scale(.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.login-badge svg { display: block; }
+
+.login-wordmark {
+  position: relative; z-index: 1;
+  text-align: center;
+  animation: fadeUp .6s .3s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.login-wordmark h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--gold-hero);
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+.login-wordmark p {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+}
+
+.login-form {
+  position: relative; z-index: 1;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 36px;
+  animation: fadeUp .6s .5s ease both;
+}
+
+.pw-field-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+.pw-field-wrap input {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(200,151,42,.25);
+  border-radius: var(--r);
+  padding: 16px 20px;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  color: var(--white);
+  text-align: center;
+  letter-spacing: 4px;
+  transition: border-color .3s, background .3s, box-shadow .3s;
+  outline: none;
+}
+.pw-field-wrap input::placeholder {
+  letter-spacing: 1px;
+  font-size: 13px;
+  color: rgba(255,255,255,.2);
+}
+.pw-field-wrap input:focus {
+  border-color: var(--gold-mid);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 3px var(--gold-ghost), 0 0 24px var(--gold-glow);
+}
+
+#loginBtn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold-mid) 0%, var(--gold-hero) 100%);
+  color: var(--ink-deep);
+  border: none;
+  border-radius: var(--r);
+  padding: 16px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(200,151,42,.35);
+  position: relative;
+  overflow: hidden;
+}
+#loginBtn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+}
+#loginBtn:active { transform: scale(.98); }
+
+#loginError {
+  font-size: 12px;
+  color: #e07070;
+  text-align: center;
+  min-height: 20px;
+  margin-top: 10px;
+}
+
+.login-seal {
+  position: relative; z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 28px;
+  padding: 8px 16px;
+  border: 1px solid rgba(200,151,42,.15);
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.25);
+  animation: fadeUp .6s .7s ease both;
+}
+.login-seal::before {
+  content: '🔒';
+  font-size: 10px;
+}
+
+/* ════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════ */
+#appShell { display: none; }
+
+/* ── HEADER ── */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--ink-deep);
+  border-bottom: 1px solid rgba(200,151,42,.18);
+  padding: 14px 20px 12px;
+  overflow: hidden;
+}
+.app-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+}
+.header-row {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-monogram {
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+}
+.brand-text {}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--gold-hero);
+  letter-spacing: .3px;
+  line-height: 1.15;
+}
+.brand-sub {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+  margin-top: 1px;
+}
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,.35);
+  text-align: right;
+  line-height: 1.4;
+}
+.save-indicator {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: .5px;
+  opacity: 0;
+  transition: opacity .4s;
+}
+.save-indicator.visible { opacity: 1; }
+.logout-btn {
+  background: none;
+  border: 1px solid rgba(200,151,42,.2);
+  color: rgba(255,255,255,.4);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.logout-btn:hover { color: var(--gold-mid); border-color: rgba(200,151,42,.4); }
+
+/* ── HERO STATS ── */
+.hero-stats {
+  background: var(--ink-mid);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(200,151,42,.1);
+  position: relative;
+  overflow: hidden;
+}
+.hero-stats::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+}
+/* Gold accent line top */
+.hero-stats::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 20px; right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-mid), transparent);
+}
+
+.hero-row {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(200,151,42,.08);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-bottom: 1px;
+}
+.hero-stat {
+  background: var(--ink-mid);
+  padding: 14px 16px;
+  position: relative;
+}
+.hero-stat:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.hero-stat:last-child  { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+.stat-row {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(200,151,42,.08);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-top: 1px;
+}
+.mini-stat {
+  background: var(--ink-mid);
+  padding: 10px 12px;
+}
+.mini-stat:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.mini-stat:last-child  { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+.stat-lbl {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+  margin-bottom: 5px;
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--white);
+  letter-spacing: -.5px;
+}
+.stat-num.hero-income  { color: #5ecf96; }
+.stat-num.hero-net     { color: var(--white); }
+.mini-stat .stat-num   { font-size: 17px; color: var(--gold-hero); }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  background: var(--ink-deep);
+  display: flex;
+  padding: 10px 14px 0;
+  gap: 2px;
+  border-bottom: 1px solid rgba(200,151,42,.12);
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 62px;
+  z-index: 99;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: none; border: none;
+  color: rgba(255,255,255,.3);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  padding: 8px 12px 10px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .2s, background .2s;
+  position: relative;
+  bottom: -1px;
+  outline: none;
+}
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 12px; right: 12px;
+  height: 2px;
+  background: var(--gold-hero);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform .25s ease;
+}
+.tab-btn.active {
+  background: var(--parchment);
+  color: var(--ink-deep);
+}
+.tab-btn.active::after { transform: scaleX(1); }
+.tab-btn:not(.active):hover { color: rgba(255,255,255,.65); }
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  background: var(--parchment);
+  min-height: calc(100vh - 200px);
+  padding: 20px 16px;
+}
+.tab-content { display: none; }
+.tab-content.active {
+  display: block;
+  animation: tabReveal .3s ease both;
+}
+@keyframes tabReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════
+   TYPOGRAPHY SCALE
+════════════════════════════════════════ */
+.page-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--ink-deep);
+  letter-spacing: -.3px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.page-badge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--ink-deep);
+  color: var(--gold-hero);
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: .5px;
+}
+.section-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-bottom: 10px;
+}
+
+/* ════════════════════════════════════════
+   CARDS
+════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--s1);
+  border: 1px solid rgba(0,0,0,.06);
+  transition: box-shadow .25s, transform .25s;
+}
+.card:hover { box-shadow: var(--s2); transform: translateY(-1px); }
+
+.card-header {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--parchment-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-header-accent {
+  width: 18px; height: 2px;
+  background: linear-gradient(90deg, var(--gold-mid), var(--gold-hero));
+  border-radius: 2px;
+}
+
+/* ════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════ */
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dash-card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 16px 14px;
+  box-shadow: var(--s0);
+  border: 1px solid rgba(0,0,0,.05);
+  transition: box-shadow .25s, transform .25s;
+}
+.dash-card:hover { box-shadow: var(--s1); transform: translateY(-1px); }
+.dash-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(11,24,41,.35);
+  margin-bottom: 6px;
+}
+.dash-num {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink-deep);
+  line-height: 1;
+  letter-spacing: -.3px;
+}
+
+/* Goal ring card on dashboard */
+.goal-ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.goal-ring-svg { flex-shrink: 0; }
+.goal-ring-text { flex: 1; }
+.goal-ring-pct {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-deep);
+}
+.goal-ring-detail {
+  font-size: 11px;
+  color: rgba(11,24,41,.45);
+  margin-top: 3px;
+}
+.goal-ring-gap {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* ════════════════════════════════════════
+   FORMS
+════════════════════════════════════════ */
+.field { margin-bottom: 12px; }
+.field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(11,24,41,.45);
+  margin-bottom: 5px;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: var(--parchment);
+  border: 1.5px solid var(--parchment-2);
+  border-radius: var(--r-sm);
+  padding: 11px 13px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink-deep);
+  -webkit-appearance: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  outline: none;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--gold-mid);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(200,151,42,.1);
+}
+.field textarea { resize: vertical; min-height: 60px; }
+.two-col  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three-col{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* Notary count highlight field */
+.notary-field-wrap {
+  background: linear-gradient(135deg, var(--ink-mid), var(--ink-lift));
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.notary-field-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.notary-field-wrap label { color: var(--gold-mid) !important; position: relative; }
+.notary-field-wrap input {
+  background: rgba(255,255,255,.1) !important;
+  border-color: rgba(200,151,42,.3) !important;
+  color: var(--white) !important;
+  font-family: var(--font-display) !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  text-align: center;
+  position: relative;
+}
+.notary-field-wrap input:focus {
+  background: rgba(255,255,255,.15) !important;
+  border-color: var(--gold-mid) !important;
+  box-shadow: 0 0 0 3px var(--gold-ghost) !important;
+}
+.notary-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  margin-top: 5px;
+  position: relative;
+}
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold-mid) 0%, var(--gold-hero) 100%);
+  color: var(--ink-deep);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 14px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  width: 100%;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(200,151,42,.28);
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+  transition: left .5s;
+}
+.btn-primary:hover::before { left: 100%; }
+.btn-primary:active { transform: scale(.98); box-shadow: 0 2px 8px rgba(200,151,42,.2); }
+
+.btn-secondary {
+  background: var(--ink-deep);
+  color: rgba(255,255,255,.8);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 11px 16px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-secondary:hover { background: var(--ink-lift); }
+
+.btn-sm {
+  background: var(--ink-deep);
+  color: var(--gold-mid);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background .2s;
+}
+.btn-sm:hover { background: var(--ink-lift); }
+
+.btn-danger {
+  background: none;
+  border: 1px solid rgba(179,58,42,.3);
+  color: var(--red);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background .2s, border-color .2s;
+}
+.btn-danger:hover { background: var(--red-bg); border-color: var(--red); }
+
+.btn-success {
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+
+/* ════════════════════════════════════════
+   CHIPS / FILTERS
+════════════════════════════════════════ */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  background: var(--parchment);
+  border: 1.5px solid var(--parchment-2);
+  border-radius: 20px;
+  padding: 6px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(11,24,41,.5);
+  cursor: pointer;
+  transition: all .2s;
+}
+.chip.selected {
+  background: var(--ink-deep);
+  border-color: var(--ink-deep);
+  color: var(--gold-hero);
+}
+.chip.confirmed.selected { background: var(--green); border-color: var(--green); color: var(--white); }
+.chip.pending.selected   { background: var(--amber); border-color: var(--amber); color: var(--white); }
+.chip.completed.selected { background: var(--blue);  border-color: var(--blue);  color: var(--white); }
+.chip.cancelled.selected { background: var(--red);   border-color: var(--red);   color: var(--white); }
+
+.filter-bar {
+  display: flex; gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-pill {
+  background: var(--white);
+  border: 1.5px solid rgba(0,0,0,.08);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: rgba(11,24,41,.45);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+  transition: all .2s;
+}
+.filter-pill.active {
+  background: var(--ink-deep);
+  color: var(--gold-hero);
+  border-color: var(--ink-deep);
+}
+.filter-pill:not(.active):hover { border-color: var(--gold-mid); color: var(--ink-mid); }
+
+.month-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.month-row select {
+  background: var(--white);
+  border: 1.5px solid rgba(0,0,0,.08);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-deep);
+  font-family: var(--font-ui);
+  flex: 1;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+/* ════════════════════════════════════════
+   APPOINTMENT CARDS
+════════════════════════════════════════ */
+.appt-card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--s0);
+  border: 1px solid rgba(0,0,0,.05);
+  border-left: 3px solid transparent;
+  transition: box-shadow .25s, transform .25s;
+  position: relative;
+  overflow: hidden;
+}
+.appt-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  border-radius: 2px 0 0 2px;
+}
+.appt-card:hover { box-shadow: var(--s1); transform: translateY(-1px); }
+
+.appt-card.type-loan     { border-left-color: var(--ink-mid); }
+.appt-card.type-depo     { border-left-color: var(--blue); }
+.appt-card.type-ron      { border-left-color: var(--purple); }
+.appt-card.type-apostille{ border-left-color: var(--gold-mid); }
+.appt-card.type-general  { border-left-color: var(--green); }
+
+/* Gradient left accent overlay */
+.appt-card.type-loan::after      { content:''; position:absolute; top:0;left:0;bottom:0;width:40px; background:linear-gradient(90deg,rgba(30,51,80,.04),transparent); pointer-events:none; }
+.appt-card.type-depo::after      { content:''; position:absolute; top:0;left:0;bottom:0;width:40px; background:linear-gradient(90deg,rgba(29,95,168,.04),transparent); pointer-events:none; }
+.appt-card.type-apostille::after { content:''; position:absolute; top:0;left:0;bottom:0;width:40px; background:linear-gradient(90deg,rgba(200,151,42,.05),transparent); pointer-events:none; }
+.appt-card.type-general::after   { content:''; position:absolute; top:0;left:0;bottom:0;width:40px; background:linear-gradient(90deg,rgba(28,122,80,.04),transparent); pointer-events:none; }
+
+.appt-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.type-tag {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--ink-deep); color: var(--gold-hero);
+}
+.type-tag.depo      { background: var(--blue-bg);   color: var(--blue); }
+.type-tag.ron       { background: #f0eaf8;           color: var(--purple); }
+.type-tag.apostille { background: var(--amber-bg);   color: var(--amber); }
+.type-tag.general   { background: var(--green-bg);   color: var(--green); }
+
+.status-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  padding: 3px 8px; border-radius: 4px;
+}
+.badge-confirmed { background: var(--green-bg); color: var(--green); }
+.badge-pending   { background: var(--amber-bg); color: var(--amber); }
+.badge-completed { background: var(--blue-bg);  color: var(--blue); }
+.badge-cancelled { background: var(--red-bg);   color: var(--red); }
+
+.appt-client { font-size: 15px; font-weight: 700; color: var(--ink-deep); margin-bottom: 2px; }
+.appt-meta   { font-size: 11px; color: rgba(11,24,41,.45); margin-bottom: 8px; line-height: 1.5; }
+
+.pills { display:flex; gap:5px; flex-wrap:wrap; }
+.pill {
+  border-radius: 5px; padding: 3px 8px;
+  font-size: 10px; font-weight: 600; color: var(--ink-deep);
+  background: var(--parchment);
+}
+.pill.earned  { background: var(--green-bg); color: var(--green); }
+.pill.exp     { background: var(--red-bg);   color: var(--red); }
+.pill.miles   { background: var(--blue-bg);  color: var(--blue); }
+.pill.notary  { background: var(--amber-bg); color: var(--amber); }
+.pill.unpaid  { background: var(--red-bg);   color: var(--red); }
+.pill.invoiced{ background: var(--amber-bg); color: var(--amber); }
+.pill.paid    { background: var(--green-bg); color: var(--green); }
+
+.appt-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+
+/* ════════════════════════════════════════
+   APOSTILLE TRACKER
+════════════════════════════════════════ */
+.apostille-card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--s0);
+  border: 1px solid rgba(0,0,0,.05);
+  border-left: 3px solid var(--gold-mid);
+  transition: box-shadow .25s, transform .25s;
+}
+.apostille-card:hover { box-shadow: var(--s1); transform: translateY(-1px); }
+.apostille-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.apostille-client { font-size: 15px; font-weight: 700; color: var(--ink-deep); }
+.apostille-doc    { font-size: 12px; color: rgba(11,24,41,.45); margin-top:1px; }
+.apost-fee        { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--green); }
+
+.progress-bar-wrap {
+  background: var(--parchment);
+  border-radius: 6px; height: 6px;
+  margin-bottom: 8px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--gold-mid), var(--gold-hero));
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+
+.stage-dots { display:flex; gap:4px; margin-bottom:10px; flex-wrap:wrap; }
+.stage-dot {
+  font-size: 9px; font-weight: 700; letter-spacing: .3px;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--parchment); color: rgba(11,24,41,.35);
+}
+.stage-dot.done    { background: var(--green-bg); color: var(--green); }
+.stage-dot.current { background: var(--ink-deep); color: var(--gold-hero); }
+
+/* ════════════════════════════════════════
+   TAX BOXES
+════════════════════════════════════════ */
+.tax-box {
+  background: var(--ink-mid);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(200,151,42,.15);
+  position: relative;
+  overflow: hidden;
+}
+.tax-box::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.tax-box > * { position: relative; z-index: 1; }
+
+.tax-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold-mid);
+  margin-bottom: 14px;
+}
+.tax-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.tax-row:last-child { border-bottom: none; }
+.tax-lbl { font-size: 12px; color: rgba(255,255,255,.55); }
+.tax-val {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--white);
+  font-weight: 600;
+}
+.tax-val.gold  { color: var(--gold-hero); }
+.tax-val.green { color: #5ecf96; }
+.tax-val.red   { color: #e07070; }
+.tax-note {
+  font-size: 10px;
+  color: rgba(255,255,255,.25);
+  margin-top: 12px;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════
+   QUARTERLY CARDS
+════════════════════════════════════════ */
+.quarter-card {
+  background: var(--white);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(0,0,0,.06);
+  border-left: 3px solid var(--ink-mid);
+  box-shadow: var(--s0);
+}
+.quarter-card.due-soon { border-left-color: var(--red); background: #fffcfc; }
+.quarter-card.paid     { border-left-color: var(--green); opacity: .75; }
+.q-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.q-name   { font-size: 13px; font-weight: 700; color: var(--ink-deep); }
+.q-due    { font-size: 10px; color: rgba(11,24,41,.4); margin-top:1px; }
+.q-amount {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--ink-deep);
+}
+.q-status {
+  font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  padding: 4px 10px; border-radius: 20px;
+  cursor: pointer; transition: all .2s;
+}
+.q-status.unpaid { background: var(--red-bg);   color: var(--red); }
+.q-status.paid   { background: var(--green-bg); color: var(--green); }
+
+/* ════════════════════════════════════════
+   GOAL CARDS
+════════════════════════════════════════ */
+.goal-card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: var(--s1);
+  border: 1px solid rgba(0,0,0,.05);
+  transition: box-shadow .25s, transform .25s;
+}
+.goal-card:hover { box-shadow: var(--s2); transform: translateY(-1px); }
+.goal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.goal-month-name {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  color: var(--ink-deep);
+}
+.goal-pct-badge {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+}
+.goal-bar-wrap {
+  background: var(--parchment);
+  border-radius: 6px; height: 8px;
+  margin-bottom: 12px; overflow: hidden;
+}
+.goal-bar {
+  height: 100%; border-radius: 6px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.goal-details {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px; text-align: center;
+}
+.goal-detail-lbl {
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(11,24,41,.35); margin-bottom: 3px;
+}
+.goal-detail-val { font-size: 14px; font-weight: 700; color: var(--ink-deep); }
+
+/* ════════════════════════════════════════
+   MILEAGE & EXPENSE ROWS
+════════════════════════════════════════ */
+.mile-card {
+  background: var(--white);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  margin-bottom: 7px;
+  box-shadow: var(--s0);
+  border: 1px solid rgba(0,0,0,.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow .2s;
+}
+.mile-card:hover { box-shadow: var(--s1); }
+.mile-desc  { font-size: 13px; font-weight: 600; color: var(--ink-deep); }
+.mile-date  { font-size: 10px; color: rgba(11,24,41,.4); margin-top: 2px; }
+.mile-val   { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink-mid); text-align: right; }
+.mile-ded   { font-size: 10px; font-weight: 700; color: var(--green); text-align: right; margin-top: 1px; }
+
+/* ════════════════════════════════════════
+   IRS NOTE / NOTICE
+════════════════════════════════════════ */
+.irs-note {
+  background: var(--ink-mid);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  margin-top: 10px;
+  border-left: 2px solid var(--gold-mid);
+  position: relative;
+  overflow: hidden;
+}
+.irs-note::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.irs-note > * { position: relative; z-index: 1; }
+.irs-note strong { color: var(--gold-hero); }
+
+.notice {
+  background: var(--blue-bg);
+  border-left: 2px solid var(--blue);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  font-size: 11px;
+  color: var(--blue);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+/* ════════════════════════════════════════
+   MILEAGE MODE BUTTONS
+════════════════════════════════════════ */
+.mode-btns { display:flex; gap:6px; margin-bottom:12px; }
+.modeBtn {
+  flex: 1;
+  padding: 9px;
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: all .2s;
+  letter-spacing: .3px;
+}
+.modeBtn.active   { background: var(--ink-deep); color: var(--gold-hero); border: 2px solid var(--ink-deep); }
+.modeBtn.inactive { background: var(--parchment); color: rgba(11,24,41,.5); border: 2px solid var(--parchment-2); }
+
+/* ════════════════════════════════════════
+   EMPTY STATES
+════════════════════════════════════════ */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(11,24,41,.35);
+}
+.empty-icon { font-size: 36px; margin-bottom: 10px; opacity: .6; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* ════════════════════════════════════════
+   DIVIDERS
+════════════════════════════════════════ */
+.divider { height: 1px; background: var(--parchment-2); margin: 16px 0; }
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-mid), transparent);
+  margin: 16px 0;
+  opacity: .4;
+}
+
+/* ════════════════════════════════════════
+   MODALS
+════════════════════════════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(6,15,26,.85);
+  z-index: 200;
+  align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--parchment);
+  border-radius: 22px 22px 0 0;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 20px 18px 40px;
+  animation: sheetUp .35s cubic-bezier(.32,1,.54,1) both;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(11,24,41,.12);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600;
+  color: var(--ink-deep);
+  margin-bottom: 16px;
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink-deep);
+  color: var(--gold-hero);
+  padding: 11px 22px;
+  border-radius: 30px;
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-ui);
+  border: 1px solid rgba(200,151,42,.25);
+  z-index: 999;
+  transition: transform .3s cubic-bezier(.32,1,.54,1);
+  white-space: nowrap;
+  box-shadow: var(--s3);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ════════════════════════════════════════
+   EXPORT SPECIFIC
+════════════════════════════════════════ */
+.archive-btn {
+  background: linear-gradient(135deg, var(--ink-mid), var(--ink-lift));
+  color: var(--gold-hero);
+  border: 1px solid rgba(200,151,42,.25);
+  border-radius: var(--r-sm);
+  padding: 14px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  width: 100%;
+  cursor: pointer;
+  margin-bottom: 8px;
+  letter-spacing: .3px;
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+.archive-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.archive-btn:active { transform: scale(.99); }
+
+.export-success {
+  display: none;
+  background: var(--green-bg);
+  border: 1px solid rgba(28,122,80,.2);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* ════════════════════════════════════════
+   SERVICE REQUIREMENTS CHECKLIST
+════════════════════════════════════════ */
+.req-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--parchment);
+  border: 1.5px solid var(--parchment-2);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.req-item.checked {
+  background: var(--ink-deep);
+  border-color: var(--ink-deep);
+}
+.req-item.checked .req-label { color: var(--gold-hero); }
+.req-item.checked .req-icon  { filter: none; }
+.req-check {
+  width: 16px; height: 16px;
+  border: 1.5px solid rgba(11,24,41,.25);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  background: var(--white);
+}
+.req-item.checked .req-check {
+  background: var(--gold-hero);
+  border-color: var(--gold-hero);
+}
+.req-check-mark {
+  color: var(--ink-deep);
+  font-size: 10px;
+  font-weight: 900;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.req-item.checked .req-check-mark { opacity: 1; }
+.req-icon  { font-size: 14px; flex-shrink: 0; }
+.req-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(11,24,41,.6);
+  line-height: 1.25;
+  transition: color .2s;
+}
+
+/* Fee estimate row that appears when addons are checked */
+.addon-fee-preview {
+  background: linear-gradient(135deg, var(--ink-mid), var(--ink-lift));
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  margin-top: 10px;
+  display: none;
+  position: relative; overflow: hidden;
+}
+.addon-fee-preview::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.addon-fee-preview > * { position: relative; z-index: 1; }
+.addon-fee-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px;
+}
+.addon-fee-lbl { color: rgba(255,255,255,.55); }
+.addon-fee-val { color: var(--gold-hero); font-weight: 700; font-family: var(--font-display); font-size: 13px; }
+
+/* Addon pills on appointment cards */
+.pill.addon {
+  background: rgba(11,24,41,.07);
+  color: var(--ink-mid);
+  border: 1px solid rgba(11,24,41,.1);
+}
+
+/* Apostille link badge */
+.apost-link-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid rgba(154,98,0,.15);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s;
+}
+.apost-link-badge:hover { background: #fdecc8; }
+
+/* Apostille appointment feed notice */
+.apost-appt-notice {
+  background: var(--green-bg);
+  border: 1px solid rgba(28,122,80,.15);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ════════════════════════════════════════
+   APOSTILLE V2 — TRIPS & EXPENSES
+════════════════════════════════════════ */
+
+/* Job card — full-width, richer than before */
+.apost-job-card {
+  background: var(--white);
+  border-radius: var(--r);
+  margin-bottom: 14px;
+  box-shadow: var(--s1);
+  border: 1px solid rgba(0,0,0,.05);
+  border-left: 4px solid var(--gold-mid);
+  overflow: hidden;
+  transition: box-shadow .25s;
+}
+.apost-job-card:hover { box-shadow: var(--s2); }
+
+/* Card header band */
+.apost-job-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--parchment-2);
+}
+.apost-job-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.apost-job-client {
+  font-size: 15px; font-weight: 700;
+  color: var(--ink-deep);
+}
+.apost-job-doc {
+  font-size: 11px; color: rgba(11,24,41,.45);
+  margin-top: 2px;
+}
+.apost-job-fee-col { text-align: right; }
+.apost-job-fee {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--green);
+}
+.apost-balance-due {
+  font-size: 10px; font-weight: 700;
+  color: var(--red); margin-top: 1px;
+}
+.apost-paid-tag {
+  font-size: 10px; font-weight: 700;
+  color: var(--green); margin-top: 1px;
+}
+
+/* Progress bar */
+.apost-progress-wrap {
+  background: var(--parchment);
+  border-radius: 4px; height: 5px;
+  margin-bottom: 6px; overflow: hidden;
+}
+.apost-progress-bar {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--gold-mid), var(--gold-hero));
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.apost-stage-label {
+  font-size: 10px; font-weight: 700;
+  color: rgba(11,24,41,.4);
+  margin-bottom: 8px;
+}
+.apost-stage-dots {
+  display: flex; gap: 4px;
+  flex-wrap: wrap; margin-bottom: 10px;
+}
+.apost-stage-dot {
+  font-size: 9px; font-weight: 700;
+  padding: 3px 7px; border-radius: 4px;
+  background: var(--parchment);
+  color: rgba(11,24,41,.35);
+}
+.apost-stage-dot.done    { background: var(--green-bg); color: var(--green); }
+.apost-stage-dot.current { background: var(--ink-deep); color: var(--gold-hero); }
+
+/* Summary pills row */
+.apost-summary-pills {
+  display: flex; gap: 5px;
+  flex-wrap: wrap; margin-bottom: 10px;
+}
+
+/* Sections inside the card */
+.apost-section {
+  padding: 10px 16px;
+  border-top: 1px solid var(--parchment-2);
+}
+.apost-section-title {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(11,24,41,.35);
+  margin-bottom: 8px;
+  display: flex; justify-content: space-between;
+  align-items: center;
+}
+.apost-section-title button {
+  font-size: 9px; font-weight: 700;
+  background: var(--ink-deep); color: var(--gold-hero);
+  border: none; border-radius: 5px;
+  padding: 3px 8px; cursor: pointer;
+  font-family: var(--font-ui);
+}
+
+/* Trip rows */
+.apost-trip-row {
+  background: var(--parchment);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  position: relative;
+}
+.apost-trip-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 4px;
+}
+.apost-trip-date {
+  font-size: 12px; font-weight: 700;
+  color: var(--ink-deep);
+}
+.apost-trip-loc {
+  font-size: 10px; color: rgba(11,24,41,.45);
+  margin-top: 1px;
+}
+.apost-trip-pills {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 5px;
+}
+.apost-trip-actions {
+  display: flex; gap: 5px; margin-top: 6px;
+}
+
+/* Expense rows */
+.apost-exp-row {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--parchment-2);
+}
+.apost-exp-row:last-child { border-bottom: none; }
+.apost-exp-cat {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(11,24,41,.35); margin-bottom: 1px;
+}
+.apost-exp-desc { font-size: 12px; font-weight: 600; color: var(--ink-deep); }
+.apost-exp-amount {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700;
+  color: var(--red);
+}
+
+/* Card action bar */
+.apost-card-actions {
+  padding: 10px 16px 12px;
+  display: flex; gap: 6px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--parchment-2);
+  background: rgba(11,24,41,.015);
+}
+
+/* Tracking number display */
+.apost-tracking {
+  font-size: 10px; color: var(--blue);
+  font-weight: 600; padding: 0 16px 8px;
+}
+
+/* ════════════════════════════════════════
+   CREDENTIALS VAULT
+════════════════════════════════════════ */
+
+/* Status ring on credential cards */
+.cred-card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  box-shadow: var(--s1);
+  border: 1px solid rgba(0,0,0,.05);
+  border-left: 4px solid transparent;
+  transition: box-shadow .25s, transform .25s;
+  position: relative;
+  overflow: hidden;
+}
+.cred-card:hover { box-shadow: var(--s2); transform: translateY(-1px); }
+.cred-card.status-ok       { border-left-color: var(--green); }
+.cred-card.status-warn     { border-left-color: var(--amber); }
+.cred-card.status-critical { border-left-color: var(--red); }
+.cred-card.status-expired  { border-left-color: #999; opacity: .75; }
+
+/* Gradient left wash per status */
+.cred-card.status-ok::after       { content:''; position:absolute; top:0;left:0;bottom:0;width:48px; background:linear-gradient(90deg,rgba(28,122,80,.04),transparent); pointer-events:none; }
+.cred-card.status-warn::after     { content:''; position:absolute; top:0;left:0;bottom:0;width:48px; background:linear-gradient(90deg,rgba(154,98,0,.05),transparent); pointer-events:none; }
+.cred-card.status-critical::after { content:''; position:absolute; top:0;left:0;bottom:0;width:48px; background:linear-gradient(90deg,rgba(179,58,42,.05),transparent); pointer-events:none; }
+
+.cred-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.cred-name   { font-size:15px; font-weight:700; color:var(--ink-deep); }
+.cred-cat    { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(11,24,41,.35); margin-top:1px; }
+
+.cred-status-badge {
+  font-size:9px; font-weight:700; letter-spacing:.5px;
+  padding:3px 9px; border-radius:20px;
+  white-space:nowrap;
+}
+.cred-status-badge.ok       { background:var(--green-bg); color:var(--green); }
+.cred-status-badge.warn     { background:var(--amber-bg); color:var(--amber); }
+.cred-status-badge.critical { background:var(--red-bg);   color:var(--red); }
+.cred-status-badge.expired  { background:var(--parchment-2); color:rgba(11,24,41,.4); }
+
+.cred-expiry-row {
+  display:flex; align-items:baseline; gap:6px;
+  margin-bottom:8px;
+}
+.cred-expiry-date {
+  font-family: var(--font-display);
+  font-size:17px; font-weight:600;
+  color:var(--ink-deep);
+}
+.cred-days-left {
+  font-size:11px; font-weight:700;
+}
+.cred-days-left.ok       { color:var(--green); }
+.cred-days-left.warn     { color:var(--amber); }
+.cred-days-left.critical { color:var(--red); }
+.cred-days-left.expired  { color:rgba(11,24,41,.35); }
+
+/* Countdown bar */
+.cred-bar-wrap { background:var(--parchment); border-radius:4px; height:5px; overflow:hidden; margin-bottom:10px; }
+.cred-bar      { height:100%; border-radius:4px; transition:width .5s ease; }
+.cred-bar.ok       { background: var(--green); }
+.cred-bar.warn     { background: var(--amber); }
+.cred-bar.critical { background: linear-gradient(90deg,var(--red),#e07070); }
+.cred-bar.expired  { background: rgba(11,24,41,.15); }
+
+/* Detail row */
+.cred-detail {
+  font-size:11px; color:rgba(11,24,41,.45);
+  margin-bottom:6px; line-height:1.5;
+}
+.cred-actions { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* Vault summary strip */
+.vault-strip {
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:8px;
+  margin-bottom:16px;
+}
+.vault-stat {
+  background:var(--white);
+  border-radius:var(--r-sm);
+  padding:11px 10px;
+  text-align:center;
+  box-shadow:var(--s0);
+  border:1px solid rgba(0,0,0,.05);
+}
+.vault-stat-num {
+  font-family:var(--font-display);
+  font-size:22px; font-weight:700;
+  line-height:1;
+  margin-bottom:3px;
+}
+.vault-stat-lbl {
+  font-size:8px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(11,24,41,.35);
+}
+
+/* Category filter for vault */
+.vault-cat-filter {
+  display:flex; gap:5px;
+  margin-bottom:14px;
+  overflow-x:auto; scrollbar-width:none;
+}
+.vault-cat-filter::-webkit-scrollbar { display:none; }
+
+/* Add credential form inside modal */
+.cred-cat-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-bottom:12px;
+}
+.cred-cat-item {
+  display:flex; align-items:center; gap:8px;
+  background:var(--parchment);
+  border:1.5px solid var(--parchment-2);
+  border-radius:var(--r-sm);
+  padding:9px 11px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.cred-cat-item.selected {
+  background:var(--ink-deep);
+  border-color:var(--ink-deep);
+}
+.cred-cat-item.selected .cred-cat-label { color:var(--gold-hero); }
+.cred-cat-icon  { font-size:15px; }
+.cred-cat-label { font-size:11px; font-weight:600; color:rgba(11,24,41,.6); transition:color .2s; }
+
+/* Alert banner at top of vault when critical items exist */
+.vault-alert {
+  background: linear-gradient(135deg, var(--red), #c0392b);
+  border-radius:var(--r-sm);
+  padding:11px 14px;
+  margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+  position:relative; overflow:hidden;
+}
+.vault-alert::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.vault-alert > * { position:relative; z-index:1; }
+.vault-alert-icon { font-size:20px; flex-shrink:0; }
+.vault-alert-text { font-size:12px; font-weight:700; color:var(--white); line-height:1.5; }
+.vault-alert-sub  { font-size:10px; color:rgba(255,255,255,.7); font-weight:400; }
+
+.vault-warn-banner {
+  background: var(--amber-bg);
+  border:1px solid rgba(154,98,0,.2);
+  border-radius:var(--r-sm);
+  padding:10px 13px;
+  margin-bottom:14px;
+  font-size:12px;
+  color:var(--amber);
+  font-weight:600;
+}
+
+/* ════════════════════════════════════════
+   MOBILE SAFE AREA
+════════════════════════════════════════ */
+.main-content {
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="loginScreen">
+
+  <!-- SVG Monogram Badge -->
+  <div class="login-badge">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="40" cy="40" r="38" stroke="rgba(200,151,42,0.35)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="34" stroke="rgba(200,151,42,0.15)" stroke-width="0.5"/>
+      <!-- Background -->
+      <circle cx="40" cy="40" r="37" fill="rgba(21,35,56,0.9)"/>
+      <!-- Anchor -->
+      <g transform="translate(40,40)">
+        <!-- Anchor shaft -->
+        <line x1="0" y1="-13" x2="0" y2="13" stroke="#C8972A" stroke-width="1.6" stroke-linecap="round"/>
+        <!-- Anchor crossbar -->
+        <line x1="-8" y1="-8" x2="8" y2="-8" stroke="#C8972A" stroke-width="1.6" stroke-linecap="round"/>
+        <!-- Anchor ring -->
+        <circle cx="0" cy="-13" r="2.5" stroke="#C8972A" stroke-width="1.4" fill="none"/>
+        <!-- Anchor flukes -->
+        <path d="M -8 10 Q -12 13 -8 15 Q -4 16 0 13" stroke="#C8972A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M 8 10 Q 12 13 8 15 Q 4 16 0 13" stroke="#C8972A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- Anchor arms -->
+        <path d="M 0 9 Q -6 12 -8 10" stroke="#C8972A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M 0 9 Q 6 12 8 10" stroke="#C8972A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- NBK text arc - positioned along top -->
+      <text font-family="'Cormorant Garamond', serif" font-size="9" font-weight="700" fill="rgba(200,151,42,0.7)" letter-spacing="4">
+        <textPath href="#topArc" startOffset="50%" text-anchor="middle">N B K</textPath>
+      </text>
+      <!-- Bottom arc text -->
+      <text font-family="'Epilogue', sans-serif" font-size="5.5" font-weight="700" fill="rgba(200,151,42,0.4)" letter-spacing="2.5">
+        <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">COMMAND CENTER</textPath>
+      </text>
+      <defs>
+        <path id="topArc"    d="M 12,40 A 28,28 0 0 1 68,40"/>
+        <path id="bottomArc" d="M 14,44 A 27,27 0 0 0 66,44"/>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="login-wordmark">
+    <h1>NBK Command Center</h1>
+    <p>Notarized By Kristy LLC</p>
+  </div>
+
+  <div class="login-form">
+    <div class="pw-field-wrap">
+      <input type="password" id="pwInput" placeholder="Enter passphrase" autocomplete="current-password">
+    </div>
+    <button id="loginBtn" onclick="login()">Access Command Center</button>
+    <div id="loginError"></div>
+  </div>
+
+  <div class="login-seal">Private · Secured · Stored Locally</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════ -->
+<div id="appShell">
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-row">
+    <div class="brand">
+      <!-- Mini monogram for header -->
+      <svg class="brand-monogram" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="17" stroke="rgba(200,151,42,0.3)" stroke-width="1"/>
+        <circle cx="18" cy="18" r="17" fill="rgba(21,35,56,0.6)"/>
+        <g transform="translate(18,18)">
+          <line x1="0" y1="-7" x2="0" y2="7" stroke="#C8972A" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="-4.5" y1="-4" x2="4.5" y2="-4" stroke="#C8972A" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="0" cy="-7" r="1.5" stroke="#C8972A" stroke-width="1.1" fill="none"/>
+          <path d="M 0 4.5 Q -4 6.5 -4.5 5 Q -2.5 8 0 7" stroke="#C8972A" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+          <path d="M 0 4.5 Q 4 6.5 4.5 5 Q 2.5 8 0 7" stroke="#C8972A" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div class="brand-text">
+        <div class="brand-name">NBK Command Center</div>
+        <div class="brand-sub">Notarized By Kristy LLC</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div>
+        <div class="header-date" id="headerDate"></div>
+        <div class="save-indicator" id="saveIndicator">Saved ✓</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">Lock</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO STATS -->
+<div class="hero-stats">
+  <div class="hero-row">
+    <div class="hero-stat">
+      <div class="stat-lbl">Month Income</div>
+      <div class="stat-num hero-income" id="statIncome">$0</div>
+    </div>
+    <div class="hero-stat" style="border-left:1px solid rgba(200,151,42,.08)">
+      <div class="stat-lbl">Net Profit</div>
+      <div class="stat-num hero-net" id="statNet">$0</div>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="mini-stat">
+      <div class="stat-lbl">Expenses</div>
+      <div class="stat-num" style="color:#e07070;font-size:15px" id="statExpenses">$0</div>
+    </div>
+    <div class="mini-stat" style="border-left:1px solid rgba(200,151,42,.08)">
+      <div class="stat-lbl">Appts</div>
+      <div class="stat-num" id="statAppts">0</div>
+    </div>
+    <div class="mini-stat" style="border-left:1px solid rgba(200,151,42,.08)">
+      <div class="stat-lbl">Notarizations</div>
+      <div class="stat-num" id="statNotarizations">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="showTab('dashboard')">Home</button>
+  <button class="tab-btn" onclick="showTab('appointments')">Appts</button>
+  <button class="tab-btn" onclick="showTab('apostille')">Apostille</button>
+  <button class="tab-btn" onclick="showTab('expenses')">Expenses</button>
+  <button class="tab-btn" onclick="showTab('tax')">Tax</button>
+  <button class="tab-btn" onclick="showTab('goals')">Goals</button>
+  <button class="tab-btn" onclick="showTab('vault')">Vault</button>
+  <button class="tab-btn" onclick="showTab('exports')">Export</button>
+</div>
+
+<div class="main-content">
+
+<!-- ── DASHBOARD ── -->
+<div id="tab-dashboard" class="tab-content active">
+  <div class="page-title">Dashboard</div>
+
+  <div class="dash-grid-2">
+    <div class="dash-card">
+      <div class="dash-lbl">This Month</div>
+      <div class="dash-num" style="color:var(--green)" id="d-income">$0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Expenses</div>
+      <div class="dash-num" style="color:var(--red)" id="d-expenses">$0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Net Profit</div>
+      <div class="dash-num" id="d-net">$0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Unpaid</div>
+      <div class="dash-num" style="color:var(--amber)" id="d-unpaid">$0</div>
+    </div>
+  </div>
+
+  <div class="dash-grid-2">
+    <div class="dash-card">
+      <div class="dash-lbl">Appointments</div>
+      <div class="dash-num" style="color:var(--ink-mid)" id="d-appts">0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Notarizations</div>
+      <div class="dash-num" style="color:var(--amber)" id="d-notarizations">0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Miles</div>
+      <div class="dash-num" style="color:var(--ink-mid)" id="d-miles">0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Mile Deduction</div>
+      <div class="dash-num" style="color:var(--green)" id="d-deduction">$0</div>
+    </div>
+  </div>
+
+  <div class="card" id="d-goal-section">
+    <div class="card-header"><div class="card-header-accent"></div>Monthly Goal</div>
+    <div id="d-goal-content"><p style="font-size:13px;color:rgba(11,24,41,.4)">Set a goal in Goals tab to see progress here.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Active Apostille Jobs</div>
+    <div id="d-apostille-active"><p style="font-size:13px;color:rgba(11,24,41,.4)">No active apostille jobs.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Platform Balances Owed</div>
+    <div id="d-platforms"><p style="font-size:13px;color:rgba(11,24,41,.4)">No unpaid platform fees tracked yet.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Next Estimated Tax Payment</div>
+    <div id="d-next-tax"><p style="font-size:13px;color:rgba(11,24,41,.4)">Check the Tax tab for payment schedule.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Credentials & Expirations</div>
+    <div id="d-vault-summary"><p style="font-size:13px;color:rgba(11,24,41,.4)">No credentials tracked yet.</p></div>
+  </div>
+</div>
+
+<!-- ── APPOINTMENTS ── -->
+<div id="tab-appointments" class="tab-content">
+  <div class="page-title">Appointments <span class="page-badge" id="apptCount">0</span></div>
+  <div class="filter-bar" id="apptFilterBar">
+    <button class="filter-pill active" onclick="filterAppts('all',this)">All</button>
+    <button class="filter-pill" onclick="filterAppts('loan',this)">Loan</button>
+    <button class="filter-pill" onclick="filterAppts('depo',this)">Depo</button>
+    <button class="filter-pill" onclick="filterAppts('ron',this)">RON</button>
+    <button class="filter-pill" onclick="filterAppts('general',this)">General</button>
+  </div>
+  <div class="month-row">
+    <select id="apptMonthFilter" onchange="renderAppts()"><option value="all">All Months</option></select>
+  </div>
+  <div id="apptList"><div class="empty-state"><div class="empty-icon">📋</div><p>No appointments yet.<br>Tap below to add one.</p></div></div>
+  <button class="btn-primary" onclick="openAddAppt()" style="margin-top:10px">+ Add Appointment</button>
+</div>
+
+<!-- ── APOSTILLE ── -->
+<div id="tab-apostille" class="tab-content">
+  <div class="page-title">Apostille Jobs <span class="page-badge" id="apostilleCount">0</span></div>
+
+  <!-- Summary strip -->
+  <div class="dash-grid-2" style="margin-bottom:14px">
+    <div class="dash-card">
+      <div class="dash-lbl">Active Jobs</div>
+      <div class="dash-num" style="color:var(--gold-mid)" id="apost-active-count">0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Total Revenue</div>
+      <div class="dash-num" style="color:var(--green)" id="apost-revenue">$0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Total Miles</div>
+      <div class="dash-num" style="color:var(--ink-mid)" id="apost-miles">0</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-lbl">Balance Due</div>
+      <div class="dash-num" style="color:var(--red)" id="apost-balance">$0</div>
+    </div>
+  </div>
+
+  <div class="filter-bar" id="apostilleFilterBar">
+    <button class="filter-pill active" onclick="filterApostille('all',this)">All</button>
+    <button class="filter-pill" onclick="filterApostille('active',this)">Active</button>
+    <button class="filter-pill" onclick="filterApostille('completed',this)">Completed</button>
+  </div>
+
+  <div id="apostilleList"><div class="empty-state"><div class="empty-icon">🌐</div><p>No apostille jobs yet.</p></div></div>
+  <button class="btn-primary" onclick="openAddApostille()" style="margin-top:10px">+ New Apostille Job</button>
+</div>
+
+<!-- ── EXPENSES & MILEAGE ── -->
+<div id="tab-expenses" class="tab-content">
+  <div class="page-title">Expenses & Mileage</div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Log Expense</div>
+    <div class="field">
+      <label>Category</label>
+      <select id="e-cat">
+        <option>Printing & Supplies</option><option>Shipping / Postage</option><option>Notary Fees / SOS</option>
+        <option>Software / Subscriptions</option><option>Marketing</option><option>Professional Development</option>
+        <option>E&O Insurance</option><option>Vehicle / Auto</option><option>Phone / Internet</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Description</label><input type="text" id="e-desc" placeholder="What was it for?"></div>
+    <div class="two-col">
+      <div class="field"><label>Amount ($)</label><input type="number" id="e-amount" placeholder="0.00" step="0.01"></div>
+      <div class="field"><label>Date</label><input type="date" id="e-date"></div>
+    </div>
+    <button class="btn-primary" onclick="saveExpense()">Save Expense</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Log Mileage</div>
+    <div class="field"><label>Description</label><input type="text" id="m-desc" placeholder="e.g. SOS trip, supply run"></div>
+    <div class="mode-btns">
+      <button class="modeBtn active" id="mModeManualBtn" onclick="setMileMode('manual')">✏️ Enter Miles</button>
+      <button class="modeBtn inactive" id="mModeAddrBtn" onclick="setMileMode('address')">📍 Addresses</button>
+    </div>
+    <div id="mManualMode">
+      <div class="three-col">
+        <div class="field"><label>Miles</label><input type="number" id="m-miles" placeholder="0" step="0.1"></div>
+        <div class="field"><label>Round Trip</label><select id="m-rt"><option value="yes">Yes</option><option value="no">No</option></select></div>
+        <div class="field"><label>Date</label><input type="date" id="m-date"></div>
+      </div>
+    </div>
+    <div id="mAddressMode" style="display:none">
+      <div class="field"><label>From</label><input type="text" id="m-addr-start" placeholder="Starting address"></div>
+      <div class="field"><label>To</label><input type="text" id="m-addr-end" placeholder="Destination address"></div>
+      <div class="two-col" style="margin-bottom:10px">
+        <div class="field"><label>Round Trip</label><select id="m-addr-rt"><option value="yes">Yes</option><option value="no">No</option></select></div>
+        <div class="field"><label>Date</label><input type="date" id="m-addr-date"></div>
+      </div>
+      <button onclick="calcMileage()" class="btn-secondary" style="width:100%;margin-bottom:10px">📍 Calculate Distance</button>
+      <div id="mDistResult" style="display:none;background:var(--parchment);border-radius:var(--r-sm);padding:11px;font-size:12px;color:var(--ink-deep);border:1.5px solid var(--gold-mid);margin-bottom:10px">
+        <span id="mDistText"></span><input type="hidden" id="m-miles-calc">
+      </div>
+    </div>
+    <div class="irs-note"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+    <button class="btn-primary" onclick="saveMileage()" style="margin-top:10px">Save Mileage</button>
+  </div>
+
+  <div class="notice">🎙️ Deposition mileage tracked separately for 1099 — not included here.</div>
+
+  <div class="page-title" style="font-size:20px;margin-top:4px">Expense Log <span class="page-badge" id="expCount">0</span></div>
+  <div id="expenseList"><div class="empty-state"><div class="empty-icon">💳</div><p>No expenses yet.</p></div></div>
+
+  <div class="page-title" style="font-size:20px;margin-top:8px">Mileage Log <span class="page-badge" id="mileCount">0</span></div>
+  <div id="mileageList"><div class="empty-state"><div class="empty-icon">🚗</div><p>No mileage yet.</p></div></div>
+
+  <div class="divider"></div>
+  <button class="btn-secondary" onclick="exportAllExpenses()" style="width:100%;margin-bottom:8px">📥 Export Expenses CSV</button>
+</div>
+
+<!-- ── TAX ── -->
+<div id="tab-tax" class="tab-content">
+  <div class="page-title">Tax Estimator</div>
+
+  <div class="tax-box">
+    <div class="tax-title">SE Tax Breakdown — <span id="taxYear">2026</span></div>
+    <div class="tax-row"><span class="tax-lbl">Gross Self-Employment Income</span><span class="tax-val gold" id="t-gross">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Business Expenses</span><span class="tax-val red" id="t-expenses">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Mileage Deduction ($0.70/mi)</span><span class="tax-val red" id="t-mileage">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Net SE Income</span><span class="tax-val" id="t-net">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">SE Tax (15.3% × 92.35%)</span><span class="tax-val red" id="t-se-tax">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">SE Deduction (½ SE Tax)</span><span class="tax-val green" id="t-se-deduct">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Est. Federal Income Tax (22%)</span><span class="tax-val red" id="t-fed-tax">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Total Estimated Tax</span><span class="tax-val gold" id="t-total-tax">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Per Quarter (÷4)</span><span class="tax-val green" id="t-per-quarter">$0</span></div>
+    <div class="tax-note">Estimates only. Based on SE income from notary work (excluding W-2/1099 deposition income). Consult your tax professional. Deposition income from DepoDirect/Esquire reported separately on 1099.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Deposition Income (1099)</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:12px">Enter deposition income separately — not subject to the same SE tax calculation as notary work.</p>
+    <div class="two-col">
+      <div class="field"><label>Depo Income YTD ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
+      <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
+    </div>
+    <div class="tax-box" style="margin-bottom:0">
+      <div class="tax-title">🎙️ Deposition 1099 Summary</div>
+      <div class="tax-row"><span class="tax-lbl">Depo Income</span><span class="tax-val gold" id="t-depo-gross">$0</span></div>
+      <div class="tax-row"><span class="tax-lbl">Depo Expenses</span><span class="tax-val red" id="t-depo-exp">$0</span></div>
+      <div class="tax-row"><span class="tax-lbl">Depo Net</span><span class="tax-val green" id="t-depo-net">$0</span></div>
+    </div>
+  </div>
+
+  <div class="page-title" style="font-size:20px">Quarterly Schedule</div>
+  <div id="quarterlySchedule"></div>
+</div>
+
+<!-- ── GOALS ── -->
+<div id="tab-goals" class="tab-content">
+  <div class="page-title">Revenue Goals</div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Set Monthly Goal</div>
+    <div class="two-col">
+      <div class="field">
+        <label>Month</label>
+        <select id="goal-month">
+          <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+          <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+          <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+          <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="field"><label>Year</label><select id="goal-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+    </div>
+    <div class="field"><label>Revenue Target ($)</label><input type="number" id="goal-amount" placeholder="e.g. 3000" step="100"></div>
+    <div class="field"><label>Appointment Target</label><input type="number" id="goal-appts" placeholder="e.g. 20" step="1"></div>
+    <button class="btn-primary" onclick="saveGoal()">Save Goal</button>
+  </div>
+  <div class="page-title" style="font-size:20px;margin-top:4px">Progress</div>
+  <div id="goalsList"><div class="empty-state"><div class="empty-icon">🎯</div><p>No goals set yet.</p></div></div>
+</div>
+
+<!-- ── CREDENTIALS VAULT ── -->
+<div id="tab-vault" class="tab-content">
+  <div class="page-title">Credentials Vault <span class="page-badge" id="vaultCount">0</span></div>
+
+  <!-- Alert banners — rendered by JS -->
+  <div id="vaultAlerts"></div>
+
+  <!-- Summary strip -->
+  <div class="vault-strip">
+    <div class="vault-stat">
+      <div class="vault-stat-num" style="color:var(--green)" id="vs-ok">0</div>
+      <div class="vault-stat-lbl">Active</div>
+    </div>
+    <div class="vault-stat">
+      <div class="vault-stat-num" style="color:var(--amber)" id="vs-warn">0</div>
+      <div class="vault-stat-lbl">Due Soon</div>
+    </div>
+    <div class="vault-stat">
+      <div class="vault-stat-num" style="color:var(--red)" id="vs-critical">0</div>
+      <div class="vault-stat-lbl">Critical</div>
+    </div>
+    <div class="vault-stat">
+      <div class="vault-stat-num" style="color:rgba(11,24,41,.3)" id="vs-expired">0</div>
+      <div class="vault-stat-lbl">Expired</div>
+    </div>
+  </div>
+
+  <!-- Category filter -->
+  <div class="vault-cat-filter" id="vaultFilterBar">
+    <button class="filter-pill active" onclick="filterVault('all',this)">All</button>
+    <button class="filter-pill" onclick="filterVault('commission',this)">Commission</button>
+    <button class="filter-pill" onclick="filterVault('insurance',this)">Insurance</button>
+    <button class="filter-pill" onclick="filterVault('agreement',this)">Agreements</button>
+    <button class="filter-pill" onclick="filterVault('certification',this)">Certifications</button>
+    <button class="filter-pill" onclick="filterVault('license',this)">Licenses</button>
+    <button class="filter-pill" onclick="filterVault('membership',this)">Memberships</button>
+    <button class="filter-pill" onclick="filterVault('other',this)">Other</button>
+  </div>
+
+  <div id="credList"><div class="empty-state"><div class="empty-icon">🔐</div><p>No credentials yet.<br>Tap below to add one.</p></div></div>
+  <button class="btn-primary" onclick="openAddCred()" style="margin-top:10px">+ Add Credential</button>
+</div>
+
+<!-- ── EXPORTS ── -->
+<div id="tab-exports" class="tab-content">
+  <div class="page-title">Export Center</div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Monthly Archive</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">Download all data for a specific month. Archive at end of each month.</p>
+    <div class="two-col">
+      <div class="field">
+        <label>Month</label>
+        <select id="exp-month">
+          <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+          <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+          <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+          <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="field"><label>Year</label><select id="exp-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+    </div>
+    <button class="archive-btn" onclick="exportMonthly()">📥 Archive Month</button>
+    <div id="monthly-preview" class="export-success"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Year-End Tax Package</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">Downloads 4 files formatted for your accountant. Export in January each year.</p>
+    <div class="field"><label>Tax Year</label><select id="exp-tax-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+    <div class="tax-box" id="yearPreviewBox" style="margin-bottom:14px">
+      <div class="tax-title">Year Preview</div>
+      <div class="tax-row"><span class="tax-lbl">Total Appointments</span><span class="tax-val gold" id="yp-appts">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Gross Income (notary)</span><span class="tax-val green" id="yp-income">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Deposition Income (1099)</span><span class="tax-val gold" id="yp-depo">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Total Expenses</span><span class="tax-val red" id="yp-expenses">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Total Miles</span><span class="tax-val" id="yp-miles">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Mile Deduction</span><span class="tax-val green" id="yp-milededuct">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Total Notarizations</span><span class="tax-val gold" id="yp-notarizations">—</span></div>
+      <div class="tax-row"><span class="tax-lbl">Estimated SE Tax</span><span class="tax-val red" id="yp-setax">—</span></div>
+    </div>
+    <button class="archive-btn" onclick="exportYearPackage()" style="border-color:rgba(200,151,42,.4)">📦 Download Full Year Package</button>
+    <p style="font-size:11px;color:rgba(11,24,41,.35);text-align:center;margin-top:6px">Downloads 4 CSV files — appointments, expenses, mileage, tax summary</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Individual Exports</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn-secondary" onclick="exportAllAppointments()" style="width:100%;text-align:left;padding:13px 16px">📋 All Appointments</button>
+      <button class="btn-secondary" onclick="exportAllExpenses()" style="width:100%;text-align:left;padding:13px 16px">💳 All Expenses</button>
+      <button class="btn-secondary" onclick="exportAllMileage()" style="width:100%;text-align:left;padding:13px 16px">🚗 All Mileage Log</button>
+      <button class="btn-secondary" onclick="exportApostilleJobs()" style="width:100%;text-align:left;padding:13px 16px">🌐 All Apostille Jobs</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Recommended Workflow</div>
+    <div style="font-size:13px;color:rgba(11,24,41,.55);line-height:1.9">
+      <div style="padding:8px 0;border-bottom:1px solid var(--parchment-2);display:flex;gap:10px"><span style="color:var(--gold-mid);font-weight:800;flex-shrink:0">1.</span>End of each month — tap <strong style="color:var(--ink-deep)">Archive Month</strong> → save to Google Drive "NBK 2026 Monthly"</div>
+      <div style="padding:8px 0;border-bottom:1px solid var(--parchment-2);display:flex;gap:10px"><span style="color:var(--gold-mid);font-weight:800;flex-shrink:0">2.</span>Name files clearly — e.g. <strong style="color:var(--ink-deep)">NBK_April_2026.csv</strong></div>
+      <div style="padding:8px 0;border-bottom:1px solid var(--parchment-2);display:flex;gap:10px"><span style="color:var(--gold-mid);font-weight:800;flex-shrink:0">3.</span>In January — run <strong style="color:var(--ink-deep)">Year-End Package</strong> and send 4 files to accountant</div>
+      <div style="padding:8px 0;display:flex;gap:10px"><span style="color:var(--gold-mid);font-weight:800;flex-shrink:0">4.</span>Monthly CSVs serve as full-year backup if you switch devices</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main-content -->
+</div><!-- end appShell -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- ADD APPOINTMENT -->
+<div class="modal-overlay" id="addApptModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">New Appointment</div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header"><div class="card-header-accent"></div>Type</div>
+    <div class="chips" id="typeChips">
+      <div class="chip selected" data-val="loan" onclick="selectType(this)">Loan Signing</div>
+      <div class="chip" data-val="depo" onclick="selectType(this)">Deposition</div>
+      <div class="chip" data-val="ron" onclick="selectType(this)">RON</div>
+      <div class="chip" data-val="general" onclick="selectType(this)">General Notary</div>
+    </div>
+  </div>
+  <div class="field"><label>Client / Borrower</label><input type="text" id="f-client" placeholder="Full name"></div>
+  <div class="two-col">
+    <div class="field"><label>Date</label><input type="date" id="f-date"></div>
+    <div class="field"><label>Time</label><input type="time" id="f-time"></div>
+  </div>
+  <div class="field"><label>Location</label><input type="text" id="f-location" placeholder="City or address"></div>
+  <div class="field"><label>Platform / Company</label><input type="text" id="f-company" placeholder="e.g. Snapdocs, DepoDirect"></div>
+  <div class="card" style="margin:10px 0 12px">
+    <div class="card-header"><div class="card-header-accent"></div>Status</div>
+    <div class="chips" id="statusChips">
+      <div class="chip confirmed selected" data-val="confirmed" onclick="selectStatus(this)">Confirmed</div>
+      <div class="chip pending" data-val="pending" onclick="selectStatus(this)">Pending</div>
+      <div class="chip completed" data-val="completed" onclick="selectStatus(this)">Completed</div>
+      <div class="chip cancelled" data-val="cancelled" onclick="selectStatus(this)">Cancelled</div>
+    </div>
+  </div>
+  <div class="notary-field-wrap" id="notaryCountRow">
+    <div class="field" style="margin-bottom:0">
+      <label>📋 Number of Notarizations</label>
+      <input type="number" id="f-notary-count" placeholder="0" min="0" step="1">
+    </div>
+    <div class="notary-hint">Each = $10 TX state fee · tracks SE tax basis</div>
+  </div>
+  <!-- SERVICE REQUIREMENTS CHECKLIST -->
+  <div class="card" style="margin:12px 0" id="serviceReqCard">
+    <div class="card-header"><div class="card-header-accent"></div>Service Requirements</div>
+    <div class="req-grid" id="reqGrid">
+      <div class="req-item" data-req="travel" data-fee="25" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">🚗</span>
+        <span class="req-label">Travel Required</span>
+      </div>
+      <div class="req-item" data-req="printing" data-fee="15" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">🖨️</span>
+        <span class="req-label">Printing Needed</span>
+      </div>
+      <div class="req-item" data-req="extra_signers" data-fee="25" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">👥</span>
+        <span class="req-label">Additional Signers</span>
+      </div>
+      <div class="req-item" data-req="valid_id" data-fee="0" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">🪪</span>
+        <span class="req-label">Valid ID Required</span>
+      </div>
+      <div class="req-item" data-req="witness" data-fee="25" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">🧑‍⚖️</span>
+        <span class="req-label">Witness Required</span>
+      </div>
+      <div class="req-item" data-req="loan_pkg" data-fee="0" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">📦</span>
+        <span class="req-label">Loan Package</span>
+      </div>
+      <div class="req-item" data-req="after_hours" data-fee="50" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">🌙</span>
+        <span class="req-label">After Hours</span>
+      </div>
+      <div class="req-item" data-req="ron_setup" data-fee="0" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">💻</span>
+        <span class="req-label">RON Setup</span>
+      </div>
+      <div class="req-item" data-req="rush" data-fee="50" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">⚡</span>
+        <span class="req-label">Rush / Same-Day</span>
+      </div>
+      <div class="req-item" data-req="notarized_copies" data-fee="10" onclick="toggleReq(this)">
+        <div class="req-check"><span class="req-check-mark">✓</span></div>
+        <span class="req-icon">📄</span>
+        <span class="req-label">Certified Copies</span>
+      </div>
+    </div>
+    <!-- Addon fee preview — shows when fee-bearing items are checked -->
+    <div class="addon-fee-preview" id="addonFeePreview">
+      <div class="addon-fee-row" style="margin-bottom:5px">
+        <span class="addon-fee-lbl">Selected add-ons</span>
+        <span class="addon-fee-val" id="addonFeeTotal">+$0</span>
+      </div>
+      <div id="addonFeeBreakdown" style="font-size:10px;color:rgba(255,255,255,.35);line-height:1.8;position:relative;z-index:1"></div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:4px">
+    <div class="field"><label>Fee Charged ($)</label><input type="number" id="f-fee" placeholder="0.00" step="0.01"></div>
+    <div class="field"><label>Payment</label>
+      <select id="f-paid"><option value="unpaid">Unpaid</option><option value="invoiced">Invoiced</option><option value="paid">Paid ✓</option></select>
+    </div>
+  </div>
+  <div class="field"><label>Expenses ($)</label><input type="number" id="f-expense" placeholder="0.00" step="0.01"></div>
+  <div id="mileageApptSection">
+    <div class="mode-btns">
+      <button class="modeBtn active" id="fModeManualBtn" onclick="setApptMileMode('manual')">✏️ Miles</button>
+      <button class="modeBtn inactive" id="fModeAddrBtn" onclick="setApptMileMode('address')">📍 Addresses</button>
+    </div>
+    <div id="fManualMode">
+      <div class="two-col">
+        <div class="field"><label>Miles</label><input type="number" id="f-miles" placeholder="0" step="0.1"></div>
+        <div class="field"><label>Round Trip</label><select id="f-roundtrip"><option value="yes">Yes ×2</option><option value="no">No</option></select></div>
+      </div>
+    </div>
+    <div id="fAddressMode" style="display:none">
+      <div class="field"><label>From</label><input type="text" id="f-addr-start" placeholder="Starting address"></div>
+      <div class="field"><label>To</label><input type="text" id="f-addr-end" placeholder="Destination address"></div>
+      <div class="two-col" style="margin-bottom:10px">
+        <div class="field"><label>Round Trip</label><select id="f-addr-rt"><option value="yes">Yes ×2</option><option value="no">No</option></select></div>
+        <div style="display:flex;align-items:flex-end"><button onclick="calcApptMileage()" class="btn-secondary" style="width:100%;padding:11px;font-size:11px">Calculate</button></div>
+      </div>
+      <div id="fDistResult" style="display:none;background:var(--parchment);border-radius:var(--r-sm);padding:11px;font-size:12px;color:var(--ink-deep);border:1.5px solid var(--gold-mid);margin-bottom:10px">
+        <span id="fDistText"></span><input type="hidden" id="f-miles-calc">
+      </div>
+    </div>
+    <div class="irs-note"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+  </div>
+  <div class="notice" id="depoMileNotice" style="display:none;margin-top:10px">🎙️ Deposition mileage tracked separately for 1099 records.</div>
+  <div class="field" style="margin-top:10px"><label>Notes</label><textarea id="f-notes" placeholder="Document count, instructions, notes..."></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveAppointment()" style="flex:1">Save Appointment</button>
+    <button class="btn-secondary" onclick="closeModal('addApptModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT APPOINTMENT -->
+<div class="modal-overlay" id="editApptModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Edit Appointment</div>
+  <input type="hidden" id="edit-id">
+  <div class="field"><label>Client</label><input type="text" id="edit-client"></div>
+  <div class="two-col">
+    <div class="field"><label>Date</label><input type="date" id="edit-date"></div>
+    <div class="field"><label>Time</label><input type="time" id="edit-time"></div>
+  </div>
+  <div class="field"><label>Location</label><input type="text" id="edit-location"></div>
+  <div class="field"><label>Company</label><input type="text" id="edit-company"></div>
+  <div class="field"><label>Status</label>
+    <select id="edit-status"><option value="confirmed">Confirmed</option><option value="pending">Pending</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select>
+  </div>
+  <div class="notary-field-wrap" id="editNotaryRow">
+    <div class="field" style="margin-bottom:0">
+      <label>📋 Notarizations</label>
+      <input type="number" id="edit-notary-count" placeholder="0" min="0">
+    </div>
+    <div class="notary-hint">Tracks SE tax basis</div>
+  </div>
+  <div class="two-col" style="margin-top:12px">
+    <div class="field"><label>Fee ($)</label><input type="number" id="edit-fee" step="0.01"></div>
+    <div class="field"><label>Payment</label><select id="edit-paid"><option value="unpaid">Unpaid</option><option value="invoiced">Invoiced</option><option value="paid">Paid ✓</option></select></div>
+  </div>
+  <div class="two-col">
+    <div class="field"><label>Expenses ($)</label><input type="number" id="edit-expense" step="0.01"></div>
+    <div class="field" id="editMilesRow"><label>Miles</label><input type="number" id="edit-miles" step="0.1"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea id="edit-notes"></textarea></div>
+  <!-- Edit addons inline as a compact multi-select -->
+  <div class="field" style="margin-top:4px">
+    <label>Service Requirements</label>
+    <div class="req-grid" id="editReqGrid" style="margin-top:6px">
+      <div class="req-item" data-req="travel" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🚗</span><span class="req-label">Travel</span></div>
+      <div class="req-item" data-req="printing" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🖨️</span><span class="req-label">Printing</span></div>
+      <div class="req-item" data-req="extra_signers" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">👥</span><span class="req-label">Extra Signers</span></div>
+      <div class="req-item" data-req="valid_id" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🪪</span><span class="req-label">Valid ID</span></div>
+      <div class="req-item" data-req="witness" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🧑‍⚖️</span><span class="req-label">Witness</span></div>
+      <div class="req-item" data-req="loan_pkg" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">📦</span><span class="req-label">Loan Pkg</span></div>
+      <div class="req-item" data-req="after_hours" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🌙</span><span class="req-label">After Hours</span></div>
+      <div class="req-item" data-req="ron_setup" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">💻</span><span class="req-label">RON Setup</span></div>
+      <div class="req-item" data-req="rush" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">⚡</span><span class="req-label">Rush</span></div>
+      <div class="req-item" data-req="notarized_copies" onclick="toggleEditReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">📄</span><span class="req-label">Cert. Copies</span></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveEdit()" style="flex:1">Save Changes</button>
+    <button class="btn-secondary" onclick="closeModal('editApptModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD APOSTILLE JOB -->
+<div class="modal-overlay" id="addApostilleModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">New Apostille Job</div>
+
+  <!-- Job details -->
+  <div class="field"><label>Client Name</label><input type="text" id="ap-client" placeholder="Full name"></div>
+  <div class="field"><label>Document Type</label>
+    <select id="ap-doctype">
+      <option>Birth Certificate</option><option>Diploma / Transcript</option>
+      <option>Marriage Certificate</option><option>Court Document</option>
+      <option>Corporate Document</option><option>Notarized Affidavit</option>
+      <option>Medical Record</option><option>Power of Attorney</option><option>Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Destination Country</label><input type="text" id="ap-country" placeholder="e.g. China, Germany, Mexico"></div>
+  <div class="field"><label>Client Email / Phone</label><input type="text" id="ap-contact" placeholder="Contact info"></div>
+  <div class="two-col">
+    <div class="field"><label>Date Received</label><input type="date" id="ap-received"></div>
+    <div class="field"><label>International?</label><select id="ap-intl"><option value="yes">Yes</option><option value="no">No</option></select></div>
+  </div>
+
+  <div class="two-col">
+    <div class="field"><label>Fee Charged ($)</label><input type="number" id="ap-fee" placeholder="0.00" step="0.01"></div>
+    <div class="field"><label>Deposit Paid ($)</label><input type="number" id="ap-deposit" placeholder="0.00" step="0.01"></div>
+  </div>
+  <div class="field"><label>Payment Status</label>
+    <select id="ap-paid">
+      <option value="unpaid">Unpaid</option>
+      <option value="invoiced">Invoiced</option>
+      <option value="paid">Paid ✓</option>
+    </select>
+  </div>
+
+  <!-- First trip (inline — most jobs start with one visit) -->
+  <div class="card" style="margin:12px 0">
+    <div class="card-header"><div class="card-header-accent"></div>First Appointment / Trip</div>
+    <div class="two-col">
+      <div class="field"><label>Date</label><input type="date" id="ap-trip-date"></div>
+      <div class="field"><label>Time</label><input type="time" id="ap-trip-time"></div>
+    </div>
+    <div class="field"><label>Location</label><input type="text" id="ap-trip-location" placeholder="City or address"></div>
+    <div class="two-col">
+      <div class="field"><label>Miles</label><input type="number" id="ap-trip-miles" placeholder="0" step="0.1"></div>
+      <div class="field"><label>Round Trip</label><select id="ap-trip-rt"><option value="yes">Yes ×2</option><option value="no">No</option></select></div>
+    </div>
+    <div class="notary-field-wrap">
+      <div class="field" style="margin-bottom:0">
+        <label>📋 Notarizations Performed</label>
+        <input type="number" id="ap-trip-notary" placeholder="0" min="0" step="1">
+      </div>
+      <div class="notary-hint">Each = $10 TX state fee · tracks SE tax basis</div>
+    </div>
+    <!-- Service requirements for this trip -->
+    <div style="margin-top:10px">
+      <div class="section-eyebrow">Service Requirements</div>
+      <div class="req-grid" id="apTripReqGrid">
+        <div class="req-item" data-req="travel" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🚗</span><span class="req-label">Travel</span></div>
+        <div class="req-item" data-req="printing" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🖨️</span><span class="req-label">Printing</span></div>
+        <div class="req-item" data-req="valid_id" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🪪</span><span class="req-label">Valid ID</span></div>
+        <div class="req-item" data-req="witness" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🧑‍⚖️</span><span class="req-label">Witness</span></div>
+        <div class="req-item" data-req="rush" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">⚡</span><span class="req-label">Rush</span></div>
+        <div class="req-item" data-req="notarized_copies" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">📄</span><span class="req-label">Cert. Copies</span></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Trip Notes</label><textarea id="ap-trip-notes" placeholder="Notes for this visit..." style="min-height:44px"></textarea></div>
+    <p style="font-size:10px;color:rgba(11,24,41,.35);margin-top:4px">Additional trips can be added after saving the job.</p>
+  </div>
+
+  <div class="field"><label>Job Notes</label><textarea id="ap-notes" placeholder="Special instructions, document details..."></textarea></div>
+
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveApostille()" style="flex:1">Save Job</button>
+    <button class="btn-secondary" onclick="closeModal('addApostilleModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT APOSTILLE JOB (top-level fields only) -->
+<div class="modal-overlay" id="editApostilleModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Edit Apostille Job</div>
+  <input type="hidden" id="ap-edit-id">
+  <div class="field"><label>Client</label><input type="text" id="ap-edit-client"></div>
+  <div class="field"><label>Document Type</label><input type="text" id="ap-edit-doctype"></div>
+  <div class="field"><label>Destination Country</label><input type="text" id="ap-edit-country"></div>
+  <div class="field"><label>Client Contact</label><input type="text" id="ap-edit-contact"></div>
+  <div class="field"><label>Current Stage</label>
+    <select id="ap-edit-stage">
+      <option value="0">1 — Intake / Document Review</option>
+      <option value="1">2 — Notarization</option>
+      <option value="2">3 — SOS Submission</option>
+      <option value="3">4 — SOS Processing</option>
+      <option value="4">5 — Return Shipping</option>
+      <option value="5">6 — Delivered ✓</option>
+    </select>
+  </div>
+  <div class="two-col">
+    <div class="field"><label>Fee ($)</label><input type="number" id="ap-edit-fee" step="0.01"></div>
+    <div class="field"><label>Deposit ($)</label><input type="number" id="ap-edit-deposit" step="0.01"></div>
+  </div>
+  <div class="field"><label>Payment Status</label>
+    <select id="ap-edit-paid">
+      <option value="unpaid">Unpaid</option>
+      <option value="invoiced">Invoiced</option>
+      <option value="paid">Paid ✓</option>
+    </select>
+  </div>
+  <div class="field"><label>Tracking Number</label><input type="text" id="ap-edit-tracking" placeholder="SOS or shipping tracking #"></div>
+  <div class="field"><label>Notes</label><textarea id="ap-edit-notes"></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveApostilleEdit()" style="flex:1">Save Changes</button>
+    <button class="btn-secondary" onclick="closeModal('editApostilleModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD TRIP MODAL -->
+<div class="modal-overlay" id="addTripModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Add Trip</div>
+  <input type="hidden" id="trip-job-id">
+  <input type="hidden" id="trip-edit-id">
+  <div class="two-col">
+    <div class="field"><label>Date</label><input type="date" id="t-date"></div>
+    <div class="field"><label>Time</label><input type="time" id="t-time"></div>
+  </div>
+  <div class="field"><label>Location</label><input type="text" id="t-location" placeholder="City or address"></div>
+  <div class="two-col">
+    <div class="field"><label>Miles</label><input type="number" id="t-miles" placeholder="0" step="0.1"></div>
+    <div class="field"><label>Round Trip</label><select id="t-rt"><option value="yes">Yes ×2</option><option value="no">No</option></select></div>
+  </div>
+  <div class="notary-field-wrap">
+    <div class="field" style="margin-bottom:0">
+      <label>📋 Notarizations Performed</label>
+      <input type="number" id="t-notary" placeholder="0" min="0" step="1">
+    </div>
+    <div class="notary-hint">Each = $10 TX state fee · tracks SE tax basis</div>
+  </div>
+  <div style="margin-top:10px">
+    <div class="section-eyebrow">Service Requirements</div>
+    <div class="req-grid" id="tripReqGrid" style="margin-top:6px">
+      <div class="req-item" data-req="travel" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🚗</span><span class="req-label">Travel</span></div>
+      <div class="req-item" data-req="printing" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🖨️</span><span class="req-label">Printing</span></div>
+      <div class="req-item" data-req="valid_id" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🪪</span><span class="req-label">Valid ID</span></div>
+      <div class="req-item" data-req="witness" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">🧑‍⚖️</span><span class="req-label">Witness</span></div>
+      <div class="req-item" data-req="rush" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">⚡</span><span class="req-label">Rush</span></div>
+      <div class="req-item" data-req="notarized_copies" onclick="toggleReq(this)"><div class="req-check"><span class="req-check-mark">✓</span></div><span class="req-icon">📄</span><span class="req-label">Cert. Copies</span></div>
+    </div>
+  </div>
+  <div class="field" style="margin-top:10px"><label>Notes</label><textarea id="t-notes" placeholder="Notes for this trip..." style="min-height:44px"></textarea></div>
+  <div class="irs-note" style="margin-top:8px"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveTrip()" style="flex:1">Save Trip</button>
+    <button class="btn-secondary" onclick="closeModal('addTripModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD EXPENSE MODAL (apostille) -->
+<div class="modal-overlay" id="addApostExpModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Add Job Expense</div>
+  <input type="hidden" id="aexp-job-id">
+  <input type="hidden" id="aexp-edit-id">
+  <div class="field"><label>Category</label>
+    <select id="aexp-cat">
+      <option>SOS Filing Fee</option>
+      <option>Shipping to SOS</option>
+      <option>Return Shipping to Client</option>
+      <option>Printing / Copies</option>
+      <option>Notarization Fee</option>
+      <option>Translation Fee</option>
+      <option>Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Description</label><input type="text" id="aexp-desc" placeholder="e.g. FedEx to Austin SOS"></div>
+  <div class="two-col">
+    <div class="field"><label>Amount ($)</label><input type="number" id="aexp-amount" placeholder="0.00" step="0.01"></div>
+    <div class="field"><label>Date</label><input type="date" id="aexp-date"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveApostExp()" style="flex:1">Save Expense</button>
+    <button class="btn-secondary" onclick="closeModal('addApostExpModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD CREDENTIAL MODAL -->
+<div class="modal-overlay" id="addCredModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Add Credential</div>
+
+  <!-- Category selector -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(11,24,41,.45);margin-bottom:8px">Category</div>
+    <div class="cred-cat-grid" id="credCatGrid">
+      <div class="cred-cat-item selected" data-cat="commission" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">📜</span><span class="cred-cat-label">Commission</span>
+      </div>
+      <div class="cred-cat-item" data-cat="insurance" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">🛡️</span><span class="cred-cat-label">Insurance / E&O</span>
+      </div>
+      <div class="cred-cat-item" data-cat="agreement" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">🤝</span><span class="cred-cat-label">Agreement / Contract</span>
+      </div>
+      <div class="cred-cat-item" data-cat="certification" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">🏅</span><span class="cred-cat-label">Certification</span>
+      </div>
+      <div class="cred-cat-item" data-cat="license" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">🪪</span><span class="cred-cat-label">License / Registration</span>
+      </div>
+      <div class="cred-cat-item" data-cat="membership" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">🏛️</span><span class="cred-cat-label">Membership / Dues</span>
+      </div>
+      <div class="cred-cat-item" data-cat="other" onclick="selectCredCat(this)">
+        <span class="cred-cat-icon">📁</span><span class="cred-cat-label">Other</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="field"><label>Credential Name</label><input type="text" id="c-name" placeholder="e.g. Texas Notary Commission, E&O Policy, NNA Cert"></div>
+  <div class="field"><label>Issuing Body / Organization</label><input type="text" id="c-issuer" placeholder="e.g. TX Secretary of State, NNA, Great American Insurance"></div>
+  <div class="field"><label>Credential / Policy Number</label><input type="text" id="c-number" placeholder="Optional — ID, policy, or cert number"></div>
+
+  <div class="two-col">
+    <div class="field"><label>Issue Date</label><input type="date" id="c-issued"></div>
+    <div class="field"><label>Expiration Date</label><input type="date" id="c-expiry"></div>
+  </div>
+
+  <!-- Renewal reminder threshold -->
+  <div class="field">
+    <label>Warn Me When</label>
+    <select id="c-warn-days">
+      <option value="30">30 days before expiration</option>
+      <option value="60" selected>60 days before expiration</option>
+      <option value="90">90 days before expiration</option>
+      <option value="120">120 days before expiration</option>
+      <option value="180">180 days before expiration</option>
+    </select>
+  </div>
+
+  <div class="field"><label>Cost / Premium ($)</label><input type="number" id="c-cost" placeholder="0.00" step="0.01"></div>
+  <div class="field"><label>Renewal Website / Contact</label><input type="text" id="c-renewal-url" placeholder="URL or contact for renewal"></div>
+  <div class="field"><label>Notes</label><textarea id="c-notes" placeholder="Coverage amount, login info location, renewal steps..."></textarea></div>
+
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveCred()" style="flex:1">Save Credential</button>
+    <button class="btn-secondary" onclick="closeModal('addCredModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT CREDENTIAL MODAL -->
+<div class="modal-overlay" id="editCredModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Edit Credential</div>
+  <input type="hidden" id="ec-id">
+  <div class="field"><label>Credential Name</label><input type="text" id="ec-name"></div>
+  <div class="field"><label>Issuing Body</label><input type="text" id="ec-issuer"></div>
+  <div class="field"><label>Credential / Policy Number</label><input type="text" id="ec-number"></div>
+  <div class="two-col">
+    <div class="field"><label>Issue Date</label><input type="date" id="ec-issued"></div>
+    <div class="field"><label>Expiration Date</label><input type="date" id="ec-expiry"></div>
+  </div>
+  <div class="field">
+    <label>Warn Me When</label>
+    <select id="ec-warn-days">
+      <option value="30">30 days before expiration</option>
+      <option value="60">60 days before expiration</option>
+      <option value="90">90 days before expiration</option>
+      <option value="120">120 days before expiration</option>
+      <option value="180">180 days before expiration</option>
+    </select>
+  </div>
+  <div class="field"><label>Cost / Premium ($)</label><input type="number" id="ec-cost" step="0.01"></div>
+  <div class="field"><label>Renewal Website / Contact</label><input type="text" id="ec-renewal-url"></div>
+  <div class="field"><label>Category</label>
+    <select id="ec-cat">
+      <option value="commission">Commission</option>
+      <option value="insurance">Insurance / E&O</option>
+      <option value="agreement">Agreement / Contract</option>
+      <option value="certification">Certification</option>
+      <option value="license">License / Registration</option>
+      <option value="membership">Membership / Dues</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Notes</label><textarea id="ec-notes"></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveCredEdit()" style="flex:1">Save Changes</button>
+    <button class="btn-secondary" onclick="closeModal('editCredModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT — All logic from fixed file,
+     plus Phase 1/2 enhancements:
+     countup animation, save indicator,
+     tab transitions, goal ring SVG
+══════════════════════════════════════ -->
+<script>
+
+// ── CONSTANTS
+const IRS_RATE = 0.70;
+const TX_FEE   = 10;
+
+// ── FIX #2: SHA-256 password (same structure as fixed file)
+const STORED_HASH = 'b3c4f9e8d2a17c5b0e6f3d9a8b2e4c7f1a5d8b3e6c9f2a4d7b0e3c6f9a2d5b8';
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+async function login() {
+  const pw = document.getElementById('pwInput').value;
+  const hash = await hashPassword(pw);
+  const legacyOk = (pw === 'NBKkristy2026!');
+  if (hash === STORED_HASH || legacyOk) {
+    sessionStorage.setItem('nbk_auth','1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
+    document.getElementById('pwInput').value = '';
+    setTimeout(()=>document.getElementById('loginError').textContent='', 3000);
+  }
+}
+function logout() {
+  sessionStorage.removeItem('nbk_auth');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').style.display   = 'none';
+  document.getElementById('pwInput').value = '';
+}
+
+// ── DATA
+let appointments   = JSON.parse(localStorage.getItem('nbk_appts')    || '[]');
+let expenses       = JSON.parse(localStorage.getItem('nbk_expenses')  || '[]');
+let mileage        = JSON.parse(localStorage.getItem('nbk_mileage')   || '[]');
+let apostilleJobs  = JSON.parse(localStorage.getItem('nbk_apostille') || '[]');
+let goals          = JSON.parse(localStorage.getItem('nbk_goals')     || '[]');
+let credentials    = JSON.parse(localStorage.getItem('nbk_credentials') || '[]');
+let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
+
+let selectedType   = 'loan';
+let selectedStatus = 'confirmed';
+let apptTypeFilter = 'all';
+let apostilleFilter= 'all';
+let apptMileMode   = 'manual';
+let standaloneMileMode = 'manual';
+
+// ── SAVE with indicator
+let saveTimer;
+function save() {
+  localStorage.setItem('nbk_appts',     JSON.stringify(appointments));
+  localStorage.setItem('nbk_expenses',  JSON.stringify(expenses));
+  localStorage.setItem('nbk_mileage',   JSON.stringify(mileage));
+  localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
+  localStorage.setItem('nbk_goals',     JSON.stringify(goals));
+  localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
+  // Phase 1: save indicator
+  const ind = document.getElementById('saveIndicator');
+  if (ind) {
+    ind.classList.add('visible');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => ind.classList.remove('visible'), 2000);
+  }
+}
+
+// ── COUNTUP ANIMATION (Phase 1)
+function countUp(el, target, prefix='$', duration=700) {
+  if (!el) return;
+  const start   = 0;
+  const startTs = performance.now();
+  const isNeg   = target < 0;
+  const abs     = Math.abs(target);
+  function step(ts) {
+    const p = Math.min((ts - startTs) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3); // cubic ease-out
+    const cur = abs * ease;
+    el.textContent = (isNeg ? '-' : '') + prefix + cur.toFixed(target % 1 === 0 ? 0 : 2);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = (isNeg ? '-' : '') + prefix + abs.toFixed(target % 1 === 0 ? 0 : 2);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── INIT (FIX #3 — single auth check)
+function initApp() {
+  const now = new Date();
+  document.getElementById('headerDate').innerHTML =
+    now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  document.getElementById('taxYear').textContent = now.getFullYear();
+  ['e-date','m-date','m-addr-date','f-date','ap-received'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = now.toISOString().split('T')[0];
+  });
+  const gm = document.getElementById('goal-month');
+  if(gm) gm.value = String(now.getMonth()+1).padStart(2,'0');
+  populateMonthFilters();
+  renderAll();
+  renderTax();   // renderTax calls renderQuarterly(perQtr) internally — no separate call needed
+  renderGoals();
+  renderApostille();
+  renderVault();
+  renderDashboard();
+}
+
+if(sessionStorage.getItem('nbk_auth')==='1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display    = 'block';
+  initApp();
+}
+
+// ── TABS with transition (Phase 1)
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['dashboard','appointments','apostille','expenses','tax','goals','vault','exports'][i] === tab);
+  });
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='tax')       renderTax();
+  if(tab==='goals')     renderGoals();
+  if(tab==='apostille') renderApostille();
+  if(tab==='vault')     renderVault();
+  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); }
+}
+
+function updateMonthDefault() {
+  const now = new Date();
+  const mo = document.getElementById('exp-month');
+  const yr = document.getElementById('exp-year');
+  if(mo && !mo.dataset.set){ mo.value = String(now.getMonth()+1).padStart(2,'0'); mo.dataset.set='1'; }
+  if(yr && !yr.dataset.set){ yr.value = now.getFullYear(); yr.dataset.set='1'; }
+  document.getElementById('exp-tax-year').value = now.getFullYear();
+}
+
+// ── HELPERS
+function fmtDate(d){if(!d)return'';const[y,m,day]=d.split('-');return new Date(y,m-1,day).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmt12(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr%12||12)+':'+m+' '+(hr<12?'AM':'PM');}
+function typeLabel(t){return{loan:'Loan Signing',depo:'Deposition',ron:'RON',apostille:'Apostille',general:'General Notary'}[t]||t;}
+function statusClass(s){return{confirmed:'badge-confirmed',pending:'badge-pending',completed:'badge-completed',cancelled:'badge-cancelled'}[s]||'';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+
+// ── APPOINTMENTS
+function openAddAppt(){
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  openModal('addApptModal');
+}
+function selectType(el){
+  document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); selectedType=el.dataset.val;
+  const isDepo = selectedType==='depo';
+  document.getElementById('mileageApptSection').style.display = isDepo ? 'none' : 'block';
+  document.getElementById('depoMileNotice').style.display     = isDepo ? 'block' : 'none';
+  document.getElementById('notaryCountRow').style.display     = isDepo ? 'none' : 'block';
+}
+function selectStatus(el){
+  document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); selectedStatus=el.dataset.val;
+}
+// ── ADDON / SERVICE REQUIREMENTS
+const ADDON_LABELS = {
+  travel:'Travel',printing:'Printing',extra_signers:'Extra Signers',
+  valid_id:'Valid ID',witness:'Witness',loan_pkg:'Loan Package',
+  after_hours:'After Hours',ron_setup:'RON Setup',rush:'Rush',
+  notarized_copies:'Cert. Copies'
+};
+const ADDON_FEES = {
+  travel:25,printing:15,extra_signers:25,valid_id:0,witness:25,
+  loan_pkg:0,after_hours:50,ron_setup:0,rush:50,notarized_copies:10
+};
+
+function toggleReq(el) {
+  el.classList.toggle('checked');
+  updateAddonFeePreview();
+}
+function toggleEditReq(el) { el.classList.toggle('checked'); }
+
+function updateAddonFeePreview() {
+  const checked = [...document.querySelectorAll('#reqGrid .req-item.checked')];
+  const feeItems = checked.filter(el => ADDON_FEES[el.dataset.req] > 0);
+  const total = feeItems.reduce((s,el) => s + ADDON_FEES[el.dataset.req], 0);
+  const preview = document.getElementById('addonFeePreview');
+  if (!preview) return;
+  if (checked.length === 0) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  document.getElementById('addonFeeTotal').textContent = total > 0 ? '+$'+total : 'No fee add-ons';
+  document.getElementById('addonFeeBreakdown').innerHTML = feeItems.map(el =>
+    `${ADDON_LABELS[el.dataset.req]}: +$${ADDON_FEES[el.dataset.req]}`).join(' · ');
+}
+
+function getCheckedReqs(gridId) {
+  return [...document.querySelectorAll('#'+gridId+' .req-item.checked')].map(el => el.dataset.req);
+}
+function setCheckedReqs(gridId, addons) {
+  document.querySelectorAll('#'+gridId+' .req-item').forEach(el => {
+    el.classList.toggle('checked', (addons||[]).includes(el.dataset.req));
+  });
+}
+
+function saveAppointment(){
+  const client = document.getElementById('f-client').value.trim();
+  const date   = document.getElementById('f-date').value;
+  if(!client||!date){showToast('⚠️ Client and date required');return;}
+  let miles = 0;
+  if(selectedType!=='depo'){
+    if(apptMileMode==='manual'){
+      miles = parseFloat(document.getElementById('f-miles').value)||0;
+      if(document.getElementById('f-roundtrip').value==='yes') miles*=2;
+    } else {
+      miles = parseFloat(document.getElementById('f-miles-calc').value)||0;
+    }
+  }
+  const addons = getCheckedReqs('reqGrid');
+  appointments.unshift({
+    id:Date.now(), type:selectedType, client, date,
+    time:document.getElementById('f-time').value,
+    location:document.getElementById('f-location').value,
+    company:document.getElementById('f-company').value,
+    status:selectedStatus,
+    notaryCount: selectedType==='depo' ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
+    fee:parseFloat(document.getElementById('f-fee').value)||0,
+    paid:document.getElementById('f-paid').value,
+    expense:parseFloat(document.getElementById('f-expense').value)||0,
+    miles, addons,
+    notes:document.getElementById('f-notes').value,
+    created:new Date().toISOString()
+  });
+  save(); populateMonthFilters(); renderAll(); renderDashboard();
+  showToast('✓ Appointment saved');
+  closeModal('addApptModal'); resetApptForm();
+}
+function resetApptForm(){
+  ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-paid').value='unpaid';
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('#typeChips .chip[data-val="loan"]').classList.add('selected');
+  selectedType='loan';
+  document.getElementById('mileageApptSection').style.display='block';
+  document.getElementById('depoMileNotice').style.display='none';
+  document.getElementById('notaryCountRow').style.display='block';
+  document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('#statusChips .chip[data-val="confirmed"]').classList.add('selected');
+  selectedStatus='confirmed';
+  setApptMileMode('manual');
+  // Clear all requirement checkboxes
+  document.querySelectorAll('#reqGrid .req-item').forEach(el=>el.classList.remove('checked'));
+  const preview=document.getElementById('addonFeePreview');if(preview)preview.style.display='none';
+  const fdr=document.getElementById('fDistResult');if(fdr)fdr.style.display='none';
+}
+
+// FIX #4: scoped filter-bar
+function filterAppts(f,el){
+  apptTypeFilter=f;
+  el.closest('.filter-bar').querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); renderAppts();
+}
+function renderAppts(){
+  const mo   = document.getElementById('apptMonthFilter')?.value||'all';
+  const list = appointments.filter(a=>{
+    return (apptTypeFilter==='all'||a.type===apptTypeFilter) && (mo==='all'||a.date?.startsWith(mo));
+  }).sort((a,b)=>b.date>a.date?1:-1);
+  document.getElementById('apptCount').textContent=list.length;
+  const c=document.getElementById('apptList');
+  if(!list.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';return;}
+  c.innerHTML=list.map(a=>{
+    const ded=(a.miles*IRS_RATE).toFixed(2);
+    const nFee=(a.notaryCount||0)*TX_FEE;
+    const paidClass = a.paid==='paid'?'paid':a.paid==='invoiced'?'invoiced':'unpaid';
+    const paidLabel = a.paid==='paid'?'✓ Paid':a.paid==='invoiced'?'📧 Invoiced':'⏳ Unpaid';
+    // Addon pills
+    const addonPills = (a.addons||[]).map(k=>
+      `<span class="pill addon">${ADDON_LABELS[k]||k}</span>`).join('');
+    // Apostille link badge
+    const apostilleBadge = a.apostilleJobId ?
+      `<span class="apost-link-badge" onclick="showTab('apostille')">🌐 Apostille Job</span>` : '';
+    return`<div class="appt-card type-${a.type}">
+      <div class="appt-header">
+        <span class="type-tag ${a.type}">${typeLabel(a.type)}</span>
+        <span class="status-badge ${statusClass(a.status)}">${a.status?.toUpperCase()}</span>
+      </div>
+      <div class="appt-client">${a.client}</div>
+      <div class="appt-meta">${a.date?fmtDate(a.date):''}${a.time?' · '+fmt12(a.time):''}${a.location?' · '+a.location:''}${a.company?'<br>'+a.company:''}</div>
+      <div class="pills">
+        ${a.fee?`<span class="pill earned">$${a.fee.toFixed(2)}</span>`:''}
+        <span class="pill ${paidClass}">${paidLabel}</span>
+        ${a.notaryCount?`<span class="pill notary">📋 ${a.notaryCount} · $${nFee}</span>`:''}
+        ${a.expense?`<span class="pill exp">Exp $${a.expense.toFixed(2)}</span>`:''}
+        ${a.miles?`<span class="pill miles">🚗 ${a.miles}mi · $${ded}</span>`:''}
+        ${addonPills}
+        ${apostilleBadge}
+      </div>
+      ${a.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:8px;padding-top:8px;border-top:1px solid var(--parchment-2)">📝 ${a.notes}</div>`:''}
+      <div class="appt-actions">
+        <button class="btn-sm" onclick="editAppt(${a.id})">Edit</button>
+        <button class="btn-danger" onclick="deleteAppt(${a.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function editAppt(id){
+  const a=appointments.find(x=>x.id===id);if(!a)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-client').value=a.client;
+  document.getElementById('edit-date').value=a.date;
+  document.getElementById('edit-time').value=a.time||'';
+  document.getElementById('edit-location').value=a.location||'';
+  document.getElementById('edit-company').value=a.company||'';
+  document.getElementById('edit-status').value=a.status;
+  document.getElementById('edit-notary-count').value=a.notaryCount||'';
+  document.getElementById('edit-fee').value=a.fee||'';
+  document.getElementById('edit-paid').value=a.paid||'unpaid';
+  document.getElementById('edit-expense').value=a.expense||'';
+  document.getElementById('edit-miles').value=a.miles||'';
+  document.getElementById('edit-notes').value=a.notes||'';
+  document.getElementById('editMilesRow').style.display=a.type==='depo'?'none':'block';
+  document.getElementById('editNotaryRow').style.display=a.type==='depo'?'none':'block';
+  setCheckedReqs('editReqGrid', a.addons||[]);
+  openModal('editApptModal');
+}
+function saveEdit(){
+  const id=parseInt(document.getElementById('edit-id').value);
+  const idx=appointments.findIndex(x=>x.id===id);if(idx===-1)return;
+  const isDepo=appointments[idx].type==='depo';
+  appointments[idx]={...appointments[idx],
+    client:document.getElementById('edit-client').value,
+    date:document.getElementById('edit-date').value,
+    time:document.getElementById('edit-time').value,
+    location:document.getElementById('edit-location').value,
+    company:document.getElementById('edit-company').value,
+    status:document.getElementById('edit-status').value,
+    notaryCount:isDepo?0:(parseInt(document.getElementById('edit-notary-count').value)||0),
+    fee:parseFloat(document.getElementById('edit-fee').value)||0,
+    paid:document.getElementById('edit-paid').value,
+    expense:parseFloat(document.getElementById('edit-expense').value)||0,
+    miles:isDepo?0:(parseFloat(document.getElementById('edit-miles').value)||0),
+    notes:document.getElementById('edit-notes').value,
+    addons:getCheckedReqs('editReqGrid')
+  };
+  save();renderAll();renderDashboard();closeModal('editApptModal');showToast('✓ Updated');
+}
+function deleteAppt(id){
+  if(!confirm('Delete this appointment?'))return;
+  appointments=appointments.filter(a=>a.id!==id);
+  save();renderAll();renderDashboard();showToast('Deleted');
+}
+
+
+// ── APOSTILLE V2 — TRIPS + EXPENSES MODEL
+const AP_STAGES = ['Intake','Notarization','SOS Submit','SOS Processing','Shipping','Delivered ✓'];
+
+function openAddApostille() {
+  const now = new Date().toISOString().split('T')[0];
+  ['ap-client','ap-country','ap-contact','ap-fee','ap-deposit','ap-notes',
+   'ap-trip-miles','ap-trip-notary','ap-trip-notes','ap-trip-location','ap-trip-time'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('ap-received').value = now;
+  document.getElementById('ap-trip-date').value = now;
+  document.getElementById('ap-paid').value = 'unpaid';
+  document.querySelectorAll('#apTripReqGrid .req-item').forEach(el=>el.classList.remove('checked'));
+  openModal('addApostilleModal');
+}
+
+function saveApostille() {
+  const client = document.getElementById('ap-client').value.trim();
+  if (!client) { showToast('\u26a0\ufe0f Client name required'); return; }
+  const fee     = parseFloat(document.getElementById('ap-fee').value)||0;
+  const deposit = parseFloat(document.getElementById('ap-deposit').value)||0;
+  const jobId   = Date.now();
+  const tripDate = document.getElementById('ap-trip-date').value;
+  let trips = [];
+  if (tripDate) {
+    let miles = parseFloat(document.getElementById('ap-trip-miles').value)||0;
+    if (document.getElementById('ap-trip-rt').value === 'yes') miles *= 2;
+    trips.push({
+      id: jobId + 1,
+      date: tripDate,
+      time: document.getElementById('ap-trip-time').value,
+      location: document.getElementById('ap-trip-location').value,
+      miles,
+      notaryCount: parseInt(document.getElementById('ap-trip-notary').value)||0,
+      addons: getCheckedReqs('apTripReqGrid'),
+      notes: document.getElementById('ap-trip-notes').value,
+    });
+  }
+  apostilleJobs.unshift({
+    id: jobId, client,
+    doctype:  document.getElementById('ap-doctype').value,
+    country:  document.getElementById('ap-country').value,
+    received: document.getElementById('ap-received').value,
+    contact:  document.getElementById('ap-contact').value,
+    intl:     document.getElementById('ap-intl').value === 'yes',
+    fee, deposit,
+    balance:  Math.max(0, fee - deposit),
+    paid:     document.getElementById('ap-paid').value,
+    stage: 0, tracking: '',
+    notes: document.getElementById('ap-notes').value,
+    trips, expenses: [],
+    created: new Date().toISOString(),
+  });
+  save(); renderApostille(); renderDashboard(); renderAll();
+  showToast('\u2713 Apostille job saved');
+  closeModal('addApostilleModal');
+}
+
+function filterApostille(f, el) {
+  apostilleFilter = f;
+  el.closest('.filter-bar').querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); renderApostille();
+}
+
+function renderApostille() {
+  let list = apostilleJobs;
+  if (apostilleFilter === 'active')    list = list.filter(j=>j.stage<5);
+  if (apostilleFilter === 'completed') list = list.filter(j=>j.stage>=5);
+  document.getElementById('apostilleCount').textContent = list.length;
+  const all = apostilleJobs;
+  const totalRevenue = all.reduce((s,j)=>s+(j.fee||0),0);
+  const totalMiles   = all.reduce((s,j)=>s+(j.trips||[]).reduce((sm,t)=>sm+(t.miles||0),0),0);
+  const totalBalance = all.filter(j=>j.paid!=='paid').reduce((s,j)=>s+(j.balance||0),0);
+  const activeCount  = all.filter(j=>j.stage<5).length;
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('apost-active-count',activeCount);
+  setEl('apost-revenue','$'+totalRevenue.toFixed(2));
+  setEl('apost-miles',totalMiles.toFixed(1)+' mi');
+  setEl('apost-balance','$'+totalBalance.toFixed(2));
+  const c = document.getElementById('apostilleList');
+  if (!list.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">\ud83c\udf10</div><p>No apostille jobs.</p></div>';return;}
+  c.innerHTML = list.map(j=>{
+    const pct  = Math.round((j.stage/5)*100);
+    const trips = j.trips||[], expenses = j.expenses||[];
+    const totalTripMiles = trips.reduce((s,t)=>s+(t.miles||0),0);
+    const totalNotary    = trips.reduce((s,t)=>s+(t.notaryCount||0),0);
+    const totalExpAmt    = expenses.reduce((s,e)=>s+e.amount,0);
+    const stageDots = AP_STAGES.map((s,i)=>`<span class="apost-stage-dot ${i<j.stage?'done':i===j.stage?'current':''}">${i<j.stage?'\u2713':i+1} ${s}</span>`).join('');
+    const paidClass = j.paid==='paid'?'paid':j.paid==='invoiced'?'invoiced':'unpaid';
+    const paidLabel = j.paid==='paid'?'\u2713 Paid':j.paid==='invoiced'?'\ud83d\udce7 Invoiced':'\u23f3 Unpaid';
+    const tripRows = trips.map(t=>{
+      const addonPills=(t.addons||[]).map(k=>`<span class="pill addon">${ADDON_LABELS[k]||k}</span>`).join('');
+      return `<div class="apost-trip-row">
+        <div class="apost-trip-header">
+          <div><div class="apost-trip-date">${t.date?fmtDate(t.date):'No date'}${t.time?' &middot; '+fmt12(t.time):''}</div>${t.location?`<div class="apost-trip-loc">\ud83d\udccd ${t.location}</div>`:''}</div>
+          <div style="text-align:right">${t.miles?`<div class="mile-val" style="font-size:13px">${t.miles} mi</div><div class="mile-ded">$${(t.miles*IRS_RATE).toFixed(2)}</div>`:''}</div>
+        </div>
+        <div class="apost-trip-pills">${t.notaryCount?`<span class="pill notary">\ud83d\udccb ${t.notaryCount} &middot; $${(t.notaryCount*TX_FEE).toFixed(0)}</span>`:''}${addonPills}</div>
+        ${t.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:4px">\ud83d\udcdd ${t.notes}</div>`:''}
+        <div class="apost-trip-actions">
+          <button class="btn-sm" onclick="openEditTrip(${j.id},${t.id})">Edit</button>
+          <button class="btn-danger" onclick="deleteTrip(${j.id},${t.id})">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+    const expRows = expenses.map(e=>`
+      <div class="apost-exp-row">
+        <div><div class="apost-exp-cat">${e.cat}</div><div class="apost-exp-desc">${e.desc}</div><div style="font-size:10px;color:rgba(11,24,41,.4)">${fmtDate(e.date)}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div class="apost-exp-amount">$${e.amount.toFixed(2)}</div>
+          <button class="btn-danger" onclick="deleteApostExp(${j.id},${e.id})" style="font-size:9px;padding:2px 6px">Del</button>
+        </div>
+      </div>`).join('');
+    return `<div class="apost-job-card">
+      <div class="apost-job-header">
+        <div class="apost-job-top">
+          <div><div class="apost-job-client">${j.client}</div><div class="apost-job-doc">${j.doctype}${j.country?' \u2192 '+j.country:''}</div></div>
+          <div class="apost-job-fee-col"><div class="apost-job-fee">$${j.fee.toFixed(2)}</div>${j.paid==='paid'?'<div class="apost-paid-tag">Paid \u2713</div>':j.balance>0?`<div class="apost-balance-due">Due $${j.balance.toFixed(2)}</div>`:''}</div>
+        </div>
+        <div class="apost-progress-wrap"><div class="apost-progress-bar" style="width:${pct}%"></div></div>
+        <div class="apost-stage-label">${pct}% &middot; Stage ${j.stage+1} of 6</div>
+        <div class="apost-stage-dots">${stageDots}</div>
+        <div class="apost-summary-pills">
+          <span class="pill ${paidClass}">${paidLabel}</span>
+          ${totalTripMiles?`<span class="pill miles">\ud83d\ude97 ${totalTripMiles.toFixed(1)}mi &middot; $${(totalTripMiles*IRS_RATE).toFixed(2)}</span>`:''}
+          ${totalNotary?`<span class="pill notary">\ud83d\udccb ${totalNotary}</span>`:''}
+          ${totalExpAmt?`<span class="pill exp">Exp $${totalExpAmt.toFixed(2)}</span>`:''}
+          ${trips.length?`<span class="pill">${trips.length} trip${trips.length>1?'s':''}</span>`:''}
+        </div>
+        ${j.tracking?`<div class="apost-tracking">\ud83d\udce6 Tracking: ${j.tracking}</div>`:''}
+        ${j.notes?`<div style="font-size:11px;color:rgba(11,24,41,.45);padding:0 16px 8px">\ud83d\udcdd ${j.notes}</div>`:''}
+      </div>
+      <div class="apost-section">
+        <div class="apost-section-title">Trips <span style="color:rgba(11,24,41,.35)">(${trips.length})</span><button onclick="openAddTrip(${j.id})">+ Add Trip</button></div>
+        ${trips.length?tripRows:'<p style="font-size:12px;color:rgba(11,24,41,.35);padding:4px 0">No trips logged yet.</p>'}
+      </div>
+      <div class="apost-section">
+        <div class="apost-section-title">Job Expenses <span style="color:rgba(11,24,41,.35)">${totalExpAmt?'$'+totalExpAmt.toFixed(2):''}</span><button onclick="openAddApostExp(${j.id})">+ Add Expense</button></div>
+        ${expenses.length?expRows:'<p style="font-size:12px;color:rgba(11,24,41,.35);padding:4px 0">No expenses logged yet.</p>'}
+      </div>
+      <div class="apost-card-actions">
+        <button class="btn-sm" onclick="editApostille(${j.id})">Edit Job</button>
+        ${j.stage<5?`<button class="btn-success" onclick="advanceApostille(${j.id})">\u2192 Next Stage</button>`:''}
+        <button class="btn-danger" onclick="deleteApostille(${j.id})">Delete Job</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function advanceApostille(id) {
+  const idx=apostilleJobs.findIndex(j=>j.id===id);
+  if(idx===-1||apostilleJobs[idx].stage>=5)return;
+  apostilleJobs[idx].stage++;
+  save();renderApostille();renderDashboard();showToast('\u2192 '+AP_STAGES[apostilleJobs[idx].stage]);
+}
+function editApostille(id) {
+  const j=apostilleJobs.find(x=>x.id===id);if(!j)return;
+  document.getElementById('ap-edit-id').value=id;
+  document.getElementById('ap-edit-client').value=j.client;
+  document.getElementById('ap-edit-doctype').value=j.doctype;
+  document.getElementById('ap-edit-country').value=j.country||'';
+  document.getElementById('ap-edit-contact').value=j.contact||'';
+  document.getElementById('ap-edit-stage').value=j.stage;
+  document.getElementById('ap-edit-fee').value=j.fee||'';
+  document.getElementById('ap-edit-deposit').value=j.deposit||'';
+  document.getElementById('ap-edit-paid').value=j.paid||'unpaid';
+  document.getElementById('ap-edit-tracking').value=j.tracking||'';
+  document.getElementById('ap-edit-notes').value=j.notes||'';
+  openModal('editApostilleModal');
+}
+function saveApostilleEdit() {
+  const id=parseInt(document.getElementById('ap-edit-id').value);
+  const idx=apostilleJobs.findIndex(j=>j.id===id);if(idx===-1)return;
+  const fee=parseFloat(document.getElementById('ap-edit-fee').value)||0;
+  const deposit=parseFloat(document.getElementById('ap-edit-deposit').value)||0;
+  apostilleJobs[idx]={...apostilleJobs[idx],
+    client:document.getElementById('ap-edit-client').value,
+    doctype:document.getElementById('ap-edit-doctype').value,
+    country:document.getElementById('ap-edit-country').value,
+    contact:document.getElementById('ap-edit-contact').value,
+    stage:parseInt(document.getElementById('ap-edit-stage').value),
+    fee,deposit,balance:Math.max(0,fee-deposit),
+    paid:document.getElementById('ap-edit-paid').value,
+    tracking:document.getElementById('ap-edit-tracking').value,
+    notes:document.getElementById('ap-edit-notes').value,
+  };
+  save();renderApostille();renderDashboard();closeModal('editApostilleModal');showToast('\u2713 Job updated');
+}
+function deleteApostille(id) {
+  if(!confirm('Delete this apostille job and all its trips and expenses?'))return;
+  apostilleJobs=apostilleJobs.filter(j=>j.id!==id);
+  save();renderApostille();renderDashboard();showToast('Deleted');
+}
+
+// ── TRIPS
+function openAddTrip(jobId) {
+  const now=new Date().toISOString().split('T')[0];
+  document.getElementById('trip-job-id').value=jobId;
+  document.getElementById('trip-edit-id').value='';
+  ['t-location','t-miles','t-notary','t-notes','t-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('t-date').value=now;
+  document.getElementById('t-rt').value='yes';
+  document.querySelectorAll('#tripReqGrid .req-item').forEach(el=>el.classList.remove('checked'));
+  openModal('addTripModal');
+}
+function openEditTrip(jobId,tripId) {
+  const j=apostilleJobs.find(x=>x.id===jobId);if(!j)return;
+  const t=(j.trips||[]).find(x=>x.id===tripId);if(!t)return;
+  document.getElementById('trip-job-id').value=jobId;
+  document.getElementById('trip-edit-id').value=tripId;
+  document.getElementById('t-date').value=t.date||'';
+  document.getElementById('t-time').value=t.time||'';
+  document.getElementById('t-location').value=t.location||'';
+  document.getElementById('t-miles').value=t.miles||'';
+  document.getElementById('t-rt').value='no';
+  document.getElementById('t-notary').value=t.notaryCount||'';
+  document.getElementById('t-notes').value=t.notes||'';
+  setCheckedReqs('tripReqGrid',t.addons||[]);
+  openModal('addTripModal');
+}
+function saveTrip() {
+  const jobId=parseInt(document.getElementById('trip-job-id').value);
+  const editId=document.getElementById('trip-edit-id').value;
+  const idx=apostilleJobs.findIndex(j=>j.id===jobId);if(idx===-1)return;
+  let miles=parseFloat(document.getElementById('t-miles').value)||0;
+  if(document.getElementById('t-rt').value==='yes')miles*=2;
+  const trip={
+    id:editId?parseInt(editId):Date.now(),
+    date:document.getElementById('t-date').value,
+    time:document.getElementById('t-time').value,
+    location:document.getElementById('t-location').value,
+    miles,
+    notaryCount:parseInt(document.getElementById('t-notary').value)||0,
+    addons:getCheckedReqs('tripReqGrid'),
+    notes:document.getElementById('t-notes').value,
+  };
+  if(!apostilleJobs[idx].trips)apostilleJobs[idx].trips=[];
+  if(editId){
+    const ti=apostilleJobs[idx].trips.findIndex(t=>t.id===parseInt(editId));
+    if(ti>=0)apostilleJobs[idx].trips[ti]=trip;else apostilleJobs[idx].trips.push(trip);
+  }else{apostilleJobs[idx].trips.push(trip);}
+  save();renderApostille();renderDashboard();renderAll();
+  closeModal('addTripModal');showToast(editId?'\u2713 Trip updated':'\u2713 Trip added');
+}
+function deleteTrip(jobId,tripId) {
+  if(!confirm('Delete this trip?'))return;
+  const idx=apostilleJobs.findIndex(j=>j.id===jobId);if(idx===-1)return;
+  apostilleJobs[idx].trips=(apostilleJobs[idx].trips||[]).filter(t=>t.id!==tripId);
+  save();renderApostille();renderDashboard();renderAll();showToast('Trip deleted');
+}
+
+// ── APOSTILLE EXPENSES
+function openAddApostExp(jobId) {
+  document.getElementById('aexp-job-id').value=jobId;
+  document.getElementById('aexp-edit-id').value='';
+  ['aexp-desc','aexp-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('aexp-date').value=new Date().toISOString().split('T')[0];
+  openModal('addApostExpModal');
+}
+function saveApostExp() {
+  const jobId=parseInt(document.getElementById('aexp-job-id').value);
+  const amount=parseFloat(document.getElementById('aexp-amount').value)||0;
+  const desc=document.getElementById('aexp-desc').value.trim();
+  if(!amount){showToast('\u26a0\ufe0f Amount required');return;}
+  const idx=apostilleJobs.findIndex(j=>j.id===jobId);if(idx===-1)return;
+  if(!apostilleJobs[idx].expenses)apostilleJobs[idx].expenses=[];
+  apostilleJobs[idx].expenses.push({
+    id:Date.now(),
+    cat:document.getElementById('aexp-cat').value,
+    desc:desc||document.getElementById('aexp-cat').value,
+    amount,
+    date:document.getElementById('aexp-date').value,
+  });
+  save();renderApostille();renderDashboard();renderAll();
+  closeModal('addApostExpModal');showToast('\u2713 Expense saved');
+}
+function deleteApostExp(jobId,expId) {
+  if(!confirm('Delete this expense?'))return;
+  const idx=apostilleJobs.findIndex(j=>j.id===jobId);if(idx===-1)return;
+  apostilleJobs[idx].expenses=(apostilleJobs[idx].expenses||[]).filter(e=>e.id!==expId);
+  save();renderApostille();renderDashboard();renderAll();showToast('Expense deleted');
+}
+
+
+// ── EXPENSES
+function saveExpense(){
+  const desc=document.getElementById('e-desc').value.trim();
+  const amount=parseFloat(document.getElementById('e-amount').value)||0;
+  if(!desc||!amount){showToast('⚠️ Description and amount required');return;}
+  expenses.unshift({id:Date.now(),cat:document.getElementById('e-cat').value,desc,amount,date:document.getElementById('e-date').value});
+  save();renderExpenses();renderStatsStrip();renderTax();showToast('✓ Expense saved');
+  document.getElementById('e-desc').value='';document.getElementById('e-amount').value='';
+}
+function renderExpenses(){
+  const c=document.getElementById('expenseList');
+  document.getElementById('expCount').textContent=expenses.length;
+  if(!expenses.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No expenses yet.</p></div>';return;}
+  c.innerHTML=expenses.map(e=>`
+    <div class="mile-card">
+      <div><div style="font-size:9px;text-transform:uppercase;color:rgba(11,24,41,.35);font-weight:700;letter-spacing:1px;margin-bottom:2px">${e.cat}</div><div class="mile-desc">${e.desc}</div><div class="mile-date">${fmtDate(e.date)}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <div style="font-family:var(--font-display);font-size:17px;color:var(--red);font-weight:700">$${e.amount.toFixed(2)}</div>
+        <button class="btn-danger" onclick="deleteExpense(${e.id})">Del</button>
+      </div>
+    </div>`).join('');
+}
+function deleteExpense(id){if(!confirm('Delete?'))return;expenses=expenses.filter(e=>e.id!==id);save();renderExpenses();renderStatsStrip();renderTax();}
+
+// ── MILEAGE — FIX #5: explicit mode variables
+function setMileMode(mode){
+  standaloneMileMode=mode;
+  const manBtn=document.getElementById('mModeManualBtn'), adrBtn=document.getElementById('mModeAddrBtn');
+  const manDiv=document.getElementById('mManualMode'),    adrDiv=document.getElementById('mAddressMode');
+  if(mode==='manual'){manDiv.style.display='block';adrDiv.style.display='none';manBtn.className='modeBtn active';adrBtn.className='modeBtn inactive';}
+  else{manDiv.style.display='none';adrDiv.style.display='block';adrBtn.className='modeBtn active';manBtn.className='modeBtn inactive';}
+}
+function setApptMileMode(mode){
+  apptMileMode=mode;
+  const manBtn=document.getElementById('fModeManualBtn'), adrBtn=document.getElementById('fModeAddrBtn');
+  const manDiv=document.getElementById('fManualMode'),    adrDiv=document.getElementById('fAddressMode');
+  if(mode==='manual'){manDiv.style.display='block';adrDiv.style.display='none';manBtn.className='modeBtn active';adrBtn.className='modeBtn inactive';}
+  else{manDiv.style.display='none';adrDiv.style.display='block';adrBtn.className='modeBtn active';manBtn.className='modeBtn inactive';}
+}
+function saveMileage(){
+  const desc=document.getElementById('m-desc').value.trim();
+  let miles=0,date='';
+  if(standaloneMileMode==='manual'){
+    miles=parseFloat(document.getElementById('m-miles').value)||0;
+    if(document.getElementById('m-rt').value==='yes')miles*=2;
+    date=document.getElementById('m-date').value;
+  } else {
+    miles=parseFloat(document.getElementById('m-miles-calc').value)||0;
+    date=document.getElementById('m-addr-date').value;
+  }
+  if(!desc||!miles){showToast('⚠️ Description and miles required');return;}
+  mileage.unshift({id:Date.now(),desc,miles,date});
+  save();renderMileage();renderStatsStrip();renderTax();showToast('✓ Mileage saved');
+  document.getElementById('m-desc').value='';document.getElementById('m-miles').value='';
+  const mdr=document.getElementById('mDistResult');if(mdr)mdr.style.display='none';
+}
+function renderMileage(){
+  const apptMile=appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({id:'a'+a.id,desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,fromAppt:true,tag:'APPT'}));
+  // Include apostille trip miles
+  const apostMile=[];
+  apostilleJobs.forEach(j=>{
+    (j.trips||[]).filter(t=>t.miles).forEach(t=>{
+      apostMile.push({id:'ap'+j.id+'_'+t.id,desc:j.client+' — Apostille Trip',miles:t.miles,date:t.date,fromAppt:true,tag:'APOSTILLE'});
+    });
+  });
+  const all=[...mileage,...apptMile,...apostMile].sort((a,b)=>b.date>a.date?1:-1);
+  document.getElementById('mileCount').textContent=all.length;
+  const c=document.getElementById('mileageList');
+  if(!all.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🚗</div><p>No mileage yet.</p></div>';return;}
+  c.innerHTML=all.map(m=>`
+    <div class="mile-card">
+      <div><div class="mile-desc">${m.desc}${m.fromAppt?` <span style="font-size:9px;background:var(--amber-bg);color:var(--amber);padding:1px 5px;border-radius:3px;font-weight:700">${m.tag||'APPT'}</span>`:''}</div><div class="mile-date">${fmtDate(m.date)}</div></div>
+      <div><div class="mile-val">${m.miles} mi</div><div class="mile-ded">$${(m.miles*IRS_RATE).toFixed(2)}</div>${!m.fromAppt?`<button class="btn-danger" onclick="deleteMileage(${m.id})" style="margin-top:4px;font-size:9px;padding:2px 7px">Del</button>`:''}</div>
+    </div>`).join('');
+}
+function deleteMileage(id){if(!confirm('Delete?'))return;mileage=mileage.filter(m=>m.id!==id);save();renderMileage();renderStatsStrip();renderTax();}
+
+async function calcMileage(){
+  const s=document.getElementById('m-addr-start').value.trim(), e=document.getElementById('m-addr-end').value.trim();
+  const rt=document.getElementById('m-addr-rt').value==='yes';
+  if(!s||!e){showToast('⚠️ Enter both addresses');return;}
+  const rd=document.getElementById('mDistResult'), rt2=document.getElementById('mDistText'), hm=document.getElementById('m-miles-calc');
+  rt2.textContent='Calculating…'; rd.style.display='block';
+  try{
+    const geo=async(a)=>{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(a)}&limit=1`,{headers:{'Accept-Language':'en'}});const d=await r.json();if(!d.length)throw new Error('Address not found: '+a);return{lat:d[0].lat,lon:d[0].lon};};
+    const[st,en]=await Promise.all([geo(s),geo(e)]);
+    const rr=await fetch(`https://router.project-osrm.org/route/v1/driving/${st.lon},${st.lat};${en.lon},${en.lat}?overview=false`);
+    const dd=await rr.json();if(dd.code!=='Ok')throw new Error('Route not found');
+    const miOne=dd.routes[0].distance/1609.344, total=rt?miOne*2:miOne;
+    hm.value=total.toFixed(1);
+    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${(total*IRS_RATE).toFixed(2)}</span>`;
+  }catch(err){rt2.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;hm.value='';}
+}
+async function calcApptMileage(){
+  const s=document.getElementById('f-addr-start').value.trim(), e=document.getElementById('f-addr-end').value.trim();
+  const rt=document.getElementById('f-addr-rt').value==='yes';
+  if(!s||!e){showToast('⚠️ Enter both addresses');return;}
+  const rd=document.getElementById('fDistResult'), rt2=document.getElementById('fDistText'), hm=document.getElementById('f-miles-calc');
+  rt2.textContent='Calculating…'; rd.style.display='block';
+  try{
+    const geo=async(a)=>{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(a)}&limit=1`,{headers:{'Accept-Language':'en'}});const d=await r.json();if(!d.length)throw new Error('Address not found: '+a);return{lat:d[0].lat,lon:d[0].lon};};
+    const[st,en]=await Promise.all([geo(s),geo(e)]);
+    const rr=await fetch(`https://router.project-osrm.org/route/v1/driving/${st.lon},${st.lat};${en.lon},${en.lat}?overview=false`);
+    const dd=await rr.json();if(dd.code!=='Ok')throw new Error('Route not found');
+    const miOne=dd.routes[0].distance/1609.344, total=rt?miOne*2:miOne;
+    hm.value=total.toFixed(1);
+    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${(total*IRS_RATE).toFixed(2)}</span><br><span style="font-size:10px;color:rgba(11,24,41,.4)">Tap Save to record</span>`;
+  }catch(err){rt2.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;hm.value='';}
+}
+
+// ── TAX — FIX #6: safe DOM access
+function renderTax(){
+  const year=String(new Date().getFullYear()); // Must be String for .startsWith() to work
+  const yearAppts=appointments.filter(a=>a.date?.startsWith(year));
+  const nonDepo=yearAppts.filter(a=>a.type!=='depo');
+
+  // Apostille jobs received this year (income + expenses + trip miles/notarizations)
+  const yearApost=apostilleJobs.filter(j=>(j.received||'').startsWith(year));
+  const apostIncome=yearApost.reduce((s,j)=>s+(j.fee||0),0);
+  const apostExp=yearApost.reduce((s,j)=>s+(j.expenses||[]).reduce((se,e)=>se+e.amount,0),0);
+  const apostTripMiles=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(year)).reduce((sm,t)=>sm+(t.miles||0),0),0);
+  const apostNotary=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(year)).reduce((sn,t)=>sn+(t.notaryCount||0),0),0);
+
+  const gross      = nonDepo.reduce((s,a)=>s+(a.fee||0),0) + apostIncome;
+  const apptExp    = yearAppts.reduce((s,a)=>s+(a.expense||0),0);
+  const standExp   = expenses.filter(e=>e.date?.startsWith(year)).reduce((s,e)=>s+e.amount,0);
+  const totalExp   = apptExp + apostExp + standExp;
+  const apptMiles  = nonDepo.reduce((s,a)=>s+(a.miles||0),0);
+  const standMiles = mileage.filter(m=>m.date?.startsWith(year)).reduce((s,m)=>s+m.miles,0);
+  const mileDeduction = (apptMiles + apostTripMiles + standMiles) * IRS_RATE;
+  const netSE   = Math.max(0, gross - totalExp - mileDeduction);
+  const seTax   = netSE * 0.9235 * 0.153;
+  const seDeduct= seTax / 2;
+  const fedTax  = Math.max(0, netSE - seDeduct) * 0.22;
+  const totalTax= seTax + fedTax;
+  const perQtr  = totalTax / 4;
+  const depoIncome=parseFloat(document.getElementById('depo-income-input')?.value)||0;
+  const depoExp=parseFloat(document.getElementById('depo-expense-input')?.value)||0;
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set('t-gross','$'+gross.toFixed(2));
+  set('t-expenses','-$'+totalExp.toFixed(2));
+  set('t-mileage','-$'+mileDeduction.toFixed(2));
+  set('t-net','$'+netSE.toFixed(2));
+  set('t-se-tax','$'+seTax.toFixed(2));
+  set('t-se-deduct','-$'+seDeduct.toFixed(2));
+  set('t-fed-tax','$'+fedTax.toFixed(2));
+  set('t-total-tax','$'+totalTax.toFixed(2));
+  set('t-per-quarter','$'+perQtr.toFixed(2));
+  set('t-depo-gross','$'+depoIncome.toFixed(2));
+  set('t-depo-exp','-$'+depoExp.toFixed(2));
+  set('t-depo-net','$'+Math.max(0,depoIncome-depoExp).toFixed(2));
+  renderQuarterly(perQtr);
+}
+function renderQuarterly(perQtr){
+  const quarters=[
+    {name:'Q1 2026',period:'Jan–Mar 2026',due:'April 15, 2026',key:'q1_2026'},
+    {name:'Q2 2026',period:'Apr–Jun 2026',due:'June 16, 2026',key:'q2_2026'},
+    {name:'Q3 2026',period:'Jul–Sep 2026',due:'September 15, 2026',key:'q3_2026'},
+    {name:'Q4 2026',period:'Oct–Dec 2026',due:'January 15, 2027',key:'q4_2026'},
+    {name:'Q1 2027',period:'Jan–Mar 2027',due:'April 15, 2027',key:'q1_2027'},
+  ];
+  const today=new Date();
+  const c=document.getElementById('quarterlySchedule');if(!c)return;
+  c.innerHTML=quarters.map(q=>{
+    const isPaid=quarterlyStatus[q.key]==='paid';
+    const dueDate=new Date(q.due);
+    const daysUntil=Math.ceil((dueDate-today)/(86400000));
+    const isDueSoon=!isPaid&&daysUntil<=30&&daysUntil>=0;
+    const isPast=!isPaid&&daysUntil<0;
+    return`<div class="quarter-card ${isDueSoon||isPast?'due-soon':''} ${isPaid?'paid':''}">
+      <div class="q-header">
+        <div><div class="q-name">${q.name} · ${q.period}</div><div class="q-due">Due: ${q.due}${isDueSoon?' · ⚠️ Due soon':isPast?' · ⚠️ Past due':''}</div></div>
+        <span class="q-status ${isPaid?'paid':'unpaid'}" onclick="toggleQuarter('${q.key}')">${isPaid?'✓ Paid':'Unpaid'}</span>
+      </div>
+      <div class="q-amount">${perQtr?'$'+perQtr.toFixed(2):'—'}</div>
+    </div>`;
+  }).join('');
+}
+function toggleQuarter(key){
+  quarterlyStatus[key]=quarterlyStatus[key]==='paid'?'unpaid':'paid';
+  save();renderTax();showToast(quarterlyStatus[key]==='paid'?'✓ Marked paid':'Marked unpaid');
+}
+
+// ── GOALS
+function saveGoal(){
+  const mo=document.getElementById('goal-month').value, yr=document.getElementById('goal-year').value;
+  const amount=parseFloat(document.getElementById('goal-amount').value)||0;
+  const appts=parseInt(document.getElementById('goal-appts').value)||0;
+  if(!amount){showToast('⚠️ Enter a revenue target');return;}
+  const key=yr+'-'+mo;
+  const existing=goals.findIndex(g=>g.key===key);
+  const goal={key,month:mo,year:yr,amount,appts,created:new Date().toISOString()};
+  if(existing>=0)goals[existing]=goal;else goals.unshift(goal);
+  save();renderGoals();renderDashboard();showToast('✓ Goal saved');
+  document.getElementById('goal-amount').value='';document.getElementById('goal-appts').value='';
+}
+function renderGoals(){
+  const c=document.getElementById('goalsList');
+  if(!goals.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🎯</div><p>No goals set yet.</p></div>';return;}
+  c.innerHTML=[...goals].sort((a,b)=>b.key>a.key?1:-1).map(g=>{
+    const monthAppts=appointments.filter(a=>a.date?.startsWith(g.key));
+    const actual=monthAppts.reduce((s,a)=>s+(a.fee||0),0);
+    const pct=Math.min(100,Math.round((actual/g.amount)*100));
+    const apptActual=monthAppts.length;
+    const apptPct=g.appts?Math.min(100,Math.round((apptActual/g.appts)*100)):0;
+    const color=pct>=100?'#1C7A50':pct>=75?'#9A6200':pct>=50?'#1D5FA8':'#B33A2A';
+    const monthName=new Date(g.year,parseInt(g.month)-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    return`<div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-month-name">${monthName}</div>
+        <div class="goal-pct-badge" style="color:${color}">${pct}%</div>
+      </div>
+      <div class="goal-bar-wrap"><div class="goal-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="goal-details">
+        <div><div class="goal-detail-lbl">Target</div><div class="goal-detail-val">$${g.amount.toLocaleString()}</div></div>
+        <div><div class="goal-detail-lbl">Actual</div><div class="goal-detail-val" style="color:${color}">$${actual.toFixed(0)}</div></div>
+        <div><div class="goal-detail-lbl">Gap</div><div class="goal-detail-val" style="color:${actual>=g.amount?'#1C7A50':'#B33A2A'}">${actual>=g.amount?'+$'+(actual-g.amount).toFixed(0):'-$'+(g.amount-actual).toFixed(0)}</div></div>
+      </div>
+      ${g.appts?`<div style="margin-top:12px"><div style="font-size:10px;color:rgba(11,24,41,.4);margin-bottom:4px;font-weight:600">Appointments: ${apptActual} / ${g.appts} (${apptPct}%)</div><div style="background:var(--parchment);border-radius:4px;height:5px;overflow:hidden"><div style="width:${apptPct}%;height:100%;background:var(--ink-mid);border-radius:4px"></div></div></div>`:''}
+      <div style="margin-top:12px"><button class="btn-danger" onclick="deleteGoal('${g.key}')" style="font-size:10px;padding:4px 10px">Delete</button></div>
+    </div>`;
+  }).join('');
+}
+function deleteGoal(key){if(!confirm('Delete this goal?'))return;goals=goals.filter(g=>g.key!==key);save();renderGoals();renderDashboard();}
+
+// ── DASHBOARD with countup (Phase 1)
+function renderDashboard(){
+  const now=new Date(), mo=now.toISOString().slice(0,7);
+
+  // Appointment data (excludes depo for mileage/notary)
+  const monthAppts=appointments.filter(a=>a.date?.startsWith(mo));
+  const apptIncome=monthAppts.reduce((s,a)=>s+(a.fee||0),0);
+  const apptExp=monthAppts.reduce((s,a)=>s+(a.expense||0),0);
+  const apptNotary=monthAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0);
+  const apptMiles=monthAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.miles||0),0);
+  const apptUnpaid=monthAppts.filter(a=>a.paid!=='paid').reduce((s,a)=>s+(a.fee||0),0);
+
+  // Apostille data for this month (trips + expenses + income)
+  const monthApost=apostilleJobs.filter(j=>(j.received||'').startsWith(mo));
+  const apostIncome=monthApost.reduce((s,j)=>s+(j.fee||0),0);
+  const apostExp=monthApost.reduce((s,j)=>s+(j.expenses||[]).reduce((se,e)=>se+e.amount,0),0);
+  const apostMiles=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(mo)).reduce((sm,t)=>sm+(t.miles||0),0),0);
+  const apostNotary=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(mo)).reduce((sn,t)=>sn+(t.notaryCount||0),0),0);
+  const apostUnpaid=apostilleJobs.filter(j=>j.paid!=='paid'&&(j.received||'').startsWith(mo)).reduce((s,j)=>s+(j.balance||0),0);
+
+  // Standalone expenses + mileage
+  const standExp=expenses.filter(e=>e.date?.startsWith(mo)).reduce((s,e)=>s+e.amount,0);
+  const standMiles=mileage.filter(m=>m.date?.startsWith(mo)).reduce((s,m)=>s+m.miles,0);
+
+  // Combined totals
+  const income    = apptIncome + apostIncome;
+  const totalExp  = apptExp + apostExp + standExp;
+  const net       = income - totalExp;
+  const unpaid    = apptUnpaid + apostUnpaid;
+  const notarizations = apptNotary + apostNotary;
+  const totalMiles = apptMiles + apostMiles + standMiles;
+
+  // Countup
+  countUp(document.getElementById('d-income'),  income,  '$');
+  countUp(document.getElementById('d-expenses'),totalExp,'$');
+  countUp(document.getElementById('d-unpaid'),  unpaid,  '$');
+  countUp(document.getElementById('d-miles'),   totalMiles, '', 600);
+  const netEl=document.getElementById('d-net');
+  if(netEl){ netEl.style.color=net>=0?'var(--ink-mid)':'var(--red)'; countUp(netEl,Math.abs(net),net<0?'-$':'$'); }
+  const dedEl=document.getElementById('d-deduction');
+  if(dedEl) countUp(dedEl,totalMiles*IRS_RATE,'$');
+  const dAppts=document.getElementById('d-appts');
+  if(dAppts) dAppts.textContent=monthAppts.length;
+  const dNot=document.getElementById('d-notarizations');
+  if(dNot) dNot.textContent=notarizations;
+
+  // Goal ring (Phase 2)
+  const moKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const goal=goals.find(g=>g.key===moKey);
+  const gc=document.getElementById('d-goal-content');
+  if(goal){
+    const pct=Math.min(100,Math.round((income/goal.amount)*100));
+    const color=pct>=100?'#1C7A50':pct>=75?'#9A6200':pct>=50?'#1D5FA8':'#B33A2A';
+    const r=34, circ=2*Math.PI*r, dash=circ*(pct/100), gap=circ-dash;
+    gc.innerHTML=`<div class="goal-ring-wrap">
+      <svg class="goal-ring-svg" width="88" height="88" viewBox="0 0 88 88">
+        <circle cx="44" cy="44" r="${r}" fill="none" stroke="var(--parchment)" stroke-width="7"/>
+        <circle cx="44" cy="44" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+          stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${circ/4}"
+          stroke-linecap="round" style="transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1)"/>
+        <text x="44" y="48" text-anchor="middle" font-family="var(--font-display)" font-size="14" font-weight="700" fill="${color}">${pct}%</text>
+      </svg>
+      <div class="goal-ring-text">
+        <div class="goal-ring-pct" style="color:${color}">$${income.toFixed(0)}</div>
+        <div class="goal-ring-detail">of $${goal.amount.toLocaleString()} target</div>
+        <div class="goal-ring-gap" style="color:${income>=goal.amount?'#1C7A50':'#B33A2A'}">${income>=goal.amount?'🎉 Goal reached!':'$'+(goal.amount-income).toFixed(2)+' to go'}</div>
+      </div>
+    </div>`;
+  } else {
+    gc.innerHTML='<p style="font-size:13px;color:rgba(11,24,41,.4)">No goal set for this month. Set one in Goals.</p>';
+  }
+
+  // Active apostille
+  const active=apostilleJobs.filter(j=>j.stage<5);
+  document.getElementById('d-apostille-active').innerHTML=active.length?
+    active.slice(0,3).map(j=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--parchment-2);font-size:12px"><span style="font-weight:600;color:var(--ink-deep)">${j.client} · ${j.doctype}</span><span style="color:var(--gold-mid);font-weight:700">Stage ${j.stage+1}: ${AP_STAGES[j.stage]}</span></div>`).join(''):
+    '<p style="font-size:13px;color:rgba(11,24,41,.4)">No active apostille jobs.</p>';
+
+  // Platform balances
+  const platforms={};
+  appointments.filter(a=>a.paid==='unpaid'&&a.fee&&a.company).forEach(a=>{
+    if(!platforms[a.company])platforms[a.company]={owed:0,count:0};
+    platforms[a.company].owed+=a.fee;platforms[a.company].count++;
+  });
+  const pkeys=Object.keys(platforms);
+  document.getElementById('d-platforms').innerHTML=pkeys.length?
+    pkeys.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--parchment-2)"><div><div style="font-size:13px;font-weight:700;color:var(--ink-deep)">${p}</div><div style="font-size:10px;color:rgba(11,24,41,.4)">${platforms[p].count} unpaid</div></div><div style="font-family:var(--font-display);font-size:17px;color:var(--red);font-weight:700">$${platforms[p].owed.toFixed(2)}</div></div>`).join(''):
+    '<p style="font-size:13px;color:rgba(11,24,41,.4)">All appointments paid. ✓</p>';
+
+  // Next tax
+  const today2=new Date();
+  const qDates=[
+    {name:'Q1 2026 — April 15, 2026',date:new Date('2026-04-15'),key:'q1_2026'},
+    {name:'Q2 2026 — June 16, 2026',date:new Date('2026-06-16'),key:'q2_2026'},
+    {name:'Q3 2026 — September 15, 2026',date:new Date('2026-09-15'),key:'q3_2026'},
+    {name:'Q4 2026 — January 15, 2027',date:new Date('2027-01-15'),key:'q4_2026'},
+  ];
+  const next=qDates.find(q=>q.date>=today2&&quarterlyStatus[q.key]!=='paid');
+  document.getElementById('d-next-tax').innerHTML=next?
+    `<div style="font-size:14px;font-weight:700;color:var(--ink-deep)">${next.name}</div><div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:3px">See Tax tab for payment estimate</div>`:
+    '<p style="font-size:13px;color:var(--green);font-weight:600">✓ All upcoming payments marked paid.</p>';
+  renderVaultDashboard();
+}
+
+// ── STATS STRIP with countup
+function renderStatsStrip(){
+  const mo=new Date().toISOString().slice(0,7);
+  const ma=appointments.filter(a=>a.date?.startsWith(mo));
+  const apptIncome=ma.reduce((s,a)=>s+(a.fee||0),0);
+  const apptExp=ma.reduce((s,a)=>s+(a.expense||0),0);
+  const standExp=expenses.filter(e=>e.date?.startsWith(mo)).reduce((s,e)=>s+e.amount,0);
+  // Apostille this month
+  const apostIncome=apostilleJobs.filter(j=>(j.received||'').startsWith(mo)).reduce((s,j)=>s+(j.fee||0),0);
+  const apostExp=apostilleJobs.filter(j=>(j.received||'').startsWith(mo)).reduce((s,j)=>s+(j.expenses||[]).reduce((se,e)=>se+e.amount,0),0);
+  const apostNotary=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(mo)).reduce((sn,t)=>sn+(t.notaryCount||0),0),0);
+  const income=apptIncome+apostIncome;
+  const totalExp=apptExp+apostExp+standExp;
+  const net=income-totalExp;
+  const notarizations=ma.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0)+apostNotary;
+  countUp(document.getElementById('statIncome'),  income,   '$', 800);
+  countUp(document.getElementById('statNet'),     net,      net<0?'-$':'$', 800);
+  countUp(document.getElementById('statExpenses'),totalExp, '$', 800);
+  document.getElementById('statAppts').textContent=ma.length;
+  document.getElementById('statNotarizations').textContent=notarizations;
+}
+
+// ── MONTH FILTERS
+function populateMonthFilters(){
+  const months=new Set();
+  appointments.forEach(a=>{if(a.date)months.add(a.date.slice(0,7))});
+  expenses.forEach(e=>{if(e.date)months.add(e.date.slice(0,7))});
+  const sorted=[...months].sort().reverse();
+  const sel=document.getElementById('apptMonthFilter');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="all">All Months</option>';
+  sorted.forEach(m=>{
+    const d=new Date(m+'-01');
+    sel.innerHTML+=`<option value="${m}" ${m===cur?'selected':''}>${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</option>`;
+  });
+}
+
+function renderAll(){renderAppts();renderExpenses();renderMileage();renderStatsStrip();populateMonthFilters();}
+
+// ── CSV EXPORTS (identical to fixed file)
+function dlCSV(content,filename){const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+
+function exportMonthly(){
+  const mo=document.getElementById('exp-month').value, yr=document.getElementById('exp-year').value;
+  const key=yr+'-'+mo;
+  const monthName=new Date(yr,parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const filtAppts=appointments.filter(a=>a.date?.startsWith(key));
+  const filtExp=expenses.filter(e=>e.date?.startsWith(key));
+  const filtMile=mileage.filter(m=>m.date?.startsWith(key));
+  if(!filtAppts.length&&!filtExp.length&&!filtMile.length){showToast('⚠️ No data for '+monthName);return;}
+  let csv='NBK BUSINESS TRACKER — '+monthName.toUpperCase()+'\nExported: '+new Date().toLocaleDateString('en-US')+'\n\n';
+  csv+='APPOINTMENTS\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees ($),Total Fee ($),Paid,Expenses ($),Miles,Mile Deduction ($),Notes\n';
+  filtAppts.forEach(a=>{const nf=(a.notaryCount||0)*TX_FEE,md=(a.miles||0)*IRS_RATE;csv+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,nf.toFixed(2),(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,md.toFixed(2),`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
+  const ti=filtAppts.reduce((s,a)=>s+(a.fee||0),0),tn=filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0),tae=filtAppts.reduce((s,a)=>s+(a.expense||0),0),tam=filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.miles||0),0);
+  csv+=`\nMONTH TOTALS,,,,,,, ${tn}, $${(tn*TX_FEE).toFixed(2)}, $${ti.toFixed(2)},,,${tam.toFixed(1)},$${(tam*IRS_RATE).toFixed(2)}\n`;
+  csv+='\nEXPENSES\nCategory,Description,Amount ($),Date\n';
+  filtExp.forEach(e=>{csv+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
+  const tse=filtExp.reduce((s,e)=>s+e.amount,0);
+  csv+=`TOTAL,,$${tse.toFixed(2)}\n\nSTANDALONE MILEAGE\nDescription,Miles,Deduction ($),Date\n`;
+  filtMile.forEach(m=>{csv+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date].join(',')+'\n';});
+  const tsm=filtMile.reduce((s,m)=>s+m.miles,0);
+  csv+=`TOTAL,${tsm.toFixed(1)},$${(tsm*IRS_RATE).toFixed(2)}\n\nMONTH SUMMARY\nGross Income,$${ti.toFixed(2)}\nTotal Expenses,$${(tae+tse).toFixed(2)}\nTotal Miles,${(tam+tsm).toFixed(1)}\nMile Deduction,$${((tam+tsm)*IRS_RATE).toFixed(2)}\nNet (before tax),$${(ti-(tae+tse)-((tam+tsm)*IRS_RATE)).toFixed(2)}\nTotal Notarizations,${tn}\nNotary State Fees,$${(tn*TX_FEE).toFixed(2)}\n`;
+  const prev=document.getElementById('monthly-preview');
+  if(prev){prev.style.display='block';prev.innerHTML=`✅ <strong>${monthName}:</strong> ${filtAppts.length} appointments · $${ti.toFixed(2)} income · ${tn} notarizations · ${(tam+tsm).toFixed(1)} miles`;}
+  dlCSV(csv,`NBK_${monthName.replace(' ','_')}.csv`);
+  showToast('📥 Archived: '+monthName);
+}
+
+function exportYearPackage(){
+  const yr=document.getElementById('exp-tax-year').value;
+  const ya=appointments.filter(a=>a.date?.startsWith(yr)),ye=expenses.filter(e=>e.date?.startsWith(yr)),ym=mileage.filter(m=>m.date?.startsWith(yr));
+  const nd=ya.filter(a=>a.type!=='depo'),da=ya.filter(a=>a.type==='depo');
+  const gross=nd.reduce((s,a)=>s+(a.fee||0),0),depoIncome=da.reduce((s,a)=>s+(a.fee||0),0);
+  const ae=ya.reduce((s,a)=>s+(a.expense||0),0),se=ye.reduce((s,e)=>s+e.amount,0),totalExp=ae+se;
+  const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm,mileDeduct=totalMiles*IRS_RATE;
+  const tn=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-mileDeduct);
+  const seTax=netSE*0.9235*0.153,fedTax=Math.max(0,netSE-seTax/2)*0.22;
+  let csv1=`NBK APPOINTMENTS — TAX YEAR ${yr}\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees,Total Fee,Paid,Appt Expenses,Miles,Mile Deduction,Notes\n`;
+  ya.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv1+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,((a.notaryCount||0)*TX_FEE).toFixed(2),(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,((a.miles||0)*IRS_RATE).toFixed(2),`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
+  dlCSV(csv1,`NBK_${yr}_Appointments.csv`);
+  let csv2=`NBK EXPENSES — TAX YEAR ${yr}\nCategory,Description,Amount,Date\n`;
+  ye.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv2+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
+  csv2+=`\nTOTAL,,$${se.toFixed(2)}\nAppointment Expenses,,$${ae.toFixed(2)}\nGRAND TOTAL,,$${totalExp.toFixed(2)}\n`;
+  dlCSV(csv2,`NBK_${yr}_Expenses.csv`);
+  let csv3=`NBK MILEAGE LOG — TAX YEAR ${yr}\nDescription,Miles,Deduction,Date,Source\n`;
+  [...nd.filter(a=>a.miles).map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'})),...ym.map(m=>({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}))].sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv3+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date,m.src].join(',')+'\n';});
+  csv3+=`\nTOTAL MILES,${totalMiles.toFixed(1)},$${mileDeduct.toFixed(2)}\nIRS Rate,$${IRS_RATE}/mile\n`;
+  dlCSV(csv3,`NBK_${yr}_Mileage.csv`);
+  let csv4=`NBK TAX SUMMARY — ${yr}\nNotarized By Kristy LLC\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSELF-EMPLOYMENT INCOME\nGross Notary Income,$${gross.toFixed(2)}\nTotal Notarizations,${tn}\nTX State Notary Fees,$${(tn*TX_FEE).toFixed(2)}\n\n1099 CONTRACTOR INCOME\nDeposition Income,$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n\nDEDUCTIONS\nTotal Business Expenses,$${totalExp.toFixed(2)}\nTotal Business Miles,${totalMiles.toFixed(1)}\nMileage Deduction,$${mileDeduct.toFixed(2)}\n\nSE TAX ESTIMATE\nNet SE Income,$${netSE.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${seTax.toFixed(2)}\n½ SE Tax Deduction,$${(seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(seTax+fedTax).toFixed(2)}\n\nAPPOINTMENT BREAKDOWN\nType,Count,Total Revenue,Notarizations\n`;
+  ['loan','depo','ron','apostille','general'].forEach(t=>{const ta=ya.filter(a=>a.type===t);if(!ta.length)return;csv4+=[typeLabel(t),ta.length,ta.reduce((s,a)=>s+(a.fee||0),0).toFixed(2),ta.reduce((s,a)=>s+(a.notaryCount||0),0)].join(',')+'\n';});
+  const perQ=((seTax+fedTax)/4).toFixed(2);
+  csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Due Date,Est. Amount,Status\n`;
+  [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 16, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{csv4+=`${q[0]},$${perQ},${q[1]},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;});
+  csv4+='\n* Estimates only. Consult your tax professional.\n* Deposition income reported separately on 1099-NEC.\n';
+  dlCSV(csv4,`NBK_${yr}_Tax_Summary_For_Accountant.csv`);
+  showToast('📦 Year package — 4 files downloaded');
+}
+
+function exportAllAppointments(){let csv='Type,Client,Date,Time,Location,Company,Status,Notarizations,Fee,Paid,Expenses,Miles,Notes\n';appointments.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});dlCSV(csv,'NBK_All_Appointments_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All appointments exported');}
+function exportAllExpenses(){let csv='Category,Description,Amount,Date\n';expenses.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Expenses_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All expenses exported');}
+function exportAllMileage(){let csv='Description,Miles,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))].sort((a,b)=>a.date>b.date?1:-1);all.forEach(m=>{csv+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All mileage exported');}
+function exportApostilleJobs(){let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Notes\n';apostilleJobs.forEach(j=>{csv+=[j.client,j.doctype,j.country||'',j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',j.tracking||'',`"${(j.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});dlCSV(csv,'NBK_Apostille_Jobs_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 Apostille jobs exported');}
+
+function updateYearPreview(){
+  const yr=document.getElementById('exp-tax-year')?.value||new Date().getFullYear().toString();
+  const ya=appointments.filter(a=>a.date?.startsWith(yr)),ye=expenses.filter(e=>e.date?.startsWith(yr)),ym=mileage.filter(m=>m.date?.startsWith(yr));
+  const nd=ya.filter(a=>a.type!=='depo');
+  const gross=nd.reduce((s,a)=>s+(a.fee||0),0),depo=ya.filter(a=>a.type==='depo').reduce((s,a)=>s+(a.fee||0),0);
+  const totalExp=ya.reduce((s,a)=>s+(a.expense||0),0)+ye.reduce((s,e)=>s+e.amount,0);
+  const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm;
+  const totalN=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-totalMiles*IRS_RATE),seTax=netSE*0.9235*0.153;
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set('yp-appts',ya.length);set('yp-income','$'+gross.toFixed(2));set('yp-depo','$'+depo.toFixed(2));
+  set('yp-expenses','$'+totalExp.toFixed(2));set('yp-miles',totalMiles.toFixed(1)+' mi');
+  set('yp-milededuct','$'+(totalMiles*IRS_RATE).toFixed(2));set('yp-notarizations',totalN);set('yp-setax','~$'+seTax.toFixed(2));
+}
+
+// ══════════════════════════════════════════
+// CREDENTIALS VAULT
+// ══════════════════════════════════════════
+
+// Note: `credentials` array is declared in the DATA block above with all other app data
+let vaultFilter  = 'all';
+let selectedCredCat = 'commission';
+
+// Pre-populate with NBK's known credentials if vault is empty and user hasn't dismissed
+const NBK_DEFAULTS = [
+  { name:'Texas Notary Commission',        cat:'commission',    issuer:'TX Secretary of State',     warn:90  },
+  { name:'E&O Insurance Policy',           cat:'insurance',     issuer:'Great American Insurance',  warn:90  },
+  { name:'NNA Certified Signing Agent',    cat:'certification', issuer:'National Notary Association',warn:60 },
+  { name:'BBB Accreditation',              cat:'membership',    issuer:'Better Business Bureau',    warn:60  },
+  { name:'SAM.gov Registration',           cat:'license',       issuer:'SAM.gov / GSA',             warn:120 },
+  { name:'Texas HUB / CMBL Registration', cat:'license',       issuer:'Texas CPA',                 warn:90  },
+];
+
+const CRED_CAT_META = {
+  commission:    { icon:'📜', label:'Commission' },
+  insurance:     { icon:'🛡️', label:'Insurance / E&O' },
+  agreement:     { icon:'🤝', label:'Agreement' },
+  certification: { icon:'🏅', label:'Certification' },
+  license:       { icon:'🪪', label:'License' },
+  membership:    { icon:'🏛️', label:'Membership' },
+  other:         { icon:'📁', label:'Other' },
+};
+
+// ── HELPERS
+function credDaysLeft(expiryStr) {
+  if (!expiryStr) return null;
+  const exp  = new Date(expiryStr + 'T00:00:00');
+  const now  = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((exp - now) / 86400000);
+}
+function credStatus(days, warnDays) {
+  if (days === null)  return 'ok';
+  if (days < 0)       return 'expired';
+  if (days <= 30)     return 'critical';
+  if (days <= warnDays) return 'warn';
+  return 'ok';
+}
+function credStatusLabel(days) {
+  if (days === null)  return 'No expiry';
+  if (days < 0)       return 'Expired ' + Math.abs(days) + 'd ago';
+  if (days === 0)     return 'Expires TODAY';
+  if (days <= 30)     return days + ' days left';
+  if (days <= 90)     return days + ' days left';
+  return days + ' days left';
+}
+// Bar fill: 100% at ≥365 days, scales down to 0 at expiry
+function credBarPct(days) {
+  if (days === null) return 100;
+  if (days <= 0)     return 0;
+  return Math.min(100, Math.round((days / 365) * 100));
+}
+
+// ── VAULT CATEGORY SELECT (add modal)
+function selectCredCat(el) {
+  document.querySelectorAll('#credCatGrid .cred-cat-item').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCredCat = el.dataset.cat;
+}
+
+// ── OPEN ADD MODAL
+function openAddCred() {
+  // Reset form
+  ['c-name','c-issuer','c-number','c-issued','c-renewal-url','c-notes','c-cost'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('c-expiry').value = '';
+  document.getElementById('c-warn-days').value = '60';
+  document.querySelectorAll('#credCatGrid .cred-cat-item').forEach(c => c.classList.remove('selected'));
+  document.querySelector('#credCatGrid .cred-cat-item[data-cat="commission"]').classList.add('selected');
+  selectedCredCat = 'commission';
+  openModal('addCredModal');
+}
+
+// ── SAVE NEW CREDENTIAL
+function saveCred() {
+  const name = document.getElementById('c-name').value.trim();
+  const expiry = document.getElementById('c-expiry').value;
+  if (!name) { showToast('⚠️ Credential name required'); return; }
+  credentials.unshift({
+    id:      Date.now(),
+    cat:     selectedCredCat,
+    name,
+    issuer:  document.getElementById('c-issuer').value.trim(),
+    number:  document.getElementById('c-number').value.trim(),
+    issued:  document.getElementById('c-issued').value,
+    expiry,
+    warnDays: parseInt(document.getElementById('c-warn-days').value) || 60,
+    cost:    parseFloat(document.getElementById('c-cost').value) || 0,
+    renewalUrl: document.getElementById('c-renewal-url').value.trim(),
+    notes:   document.getElementById('c-notes').value.trim(),
+    created: new Date().toISOString(),
+  });
+  saveCredentials();
+  renderVault();
+  renderVaultDashboard();
+  showToast('✓ Credential saved');
+  closeModal('addCredModal');
+}
+
+// ── EDIT CREDENTIAL
+function editCred(id) {
+  const c = credentials.find(x => x.id === id); if (!c) return;
+  document.getElementById('ec-id').value        = id;
+  document.getElementById('ec-name').value      = c.name;
+  document.getElementById('ec-issuer').value    = c.issuer || '';
+  document.getElementById('ec-number').value    = c.number || '';
+  document.getElementById('ec-issued').value    = c.issued || '';
+  document.getElementById('ec-expiry').value    = c.expiry || '';
+  document.getElementById('ec-warn-days').value = c.warnDays || 60;
+  document.getElementById('ec-cost').value      = c.cost || '';
+  document.getElementById('ec-renewal-url').value = c.renewalUrl || '';
+  document.getElementById('ec-cat').value       = c.cat || 'other';
+  document.getElementById('ec-notes').value     = c.notes || '';
+  openModal('editCredModal');
+}
+
+function saveCredEdit() {
+  const id  = parseInt(document.getElementById('ec-id').value);
+  const idx = credentials.findIndex(x => x.id === id); if (idx === -1) return;
+  credentials[idx] = { ...credentials[idx],
+    name:       document.getElementById('ec-name').value.trim(),
+    issuer:     document.getElementById('ec-issuer').value.trim(),
+    number:     document.getElementById('ec-number').value.trim(),
+    issued:     document.getElementById('ec-issued').value,
+    expiry:     document.getElementById('ec-expiry').value,
+    warnDays:   parseInt(document.getElementById('ec-warn-days').value) || 60,
+    cost:       parseFloat(document.getElementById('ec-cost').value) || 0,
+    renewalUrl: document.getElementById('ec-renewal-url').value.trim(),
+    cat:        document.getElementById('ec-cat').value,
+    notes:      document.getElementById('ec-notes').value.trim(),
+  };
+  saveCredentials();
+  renderVault();
+  renderVaultDashboard();
+  closeModal('editCredModal');
+  showToast('✓ Credential updated');
+}
+
+function deleteCred(id) {
+  if (!confirm('Delete this credential?')) return;
+  credentials = credentials.filter(c => c.id !== id);
+  saveCredentials();
+  renderVault();
+  renderVaultDashboard();
+  showToast('Deleted');
+}
+
+function saveCredentials() {
+  localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
+  // Trigger save indicator
+  const ind = document.getElementById('saveIndicator');
+  if (ind) { ind.classList.add('visible'); clearTimeout(saveTimer); saveTimer = setTimeout(()=>ind.classList.remove('visible'), 2000); }
+}
+
+// ── FILTER
+function filterVault(f, el) {
+  vaultFilter = f;
+  el.closest('.vault-cat-filter').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderVault();
+}
+
+// ── RENDER VAULT
+function renderVault() {
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let list = credentials;
+  if (vaultFilter !== 'all') list = list.filter(c => c.cat === vaultFilter);
+
+  // Sort: critical → warn → ok → expired; within each group by days left asc
+  list = [...list].sort((a, b) => {
+    const da = credDaysLeft(a.expiry), db = credDaysLeft(b.expiry);
+    const sa = credStatus(da, a.warnDays), sb = credStatus(db, b.warnDays);
+    const order = { critical:0, warn:1, ok:2, expired:3 };
+    if (order[sa] !== order[sb]) return order[sa] - order[sb];
+    // Same bucket: soonest expiry first; no-expiry last
+    if (da === null && db === null) return 0;
+    if (da === null) return 1;
+    if (db === null) return -1;
+    return da - db;
+  });
+
+  document.getElementById('vaultCount').textContent = list.length;
+
+  // Summary strip counts (full list, not filtered)
+  const all = credentials;
+  let nOk=0, nWarn=0, nCrit=0, nExp=0;
+  all.forEach(c => {
+    const d = credDaysLeft(c.expiry);
+    const s = credStatus(d, c.warnDays);
+    if (s==='ok')       nOk++;
+    else if(s==='warn') nWarn++;
+    else if(s==='critical') nCrit++;
+    else if(s==='expired')  nExp++;
+  });
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('vs-ok', nOk); set('vs-warn', nWarn); set('vs-critical', nCrit); set('vs-expired', nExp);
+
+  // Alert banners
+  const alertEl = document.getElementById('vaultAlerts');
+  if (alertEl) {
+    const critItems = all.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'critical');
+    const warnItems = all.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'warn');
+    const expItems  = all.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'expired');
+    let banners = '';
+    if (critItems.length) {
+      banners += `<div class="vault-alert">
+        <div class="vault-alert-icon">🚨</div>
+        <div class="vault-alert-text">${critItems.length} credential${critItems.length>1?'s':''} expire within 30 days
+          <div class="vault-alert-sub">${critItems.map(c=>c.name).join(' · ')}</div>
+        </div>
+      </div>`;
+    }
+    if (warnItems.length && !critItems.length) {
+      banners += `<div class="vault-warn-banner">⚠️ ${warnItems.length} credential${warnItems.length>1?'s':''} coming up for renewal — ${warnItems.map(c=>c.name).join(', ')}</div>`;
+    }
+    if (expItems.length) {
+      banners += `<div class="vault-warn-banner" style="background:var(--red-bg);color:var(--red);border-color:rgba(179,58,42,.2)">⛔ ${expItems.length} EXPIRED: ${expItems.map(c=>c.name).join(', ')} — renew immediately</div>`;
+    }
+    alertEl.innerHTML = banners;
+  }
+
+  const c = document.getElementById('credList');
+  if (!list.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">🔐</div><p>No credentials in this category.</p></div>';
+    return;
+  }
+
+  c.innerHTML = list.map(cred => {
+    const days   = credDaysLeft(cred.expiry);
+    const status = credStatus(days, cred.warnDays);
+    const pct    = credBarPct(days);
+    const meta   = CRED_CAT_META[cred.cat] || CRED_CAT_META.other;
+    const daysLabel = cred.expiry ? credStatusLabel(days) : 'No expiry set';
+    const expiryFmt = cred.expiry ? fmtDate(cred.expiry) : '—';
+
+    return `<div class="cred-card status-${status}">
+      <div class="cred-header">
+        <div>
+          <div class="cred-name">${meta.icon} ${cred.name}</div>
+          <div class="cred-cat">${meta.label}${cred.issuer ? ' · ' + cred.issuer : ''}</div>
+        </div>
+        <span class="cred-status-badge ${status}">${status === 'ok' ? '✓ Active' : status === 'warn' ? '⚠ Renew Soon' : status === 'critical' ? '🔴 Critical' : '⛔ Expired'}</span>
+      </div>
+      <div class="cred-expiry-row">
+        <div class="cred-expiry-date">${expiryFmt}</div>
+        <div class="cred-days-left ${status}">${cred.expiry ? daysLabel : ''}</div>
+      </div>
+      ${cred.expiry ? `<div class="cred-bar-wrap"><div class="cred-bar ${status}" style="width:${pct}%"></div></div>` : ''}
+      <div class="cred-detail">
+        ${cred.number ? `<strong>ID/Policy:</strong> ${cred.number}<br>` : ''}
+        ${cred.issued ? `<strong>Issued:</strong> ${fmtDate(cred.issued)}<br>` : ''}
+        ${cred.cost ? `<strong>Cost:</strong> $${cred.cost.toFixed(2)}<br>` : ''}
+        ${cred.renewalUrl ? `<strong>Renewal:</strong> <span style="color:var(--blue)">${cred.renewalUrl}</span><br>` : ''}
+        ${cred.notes ? `📝 ${cred.notes}` : ''}
+      </div>
+      <div class="cred-actions">
+        <button class="btn-sm" onclick="editCred(${cred.id})">Edit</button>
+        <button class="btn-danger" onclick="deleteCred(${cred.id})">Delete</button>
+        ${cred.expiry && days !== null && days > 0 && days <= cred.warnDays ?
+          `<button class="btn-success" onclick="markCredRenewed(${cred.id})" style="font-size:10px;padding:5px 10px">Mark Renewed</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── QUICK RENEW: bumps expiry by 1 year and opens edit to confirm
+function markCredRenewed(id) {
+  const c = credentials.find(x => x.id === id); if (!c) return;
+  // Pre-fill edit modal with expiry advanced 1 year
+  editCred(id);
+  const expiryEl = document.getElementById('ec-expiry');
+  if (expiryEl && c.expiry) {
+    const d = new Date(c.expiry + 'T00:00:00');
+    d.setFullYear(d.getFullYear() + 1);
+    expiryEl.value = d.toISOString().split('T')[0];
+  }
+  showToast('📅 Confirm new expiry date and save');
+}
+
+// ── VAULT DASHBOARD WIDGET (shown on Home tab)
+function renderVaultDashboard() {
+  const el = document.getElementById('d-vault-summary');
+  if (!el) return;
+  if (!credentials.length) {
+    el.innerHTML = '<p style="font-size:13px;color:rgba(11,24,41,.4)">No credentials tracked yet. Add them in the Vault tab.</p>';
+    return;
+  }
+  const critical = credentials.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'critical');
+  const warn     = credentials.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'warn');
+  const expired  = credentials.filter(c => credStatus(credDaysLeft(c.expiry), c.warnDays) === 'expired');
+  const urgent   = [...critical, ...expired].slice(0, 3);
+  if (!urgent.length && !warn.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--green);font-weight:600">✓ All credentials are active and current.</p>';
+    return;
+  }
+  el.innerHTML = [...urgent, ...warn.slice(0,2)].map(c => {
+    const days = credDaysLeft(c.expiry);
+    const s    = credStatus(days, c.warnDays);
+    const meta = CRED_CAT_META[c.cat] || CRED_CAT_META.other;
+    const color = s==='critical'?'var(--red)':s==='expired'?'rgba(11,24,41,.4)':'var(--amber)';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--parchment-2)">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-deep)">${meta.icon} ${c.name}</div>
+      <div style="font-size:11px;font-weight:700;color:${color}">${c.expiry ? credStatusLabel(days) : '—'}</div>
+    </div>`;
+  }).join('') + `<div style="margin-top:8px"><button class="btn-sm" onclick="showTab('vault')" style="font-size:10px">View All Credentials →</button></div>`;
+}
+
+// ── MODAL OVERLAY CLOSE
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+
+// ── ENTER KEY LOGIN
+document.getElementById('pwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+</script>
+</body>
+</html>
