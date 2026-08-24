@@ -8,14 +8,13 @@
    new version instead of serving the old cache.
 ══════════════════════════════════════════ */
 
-const CACHE_VERSION = 'nbk-v2';
+const CACHE_VERSION = 'nbk-v3';
 const CACHE_NAME    = `nbk-command-center-${CACHE_VERSION}`;
 
 // Files cached on install so the app works fully offline
 const CORE_ASSETS = [
   './',
   './index.html',
-  './manifest.json',
   './icon-72.png',
   './icon-96.png',
   './icon-128.png',
