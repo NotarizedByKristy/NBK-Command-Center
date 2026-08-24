@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>NBK Command Center</title>
+
+<!-- ══════════════════════════════════════
+     PWA — Installable App Configuration
+══════════════════════════════════════ -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#060f1a">
+<meta name="description" content="Mobile notary business tracker — appointments, apostille jobs, expenses, mileage, tax estimates, and credential expirations.">
+
+<!-- iOS standalone app support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NBK Command">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- Icons -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Epilogue:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ════════════════════════════════════════
@@ -1720,6 +1740,174 @@ body {
 }
 
 /* ════════════════════════════════════════
+   BACKUP & RESTORE
+════════════════════════════════════════ */
+.backup-warning {
+  background: var(--amber-bg);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--r-sm);
+  padding: 11px 13px;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #7a4e00;
+  margin-bottom: 14px;
+}
+.backup-warning strong { color: var(--amber); }
+
+.backup-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.backup-stat {
+  background: var(--parchment);
+  border-radius: var(--r-sm);
+  padding: 9px 6px;
+  text-align: center;
+}
+.backup-stat-num {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 700;
+  color: var(--ink-deep); line-height: 1;
+}
+.backup-stat-lbl {
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: rgba(11,24,41,.4); margin-top: 3px;
+}
+
+.backup-btn-primary {
+  background: linear-gradient(135deg, var(--gold-mid), var(--gold-hero));
+  color: var(--ink-deep);
+  border: none; border-radius: var(--r-sm);
+  padding: 15px; width: 100%;
+  font-family: var(--font-ui);
+  font-size: 14px; font-weight: 700; letter-spacing: .3px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(200,151,42,.3);
+  transition: transform .2s;
+}
+.backup-btn-primary:active { transform: scale(.98); }
+
+.backup-btn-restore {
+  background: var(--ink-deep);
+  color: var(--gold-hero);
+  border: none; border-radius: var(--r-sm);
+  padding: 14px; width: 100%;
+  font-family: var(--font-ui);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; margin-top: 12px;
+  transition: transform .2s;
+}
+.backup-btn-restore:active { transform: scale(.98); }
+
+/* File picker */
+.file-drop {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  background: var(--parchment);
+  border: 2px dashed rgba(11,24,41,.15);
+  border-radius: var(--r);
+  padding: 22px 16px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.file-drop:hover { border-color: var(--gold-mid); background: var(--white); }
+.file-drop-icon { font-size: 26px; opacity: .5; }
+.file-drop-text {
+  font-size: 12px; font-weight: 600;
+  color: rgba(11,24,41,.45);
+}
+
+/* Restore preview panel */
+.restore-preview {
+  display: none;
+  background: var(--parchment);
+  border: 1px solid rgba(11,24,41,.1);
+  border-radius: var(--r);
+  padding: 14px;
+  margin-top: 12px;
+}
+.restore-preview.open { display: block; }
+.restore-preview-title {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-mid); margin-bottom: 10px;
+}
+.restore-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(11,24,41,.06);
+  font-size: 12px;
+}
+.restore-row:last-of-type { border-bottom: none; }
+.restore-row-lbl { color: rgba(11,24,41,.5); }
+.restore-row-val { font-weight: 700; color: var(--ink-deep); }
+
+.restore-mode-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-top: 12px;
+}
+.restore-mode {
+  background: var(--white);
+  border: 2px solid rgba(11,24,41,.1);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.restore-mode.selected {
+  border-color: var(--gold-mid);
+  background: #fffdf7;
+}
+.restore-mode-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--ink-deep); margin-bottom: 3px;
+}
+.restore-mode.selected .restore-mode-name { color: var(--amber); }
+.restore-mode-desc {
+  font-size: 9.5px; line-height: 1.45;
+  color: rgba(11,24,41,.45);
+}
+
+/* Backup reminder nudge on dashboard */
+.backup-nudge {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  background: var(--amber-bg);
+  border: 1px solid rgba(154,98,0,.2);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  margin-bottom: 14px;
+  font-size: 12px; font-weight: 600;
+  color: var(--amber);
+}
+.backup-nudge.urgent {
+  background: var(--red-bg);
+  border-color: rgba(179,58,42,.25);
+  color: var(--red);
+}
+.backup-nudge.ok {
+  background: var(--green-bg);
+  border-color: rgba(28,122,80,.18);
+  color: var(--green);
+  font-size: 11px;
+}
+.backup-nudge button {
+  background: var(--ink-deep);
+  color: var(--gold-hero);
+  border: none; border-radius: 20px;
+  padding: 5px 12px;
+  font-family: var(--font-ui);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .3px;
+  cursor: pointer; flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════════
    MOBILE SAFE AREA
 ════════════════════════════════════════ */
 .main-content {
@@ -1759,16 +1947,17 @@ body {
         <path d="M 0 9 Q 6 12 8 10" stroke="#C8972A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
       </g>
       <!-- NBK text arc - positioned along top -->
-      <text font-family="'Cormorant Garamond', serif" font-size="9" font-weight="700" fill="rgba(200,151,42,0.7)" letter-spacing="4">
+      <text font-family="'Cormorant Garamond', serif" font-size="9" font-weight="700" fill="rgba(200,151,42,0.75)" letter-spacing="3.5">
         <textPath href="#topArc" startOffset="50%" text-anchor="middle">N B K</textPath>
       </text>
-      <!-- Bottom arc text -->
-      <text font-family="'Epilogue', sans-serif" font-size="5.5" font-weight="700" fill="rgba(200,151,42,0.4)" letter-spacing="2.5">
+      <!-- Bottom arc text — smaller size + tighter spacing so it fits the arc -->
+      <text font-family="'Epilogue', sans-serif" font-size="4.6" font-weight="700" fill="rgba(200,151,42,0.45)" letter-spacing="1.4">
         <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">COMMAND CENTER</textPath>
       </text>
       <defs>
-        <path id="topArc"    d="M 12,40 A 28,28 0 0 1 68,40"/>
-        <path id="bottomArc" d="M 14,44 A 27,27 0 0 0 66,44"/>
+        <path id="topArc"    d="M 11,41 A 29,29 0 0 1 69,41"/>
+        <!-- Wider, lower arc gives the full string room to render -->
+        <path id="bottomArc" d="M 9,42 A 31,31 0 0 0 71,42"/>
       </defs>
     </svg>
   </div>
@@ -1870,6 +2059,8 @@ body {
 <!-- ── DASHBOARD ── -->
 <div id="tab-dashboard" class="tab-content active">
   <div class="page-title">Dashboard</div>
+
+  <div id="d-backup-reminder"></div>
 
   <div class="dash-grid-2">
     <div class="dash-card">
@@ -2195,6 +2386,52 @@ body {
     </div>
     <button class="archive-btn" onclick="exportYearPackage()" style="border-color:rgba(200,151,42,.4)">📦 Download Full Year Package</button>
     <p style="font-size:11px;color:rgba(11,24,41,.35);text-align:center;margin-top:6px">Downloads 4 CSV files — appointments, expenses, mileage, tax summary</p>
+  </div>
+
+  <!-- ══ BACKUP & RESTORE — the safety net ══ -->
+  <div class="card" style="border:2px solid var(--gold-mid)">
+    <div class="card-header"><div class="card-header-accent"></div>🛟 Backup &amp; Restore</div>
+    <div class="backup-warning">
+      <strong>Your data lives only on this device.</strong> Clearing browser data, deleting the home-screen icon, or switching phones will erase it. Download a backup regularly — it restores everything exactly.
+    </div>
+
+    <div class="backup-stats" id="backupStats"></div>
+
+    <button class="backup-btn-primary" onclick="exportFullBackup()">⬇️ Download Full Backup</button>
+    <p style="font-size:11px;color:rgba(11,24,41,.4);text-align:center;margin:6px 0 16px">
+      Single .json file · restores everything · save to Google Drive or Files
+    </p>
+
+    <div class="gold-rule"></div>
+
+    <div class="section-eyebrow" style="margin-top:14px">Restore From Backup</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.5);margin-bottom:10px;line-height:1.6">
+      Choose a .json backup file. You'll see what's inside and can pick how to restore it.
+    </p>
+
+    <label class="file-drop" id="fileDropLabel">
+      <input type="file" id="restoreFile" accept=".json,application/json" onchange="previewBackup(event)" style="display:none">
+      <span class="file-drop-icon">📁</span>
+      <span class="file-drop-text">Tap to choose backup file</span>
+    </label>
+
+    <!-- Preview panel — appears after a valid file is chosen -->
+    <div id="restorePreview" class="restore-preview">
+      <div class="restore-preview-title">Backup Contents</div>
+      <div id="restorePreviewBody"></div>
+      <div class="restore-mode-row">
+        <div class="restore-mode selected" data-mode="merge" onclick="selectRestoreMode(this)">
+          <div class="restore-mode-name">Merge</div>
+          <div class="restore-mode-desc">Add backup records to what's here now. Nothing is deleted.</div>
+        </div>
+        <div class="restore-mode" data-mode="replace" onclick="selectRestoreMode(this)">
+          <div class="restore-mode-name">Replace</div>
+          <div class="restore-mode-desc">Wipe current data and restore the backup exactly.</div>
+        </div>
+      </div>
+      <button class="backup-btn-restore" onclick="confirmRestore()">↻ Restore This Backup</button>
+      <button class="btn-secondary" onclick="cancelRestore()" style="width:100%;margin-top:6px">Cancel</button>
+    </div>
   </div>
 
   <div class="card">
@@ -2754,6 +2991,7 @@ async function login() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appShell').style.display = 'block';
     initApp();
+    handleShortcut();
   } else {
     document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
     document.getElementById('pwInput').value = '';
@@ -2836,6 +3074,7 @@ function initApp() {
   renderGoals();
   renderApostille();
   renderVault();
+  renderBackupStats();
   renderDashboard();
 }
 
@@ -2855,7 +3094,7 @@ function showTab(tab) {
   if(tab==='goals')     renderGoals();
   if(tab==='apostille') renderApostille();
   if(tab==='vault')     renderVault();
-  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); }
+  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderBackupStats(); }
 }
 
 function updateMonthDefault() {
@@ -3693,6 +3932,7 @@ function renderDashboard(){
     `<div style="font-size:14px;font-weight:700;color:var(--ink-deep)">${next.name}</div><div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:3px">See Tax tab for payment estimate</div>`:
     '<p style="font-size:13px;color:var(--green);font-weight:600">✓ All upcoming payments marked paid.</p>';
   renderVaultDashboard();
+  renderBackupReminder();
 }
 
 // ── STATS STRIP with countup
@@ -4125,6 +4365,245 @@ function renderVaultDashboard() {
   }).join('') + `<div style="margin-top:8px"><button class="btn-sm" onclick="showTab('vault')" style="font-size:10px">View All Credentials →</button></div>`;
 }
 
+// ══════════════════════════════════════════
+// BACKUP & RESTORE
+// Full-fidelity JSON backup of every data store.
+// ══════════════════════════════════════════
+
+const BACKUP_FORMAT_VERSION = 1;
+let pendingRestore = null;   // holds parsed backup awaiting confirmation
+let restoreMode = 'merge';
+
+// ── Show record counts in the Export tab
+function renderBackupStats() {
+  const el = document.getElementById('backupStats');
+  if (!el) return;
+  const tripCount = apostilleJobs.reduce((s,j)=>s+(j.trips||[]).length,0);
+  el.innerHTML = `
+    <div class="backup-stat"><div class="backup-stat-num">${appointments.length}</div><div class="backup-stat-lbl">Appts</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${apostilleJobs.length}</div><div class="backup-stat-lbl">Apostille</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${credentials.length}</div><div class="backup-stat-lbl">Creds</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${expenses.length}</div><div class="backup-stat-lbl">Expenses</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${mileage.length}</div><div class="backup-stat-lbl">Mileage</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${goals.length}</div><div class="backup-stat-lbl">Goals</div></div>
+  `;
+}
+
+// ── EXPORT: bundle everything into one JSON file
+function exportFullBackup() {
+  const backup = {
+    _format: 'NBK-Command-Center-Backup',
+    _version: BACKUP_FORMAT_VERSION,
+    _exported: new Date().toISOString(),    _counts: {
+      appointments: appointments.length,
+      apostilleJobs: apostilleJobs.length,
+      credentials: credentials.length,
+      expenses: expenses.length,
+      mileage: mileage.length,
+      goals: goals.length,
+    },
+    data: {
+      appointments,
+      apostilleJobs,
+      credentials,
+      expenses,
+      mileage,
+      goals,
+      quarterlyStatus,
+      depoIncome:  document.getElementById('depo-income-input')?.value || '',
+      depoExpense: document.getElementById('depo-expense-input')?.value || '',
+    }
+  };
+
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `NBK_Backup_${stamp}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+
+  const total = Object.values(backup._counts).reduce((s,n)=>s+n,0);
+  localStorage.setItem('nbk_last_backup', new Date().toISOString());
+  renderBackupReminder();
+  showToast(`⬇️ Backup saved — ${total} records`);
+}
+
+// ── Dashboard reminder when a backup is overdue
+function renderBackupReminder() {
+  const el = document.getElementById('d-backup-reminder');
+  if (!el) return;
+  const totalRecords = appointments.length + apostilleJobs.length
+                     + credentials.length + expenses.length + mileage.length;
+  if (!totalRecords) { el.innerHTML = ''; return; }
+
+  const last = localStorage.getItem('nbk_last_backup');
+  if (!last) {
+    el.innerHTML = `<div class="backup-nudge urgent">
+      <span>⚠️ You've never backed up. Your data exists only on this device.</span>
+      <button onclick="showTab('exports')">Back Up Now</button>
+    </div>`;
+    return;
+  }
+  const days = Math.floor((Date.now() - new Date(last)) / 86400000);
+  if (days >= 14) {
+    el.innerHTML = `<div class="backup-nudge urgent">
+      <span>⚠️ Last backup was ${days} days ago.</span>
+      <button onclick="showTab('exports')">Back Up Now</button>
+    </div>`;
+  } else if (days >= 7) {
+    el.innerHTML = `<div class="backup-nudge">
+      <span>Last backup: ${days} days ago</span>
+      <button onclick="showTab('exports')">Back Up</button>
+    </div>`;
+  } else {
+    el.innerHTML = `<div class="backup-nudge ok">
+      <span>✓ Backed up ${days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago'}</span>
+    </div>`;
+  }
+}
+
+// ── PREVIEW: read chosen file, validate, show contents
+function previewBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    let parsed;
+    try {
+      parsed = JSON.parse(e.target.result);
+    } catch (err) {
+      showToast('⚠️ Not a valid backup file');
+      resetFileInput();
+      return;
+    }
+
+    // Validate it's actually our backup format
+    if (parsed._format !== 'NBK-Command-Center-Backup' || !parsed.data) {
+      showToast('⚠️ Not an NBK backup file');
+      resetFileInput();
+      return;
+    }
+
+    pendingRestore = parsed;
+    const d = parsed.data;
+    const when = parsed._exported
+      ? new Date(parsed._exported).toLocaleString('en-US',
+          {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
+      : 'Unknown';
+
+    const rows = [
+      ['Backup date',    when],
+      ['Appointments',   (d.appointments||[]).length],
+      ['Apostille jobs', (d.apostilleJobs||[]).length],
+      ['Credentials',    (d.credentials||[]).length],
+      ['Expenses',       (d.expenses||[]).length],
+      ['Mileage entries',(d.mileage||[]).length],
+      ['Goals',          (d.goals||[]).length],
+    ];
+
+    document.getElementById('restorePreviewBody').innerHTML = rows.map(([l,v])=>
+      `<div class="restore-row"><span class="restore-row-lbl">${l}</span><span class="restore-row-val">${v}</span></div>`
+    ).join('');
+
+    document.getElementById('restorePreview').classList.add('open');
+    document.querySelector('.file-drop-text').textContent = file.name;
+  };
+  reader.onerror = () => { showToast('⚠️ Could not read file'); resetFileInput(); };
+  reader.readAsText(file);
+}
+
+function selectRestoreMode(el) {
+  document.querySelectorAll('.restore-mode').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+  restoreMode = el.dataset.mode;
+}
+
+function cancelRestore() {
+  pendingRestore = null;
+  restoreMode = 'merge';
+  document.getElementById('restorePreview').classList.remove('open');
+  document.querySelectorAll('.restore-mode').forEach(m=>m.classList.remove('selected'));
+  document.querySelector('.restore-mode[data-mode="merge"]')?.classList.add('selected');
+  resetFileInput();
+}
+
+function resetFileInput() {
+  const inp = document.getElementById('restoreFile');
+  if (inp) inp.value = '';
+  const txt = document.querySelector('.file-drop-text');
+  if (txt) txt.textContent = 'Tap to choose backup file';
+}
+
+// ── RESTORE: apply the pending backup
+function confirmRestore() {
+  if (!pendingRestore) { showToast('⚠️ No backup loaded'); return; }
+  const d = pendingRestore.data;
+
+  const warning = restoreMode === 'replace'
+    ? 'REPLACE all current data with this backup?\n\nEverything currently in the app will be permanently deleted.'
+    : 'MERGE this backup into your current data?\n\nExisting records are kept. Duplicates are skipped.';
+  if (!confirm(warning)) return;
+
+  // Safety net: auto-download a snapshot of current state before overwriting
+  if (restoreMode === 'replace' &&
+      (appointments.length || apostilleJobs.length || credentials.length)) {
+    exportFullBackup();
+  }
+
+  if (restoreMode === 'replace') {
+    appointments   = d.appointments   || [];
+    apostilleJobs  = d.apostilleJobs  || [];
+    credentials    = d.credentials    || [];
+    expenses       = d.expenses       || [];
+    mileage        = d.mileage        || [];
+    goals          = d.goals          || [];
+    quarterlyStatus= d.quarterlyStatus|| {};
+  } else {
+    // MERGE — skip records whose id already exists
+    const mergeById = (current, incoming) => {
+      const seen = new Set(current.map(r=>r.id));
+      const added = (incoming||[]).filter(r=>!seen.has(r.id));
+      return [...current, ...added];
+    };
+    appointments  = mergeById(appointments,  d.appointments);
+    apostilleJobs = mergeById(apostilleJobs, d.apostilleJobs);
+    credentials   = mergeById(credentials,   d.credentials);
+    expenses      = mergeById(expenses,      d.expenses);
+    mileage       = mergeById(mileage,       d.mileage);
+    // Goals key on `key` (YYYY-MM), not id — incoming wins for same month
+    const goalKeys = new Set(goals.map(g=>g.key));
+    goals = [...goals, ...((d.goals||[]).filter(g=>!goalKeys.has(g.key)))];
+    // Quarterly: incoming paid flags win
+    quarterlyStatus = { ...quarterlyStatus, ...(d.quarterlyStatus||{}) };
+  }
+
+  // Restore the depo income fields
+  const di = document.getElementById('depo-income-input');
+  const de = document.getElementById('depo-expense-input');
+  if (di && d.depoIncome  !== undefined) di.value = d.depoIncome;
+  if (de && d.depoExpense !== undefined) de.value = d.depoExpense;
+
+  save();
+  populateMonthFilters();
+  renderAll();
+  renderApostille();
+  renderVault();
+  renderGoals();
+  renderTax();
+  renderDashboard();
+  renderBackupStats();
+  updateYearPreview();
+
+  const total = appointments.length + apostilleJobs.length + credentials.length
+              + expenses.length + mileage.length + goals.length;
+  showToast(`✓ Restored — ${total} records now in app`);
+  cancelRestore();
+}
+
 // ── MODAL OVERLAY CLOSE
 document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
@@ -4142,7 +4621,51 @@ if (sessionStorage.getItem('nbk_auth') === '1') {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display    = 'block';
   initApp();
+  handleShortcut();
 }
+
+// ── PWA: handle home-screen shortcut deep links
+// manifest.json shortcuts pass ?action=appt / apostille / vault
+function handleShortcut() {
+  const action = new URLSearchParams(window.location.search).get('action');
+  if (!action) return;
+  // Small delay so the UI has painted before opening a modal
+  setTimeout(() => {
+    if (action === 'appt')      { showTab('appointments'); openAddAppt(); }
+    if (action === 'apostille') { showTab('apostille');    openAddApostille(); }
+    if (action === 'vault')     { showTab('vault'); }
+    // Clean the URL so a refresh doesn't re-trigger
+    window.history.replaceState({}, '', window.location.pathname);
+  }, 300);
+}
+
+// ── PWA: register the service worker for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        // Check for an updated version each time the app opens
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // A new version is ready — let the user pick the moment
+              showToast('↻ Update available — reopen app to apply');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+// ── PWA: capture the install prompt so we can offer it in-app (Android/desktop)
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+});
 
 </script>
 </body>
