@@ -2393,25 +2393,6 @@ body {
     <p style="font-size:11px;color:rgba(11,24,41,.35);text-align:center;margin-top:6px">Downloads 4 CSV files — appointments, expenses, mileage, tax summary</p>
   </div>
 
-  <!-- ══ JOURNAL BRIDGE — exempt notarial fees from The Anchored Journal ══ -->
-  <div class="card" style="border:2px solid var(--gold-mid)">
-    <div class="card-header"><div class="card-header-accent"></div>⚓ Import Journal Backup</div>
-    <p style="font-size:12px;color:rgba(11,24,41,.5);margin-bottom:12px;line-height:1.6">
-      The Anchored Journal holds the exact statutory fee for every notarial act you performed.
-      Importing it here replaces the $10-per-act estimate with your real figures, so the
-      §1402(c) exemption on the Tax tab is accurate. The journal itself is never modified.
-    </p>
-    <div id="journalStatus" class="backup-stats"></div>
-    <label class="file-drop" id="journalDropLabel">
-      <input type="file" id="journalFile" accept=".json,application/json" onchange="importJournal(event)" style="display:none">
-      <span class="file-drop-icon">⚓</span>
-      <span class="file-drop-text">Tap to choose journal backup</span>
-    </label>
-    <p style="font-size:11px;color:rgba(11,24,41,.4);text-align:center;margin:8px 0 0">
-      In the journal: Settings → Download Backup → then choose that file here
-    </p>
-  </div>
-
   <!-- ══ BACKUP & RESTORE — the safety net ══ -->
   <div class="card" style="border:2px solid var(--gold-mid)">
     <div class="card-header"><div class="card-header-accent"></div>🛟 Backup &amp; Restore</div>
@@ -2521,12 +2502,12 @@ body {
       <label>📋 Number of Notarizations</label>
       <input type="number" id="f-notary-count" placeholder="0" min="0" step="1">
     </div>
-    <div class="notary-hint">Each = $10 TX state fee · tracks SE tax basis</div>
-    <label style="display:flex;align-items:center;gap:9px;margin-top:10px;cursor:pointer;font-size:12px;color:rgba(11,24,41,.6)">
-      <input type="checkbox" id="f-journaled" style="width:17px;height:17px;flex-shrink:0;accent-color:var(--gold-mid)">
-      <span>Recorded in The Anchored Journal</span>
-    </label>
-    <div class="notary-hint" style="margin-top:5px">Journaled acts use exact fees from your journal import instead of the $10 estimate.</div>
+    <div class="notary-hint">Each act = $10 TX statutory fee · sets your SE tax exemption</div>
+    <div class="field" style="margin:10px 0 0">
+      <label>Notarial Fees Charged ($) — optional</label>
+      <input type="number" id="f-notarial-fee" placeholder="leave blank to use acts × $10" step="0.01" min="0">
+    </div>
+    <div class="notary-hint" style="margin-top:5px">Only fill this in when the actual notarial fee differs from $10 per act — RON acts are $25 in Texas, and copy certifications are charged per page. Copy the figure from your paper record book.</div>
   </div>
   <!-- SERVICE REQUIREMENTS CHECKLIST -->
   <div class="card" style="margin:12px 0" id="serviceReqCard">
@@ -3046,9 +3027,6 @@ let apostilleJobs  = JSON.parse(localStorage.getItem('nbk_apostille') || '[]');
 let goals          = JSON.parse(localStorage.getItem('nbk_goals')     || '[]');
 let credentials    = JSON.parse(localStorage.getItem('nbk_credentials') || '[]');
 let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
-// Journal bridge — exempt notarial fees imported from The Anchored Journal.
-// Shape: { importedAt, fileDate, byYear: { "2026": { exempt, acts, entries } } }
-let journal        = JSON.parse(localStorage.getItem('nbk_journal')   || 'null');
 const TX_ACT_FEE   = 10;   // Texas Gov't Code 406.024 — per notarial act
 
 let selectedType   = 'loan';
@@ -3067,7 +3045,6 @@ function save() {
   localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
   localStorage.setItem('nbk_goals',     JSON.stringify(goals));
   localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
-  if (journal) localStorage.setItem('nbk_journal', JSON.stringify(journal));
   // Phase 1: save indicator
   const ind = document.getElementById('saveIndicator');
   if (ind) {
@@ -3113,7 +3090,6 @@ function initApp() {
   renderApostille();
   renderVault();
   renderBackupStats();
-  renderJournalStatus();
   renderDashboard();
 }
 
@@ -3133,7 +3109,7 @@ function showTab(tab) {
   if(tab==='goals')     renderGoals();
   if(tab==='apostille') renderApostille();
   if(tab==='vault')     renderVault();
-  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderBackupStats(); renderJournalStatus(); }
+  if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderBackupStats(); }
 }
 
 function updateMonthDefault() {
@@ -3234,7 +3210,7 @@ function saveAppointment(){
     notaryCount: selectedType==='depo' ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
     fee:parseFloat(document.getElementById('f-fee').value)||0,
     paid:document.getElementById('f-paid').value,
-    journaled: !!document.getElementById('f-journaled')?.checked,
+    notarialFee: parseFloat(document.getElementById('f-notarial-fee')?.value)||0,
     dueDate: document.getElementById('f-due')?.value || '',
     expense:parseFloat(document.getElementById('f-expense').value)||0,
     miles, addons,
@@ -3246,9 +3222,8 @@ function saveAppointment(){
   closeModal('addApptModal'); resetApptForm();
 }
 function resetApptForm(){
-  ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles','f-due'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles','f-due','f-notarial-fee'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-paid').value='unpaid';
-  const fj=document.getElementById('f-journaled'); if(fj) fj.checked=false;
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.remove('selected'));
   document.querySelector('#typeChips .chip[data-val="loan"]').classList.add('selected');
@@ -3782,17 +3757,17 @@ function renderTax(){
   // ordinary income tax. Travel, printing, coordination and loan-signing fees
   // above the statutory act fee are NOT exempt.
   //
-  // Source of the exempt figure, in order of preference:
-  //   1. The Anchored Journal import — actual statutory fees recorded per act
-  //   2. Fallback for appointments NOT marked as journaled: acts x $10
-  const jYear      = (journal && journal.byYear && journal.byYear[year]) || null;
-  const exemptJrnl = jYear ? jYear.exempt : 0;
-  const fallbackAppts = nonDepo.filter(a => !a.journaled);
-  const exemptFallback =
-        fallbackAppts.reduce((s,a) => s + (a.notaryCount||0), 0) * TX_ACT_FEE
-      + (jYear ? 0 : apostNotary * TX_ACT_FEE);
+  // Source: the actual notarial fee entered on the appointment when given,
+  // otherwise acts x $10 (the Texas statutory rate). Your paper record book is
+  // the substantiating document for this figure.
+  let exemptOverride = 0, exemptEstimated = 0, overrideCount = 0;
+  nonDepo.forEach(a => {
+    if (a.notarialFee > 0) { exemptOverride += a.notarialFee; overrideCount++; }
+    else { exemptEstimated += (a.notaryCount||0) * TX_ACT_FEE; }
+  });
+  exemptEstimated += apostNotary * TX_ACT_FEE;
   // Never exempt more than was actually collected
-  const exemptNotarial = Math.min(gross, exemptJrnl + exemptFallback);
+  const exemptNotarial = Math.min(gross, exemptOverride + exemptEstimated);
 
   const netProfit = Math.max(0, gross - totalExp - mileDeduction);   // income-tax base
   const seBase    = Math.max(0, netProfit - exemptNotarial);         // SE-tax base
@@ -3812,9 +3787,9 @@ function renderTax(){
   set('t-net','$'+netSE.toFixed(2));
   set('t-exempt','-$'+exemptNotarial.toFixed(2));
   set('t-se-base','$'+seBase.toFixed(2));
-  set('t-exempt-src', jYear
-      ? 'Journal import \u00b7 ' + jYear.acts + ' acts recorded'
-      : 'Estimated \u00b7 acts \u00d7 $10 \u00b7 import journal for actuals');
+  set('t-exempt-src', overrideCount
+      ? 'From your record book on ' + overrideCount + ' appointment' + (overrideCount===1?'':'s') + ' \u00b7 rest estimated at acts \u00d7 $10'
+      : 'Estimated \u00b7 acts \u00d7 $10 statutory rate');
   set('t-se-tax','$'+seTax.toFixed(2));
   set('t-se-deduct','-$'+seDeduct.toFixed(2));
   set('t-fed-tax','$'+fedTax.toFixed(2));
@@ -4133,9 +4108,8 @@ function exportYearPackage(){
   const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm,mileDeduct=totalMiles*IRS_RATE;
   const tn=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-mileDeduct);
   // IRC 1402(c)(1) — notarial act fees excluded from SE tax
-  const jy=(journal&&journal.byYear&&journal.byYear[yr])||null;
-  const exemptNotarial=Math.min(gross, jy ? jy.exempt
-    : nd.filter(a=>!a.journaled).reduce((s,a)=>s+(a.notaryCount||0),0)*TX_ACT_FEE);
+  const exemptNotarial=Math.min(gross, nd.reduce((s,a)=>
+    s + (a.notarialFee>0 ? a.notarialFee : (a.notaryCount||0)*TX_ACT_FEE), 0));
   const seBase=Math.max(0,netSE-exemptNotarial);
   const seTax=(seBase*0.9235)<400?0:seBase*0.9235*0.153,fedTax=Math.max(0,netSE-seTax/2)*0.22;
   let csv1=`NBK APPOINTMENTS — TAX YEAR ${yr}\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees,Total Fee,Paid,Appt Expenses,Miles,Mile Deduction,Notes\n`;
@@ -4154,7 +4128,7 @@ function exportYearPackage(){
   const perQ=((seTax+fedTax)/4).toFixed(2);
   csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Due Date,Est. Amount,Status\n`;
   [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 16, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{csv4+=`${q[0]},$${perQ},${q[1]},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;});
-  csv4+=`\nSELF-EMPLOYMENT TAX EXEMPTION\nExempt notarial fees (IRC 1402(c)(1)),$${exemptNotarial.toFixed(2)}\nSource,${jy?'Anchored Journal import — '+jy.acts+' acts':'Estimated at $10 per act'}\nIncome subject to SE tax,$${seBase.toFixed(2)}\n`;
+  csv4+=`\nSELF-EMPLOYMENT TAX EXEMPTION\nExempt notarial fees (IRC 1402(c)(1)),$${exemptNotarial.toFixed(2)}\nSource,Notarial fees per appointment record; paper record book is the substantiating document\nIncome subject to SE tax,$${seBase.toFixed(2)}\n`;
   csv4+='\n* Estimates only. Consult your tax professional.\n* Fees for performing notarial acts are excluded from self-employment tax under\n  IRC 1402(c)(1) as functions of a public office. They remain subject to income tax.\n  Schedule SE filers typically note "Exempt-Notary" for this amount.\n* Travel, printing, coordination and non-notarial loan-signing fees remain SE-taxable.\n* Deposition income reported separately on 1099-NEC.\n';
   dlCSV(csv4,`NBK_${yr}_Tax_Summary_For_Accountant.csv`);
   showToast('📦 Year package — 4 files downloaded');
@@ -4537,7 +4511,6 @@ function exportFullBackup() {
       mileage,
       goals,
       quarterlyStatus,
-      journal,
       depoIncome:  document.getElementById('depo-income-input')?.value || '',
       depoExpense: document.getElementById('depo-expense-input')?.value || '',
     }
@@ -4666,68 +4639,6 @@ function resetFileInput() {
   if (txt) txt.textContent = 'Tap to choose backup file';
 }
 
-// ── JOURNAL BRIDGE ────────────────────────────────────────────────────────
-// Reads an Anchored Journal backup ({settings, entries}) and totals the
-// statutory notarial fee per year. Only entry.fee counts as exempt under
-// IRC 1402(c) — travelFee and otherFee stay in the SE-taxable base.
-function importJournal(ev){
-  const file = ev.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const d = JSON.parse(e.target.result);
-      if(!d || !Array.isArray(d.entries)) throw new Error('shape');
-
-      const byYear = {};
-      d.entries.forEach(en => {
-        const yr = String(en.dt || '').slice(0,4);
-        if(!/^\d{4}$/.test(yr)) return;
-        if(!byYear[yr]) byYear[yr] = { exempt:0, acts:0, entries:0 };
-        byYear[yr].exempt  += parseFloat(en.fee) || 0;
-        byYear[yr].acts    += 1;
-        byYear[yr].entries += 1;
-      });
-
-      if(!Object.keys(byYear).length) throw new Error('empty');
-
-      journal = {
-        importedAt: new Date().toISOString(),
-        fileName:   file.name,
-        byYear
-      };
-      save();
-      renderJournalStatus();
-      renderTax();
-      renderDashboard();
-      const yrs = Object.keys(byYear).sort().join(', ');
-      showToast('✓ Journal imported — ' + yrs);
-    } catch(err) {
-      showToast('⚠️ Not a journal backup file');
-    }
-    ev.target.value = '';
-  };
-  reader.onerror = () => { showToast('⚠️ Could not read that file'); ev.target.value=''; };
-  reader.readAsText(file);
-}
-
-function renderJournalStatus(){
-  const el = document.getElementById('journalStatus');
-  if(!el) return;
-  if(!journal){
-    el.innerHTML = '<div style="font-size:12px;color:rgba(11,24,41,.45);padding:10px 0">'
-      + 'No journal imported. The Tax tab is estimating notarial fees at $10 per act.</div>';
-    return;
-  }
-  const yr = String(new Date().getFullYear());
-  const y  = journal.byYear[yr];
-  el.innerHTML =
-    '<div style="font-size:12px;line-height:1.9;padding:4px 0">'
-    + '<div><strong>' + (y ? '$' + y.exempt.toFixed(2) : '$0.00') + '</strong> exempt notarial fees in ' + yr + '</div>'
-    + '<div style="color:rgba(11,24,41,.5)">' + (y ? y.acts : 0) + ' acts · imported '
-    + new Date(journal.importedAt).toLocaleDateString('en-US') + '</div></div>';
-}
-
 // ── RESTORE: apply the pending backup
 function confirmRestore() {
   if (!pendingRestore) { showToast('⚠️ No backup loaded'); return; }
@@ -4752,7 +4663,6 @@ function confirmRestore() {
     mileage        = d.mileage        || [];
     goals          = d.goals          || [];
     quarterlyStatus= d.quarterlyStatus|| {};
-    journal        = d.journal        || null;
   } else {
     // MERGE — skip records whose id already exists
     const mergeById = (current, incoming) => {
@@ -4770,8 +4680,6 @@ function confirmRestore() {
     goals = [...goals, ...((d.goals||[]).filter(g=>!goalKeys.has(g.key)))];
     // Quarterly: incoming paid flags win
     quarterlyStatus = { ...quarterlyStatus, ...(d.quarterlyStatus||{}) };
-    // Journal: whichever import is newer wins — it is a full restatement, not a delta
-    if (d.journal && (!journal || d.journal.importedAt > journal.importedAt)) journal = d.journal;
   }
 
   // Restore the depo income fields
