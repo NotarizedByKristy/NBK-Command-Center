@@ -9,14 +9,15 @@ Private business tracker for **Notarized By Kristy LLC** (Texas Notary Kristy), 
 | Tab | Purpose |
 |---|---|
 | **Home** | Month-to-date income, net profit, money owed, goal progress, active apostille jobs, next tax payment, expiring credentials |
-| **Appts** | Mobile notary, loan signing, RON, deposition, wedding officiant and translation appointments |
-| **Invoices** | Branded invoices built from the rate card, numbered NBK-YYYY-####, Draft → Sent → Paid, print or save as PDF |
-| **Apostille** | Apostille jobs by stage, with trips, mileage, and job costs |
+| **Appts** | Mobile notary, loan signing, RON, deposition (pay logged per job), wedding officiant and translation appointments, with a no-show / late-cancel charge that follows the cancellation policy |
+| **Invoices** | Branded invoices built from the rate card, numbered NBK-YYYY-####, Draft → Sent → Paid, deposits/retainers, pay-now link, PDF, and one-tap email with saved message templates |
+| **Clients** | Saved clients that autofill invoices, with jobs, total billed, and open balance for each |
+| **Apostille** | Apostille jobs through the real workflow (intake → eligibility → quote → agreement → payment → filing agent → filed → shipped → delivered), who each job is waiting on, the next filing day, and tracking links |
 | **Expenses** | Business expenses and standalone mileage |
 | **Tax** | Self-employment tax estimate, P&L by service line, quarterly payment tracker |
 | **Goals** | Monthly revenue and appointment targets |
-| **Pricing** | Editable rate card, Texas notarial fees, IRS mileage rates, invoice header and terms |
-| **Vault** | Commission, E&O, certifications, and registrations with expiration alerts |
+| **Pricing** | Editable rate card, Texas notarial fees, IRS mileage rates, invoice header, terms, pay link, and email templates |
+| **Vault** | Commission, bond, E&O, NNA, BBB, SAM.gov, SBA and HUB certifications with expiration alerts |
 | **Export** | Monthly archive CSV, year-end package for the accountant, full backup and restore |
 
 ## How the tax math works
@@ -25,7 +26,7 @@ Private business tracker for **Notarized By Kristy LLC** (Texas Notary Kristy), 
 - **Travel, printing, coordination, officiant, and translation fees** are fully subject to self-employment tax.
 - **Pass-through costs** billed at cost (shipping, translation, state record fees) are booked as offsetting expenses.
 - **Mileage** uses the IRS standard rate in effect on each trip's date. Add new rates in the Pricing tab.
-- **Deposition income** (1099) is tracked separately.
+- **Deposition income** (1099) totals itself from logged deposition jobs and is tracked separately from notary income.
 
 Figures are estimates for bookkeeping. Confirm with a tax professional before filing.
 
