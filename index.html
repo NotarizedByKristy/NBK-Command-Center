@@ -9,7 +9,7 @@
      PWA — Installable App Configuration
 ══════════════════════════════════════ -->
 <meta name="theme-color" content="#060f1a">
-<meta name="description" content="Mobile notary business tracker — appointments, apostille jobs, expenses, mileage, tax estimates, and credential expirations.">
+<meta name="description" content="Mobile notary business tracker — appointments, invoices, apostille jobs, expenses, mileage, tax estimates, and credential expirations.">
 
 <!-- iOS standalone app support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1242,7 +1242,7 @@ body {
   font-size: 12px; font-weight: 700;
   font-family: var(--font-ui);
   border: 1px solid rgba(200,151,42,.25);
-  z-index: 999;
+  z-index: 10001;
   transition: transform .3s cubic-bezier(.32,1,.54,1);
   white-space: nowrap;
   box-shadow: var(--s3);
@@ -1755,7 +1755,7 @@ body {
 
 .backup-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -1913,8 +1913,129 @@ body {
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
 }
 
+/* ════════════════════════════════════════
+   SERVICE LINES — Officiant & Translation
+════════════════════════════════════════ */
+.appt-card.type-officiant   { border-left-color: #8a3f6b; }
+.appt-card.type-translation { border-left-color: #2a7d7d; }
+.type-tag.officiant   { background: #f6e9f0; color: #8a3f6b; }
+.type-tag.translation { background: #e5f3f3; color: #2a7d7d; }
+.pill.inv { background: var(--ink-deep); color: var(--gold-hero); }
+
+/* ════════════════════════════════════════
+   P&L BY SERVICE LINE (Tax tab)
+════════════════════════════════════════ */
+.pl-line { padding: 10px 0; border-bottom: 1px solid var(--parchment-2); }
+.pl-line:last-child { border-bottom: none; }
+.pl-name { font-size: 13px; font-weight: 700; color: var(--ink-deep); margin-bottom: 6px; }
+.pl-name span { font-size: 10px; font-weight: 600; color: rgba(11,24,41,.4); }
+.pl-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+.pl-lbl { font-size: 8px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(11,24,41,.35); margin-bottom: 2px; }
+.pl-val { font-size: 12.5px; font-weight: 700; color: var(--ink-deep); }
+.pl-total { background: var(--ink-deep); border-radius: var(--r-sm); padding: 10px 12px; margin-top: 10px; }
+.pl-total .pl-lbl { color: rgba(255,255,255,.4); }
+.pl-total .pl-val { color: var(--gold-hero); }
+
+/* ════════════════════════════════════════
+   PRICING PROFILE
+════════════════════════════════════════ */
+.price-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--parchment-2);
+}
+.price-row:last-child { border-bottom: none; }
+.price-lbl { font-size: 12px; font-weight: 600; color: var(--ink-deep); line-height: 1.35; flex: 1; min-width: 0; }
+.price-unit { font-size: 10px; color: rgba(11,24,41,.42); font-weight: 500; margin-top: 1px; }
+.price-tag {
+  display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 2px 6px; border-radius: 4px;
+  background: var(--amber-bg); color: var(--amber); margin-left: 5px; vertical-align: 1px;
+}
+.price-input { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.price-input span { font-size: 12px; color: rgba(11,24,41,.45); font-weight: 600; }
+.price-input input {
+  width: 80px; background: var(--parchment);
+  border: 1.5px solid var(--parchment-2); border-radius: var(--r-sm);
+  padding: 7px 8px; font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--ink-deep); text-align: right; outline: none; -webkit-appearance: none;
+}
+.price-input input:focus { border-color: var(--gold-mid); background: var(--white); }
+.price-del { background: none; border: none; color: var(--red); font-size: 14px; cursor: pointer; padding: 2px 4px; }
+
+/* ════════════════════════════════════════
+   INVOICES
+════════════════════════════════════════ */
+.inv-card {
+  background: var(--white); border-radius: var(--r);
+  padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: var(--s0); border: 1px solid rgba(0,0,0,.05);
+  border-left: 3px solid var(--gold-mid);
+}
+.inv-card.st-draft   { border-left-color: rgba(11,24,41,.25); }
+.inv-card.st-sent    { border-left-color: var(--amber); }
+.inv-card.st-overdue { border-left-color: var(--red); }
+.inv-card.st-paid    { border-left-color: var(--green); }
+.inv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+.inv-num { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--gold-mid); margin-bottom: 2px; }
+.inv-client { font-size: 15px; font-weight: 700; color: var(--ink-deep); }
+.inv-total { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink-deep); white-space: nowrap; }
+.inv-meta { font-size: 11px; color: rgba(11,24,41,.45); margin-bottom: 8px; line-height: 1.5; }
+.inv-line {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--parchment-2); font-size: 12px;
+}
+.inv-line:last-child { border-bottom: none; }
+.inv-line-desc { font-weight: 600; color: var(--ink-deep); flex: 1; min-width: 0; }
+.inv-line-amt { font-weight: 700; color: var(--ink-deep); white-space: nowrap; }
+.inv-add-row { display: grid; grid-template-columns: 1fr 64px; gap: 8px; }
+.check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(11,24,41,.6); font-weight: 600; margin: 6px 0 12px; }
+.check-row input { width: 18px; height: 18px; accent-color: var(--gold-mid); flex-shrink: 0; }
+
+/* ════════════════════════════════════════
+   INVOICE PREVIEW / PRINT
+════════════════════════════════════════ */
+#printArea { display: none; }
+#printArea.open {
+  display: block; position: fixed; inset: 0; z-index: 10000;
+  background: #fff; overflow-y: auto; padding: 64px 18px 40px;
+}
+.print-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 2;
+  background: var(--ink-deep); padding: 12px;
+  display: flex; gap: 8px; justify-content: center;
+}
+.pi { font-family: var(--font-ui); color: #0B1829; background: #fff; max-width: 7.5in; margin: 0 auto; }
+.pi-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px solid #C8972A; padding-bottom: 14px; margin-bottom: 18px; }
+.pi-brand { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: #0B1829; line-height: 1.1; }
+.pi-sub { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #8a6518; margin-top: 3px; }
+.pi-contact { font-size: 11px; line-height: 1.6; color: #444; margin-top: 6px; }
+.pi-title { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: #C8972A; text-align: right; letter-spacing: 2px; }
+.pi-meta { font-size: 11px; line-height: 1.7; text-align: right; color: #444; }
+.pi-billto { font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+.pi-lbl { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #8a6518; margin-bottom: 4px; }
+.pi table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pi th { background: #0B1829; color: #E8B84B; text-align: left; padding: 8px 10px; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+.pi td { padding: 9px 10px; border-bottom: 1px solid #EFEBE2; vertical-align: top; }
+.pi .r { text-align: right; white-space: nowrap; }
+.pi-totals { margin-left: auto; width: 260px; max-width: 100%; margin-top: 12px; font-size: 12px; }
+.pi-totals > div { display: flex; justify-content: space-between; padding: 5px 0; }
+.pi-grand { border-top: 2px solid #0B1829; font-weight: 700; font-size: 15px; margin-top: 4px; padding-top: 8px !important; }
+.pi-note { font-size: 10.5px; color: #555; line-height: 1.6; margin-top: 16px; padding-top: 10px; border-top: 1px solid #EFEBE2; }
+.pi-paid { display: inline-block; border: 2px solid #1C7A50; color: #1C7A50; font-weight: 800; letter-spacing: 3px; padding: 4px 12px; border-radius: 4px; font-size: 13px; margin-top: 8px; transform: rotate(-4deg); }
+
+@media print {
+  @page { margin: 0.5in; }
+  html, body { background: #fff !important; max-width: none !important; }
+  body > *:not(#printArea) { display: none !important; }
+  #printArea, #printArea.open { display: block !important; position: static !important; padding: 0 !important; overflow: visible !important; }
+  .print-bar { display: none !important; }
+  .pi th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
 </style>
 </head>
+
 <body>
 
 <!-- ══════════════════════════════════════
@@ -2043,14 +2164,16 @@ body {
 
 <!-- NAV -->
 <div class="nav-tabs">
-  <button class="tab-btn active" onclick="showTab('dashboard')">Home</button>
-  <button class="tab-btn" onclick="showTab('appointments')">Appts</button>
-  <button class="tab-btn" onclick="showTab('apostille')">Apostille</button>
-  <button class="tab-btn" onclick="showTab('expenses')">Expenses</button>
-  <button class="tab-btn" onclick="showTab('tax')">Tax</button>
-  <button class="tab-btn" onclick="showTab('goals')">Goals</button>
-  <button class="tab-btn" onclick="showTab('vault')">Vault</button>
-  <button class="tab-btn" onclick="showTab('exports')">Export</button>
+  <button class="tab-btn active" data-tab="dashboard" onclick="showTab('dashboard')">Home</button>
+  <button class="tab-btn" data-tab="appointments" onclick="showTab('appointments')">Appts</button>
+  <button class="tab-btn" data-tab="invoices" onclick="showTab('invoices')">Invoices</button>
+  <button class="tab-btn" data-tab="apostille" onclick="showTab('apostille')">Apostille</button>
+  <button class="tab-btn" data-tab="expenses" onclick="showTab('expenses')">Expenses</button>
+  <button class="tab-btn" data-tab="tax" onclick="showTab('tax')">Tax</button>
+  <button class="tab-btn" data-tab="goals" onclick="showTab('goals')">Goals</button>
+  <button class="tab-btn" data-tab="pricing" onclick="showTab('pricing')">Pricing</button>
+  <button class="tab-btn" data-tab="vault" onclick="showTab('vault')">Vault</button>
+  <button class="tab-btn" data-tab="exports" onclick="showTab('exports')">Export</button>
 </div>
 
 <div class="main-content">
@@ -2137,12 +2260,35 @@ body {
     <button class="filter-pill" onclick="filterAppts('depo',this)">Depo</button>
     <button class="filter-pill" onclick="filterAppts('ron',this)">RON</button>
     <button class="filter-pill" onclick="filterAppts('general',this)">General</button>
+    <button class="filter-pill" onclick="filterAppts('officiant',this)">Officiant</button>
+    <button class="filter-pill" onclick="filterAppts('translation',this)">Translation</button>
   </div>
   <div class="month-row">
     <select id="apptMonthFilter" onchange="renderAppts()"><option value="all">All Months</option></select>
   </div>
   <div id="apptList"><div class="empty-state"><div class="empty-icon">📋</div><p>No appointments yet.<br>Tap below to add one.</p></div></div>
   <button class="btn-primary" onclick="openAddAppt()" style="margin-top:10px">+ Add Appointment</button>
+</div>
+
+<!-- ── INVOICES ── -->
+<div id="tab-invoices" class="tab-content">
+  <div class="page-title">Invoices <span class="page-badge" id="invCount">0</span></div>
+  <div class="dash-grid-2">
+    <div class="dash-card"><div class="dash-lbl">Outstanding</div><div class="dash-num" style="color:var(--amber)" id="inv-out">$0</div></div>
+    <div class="dash-card"><div class="dash-lbl">Overdue</div><div class="dash-num" style="color:var(--red)" id="inv-overdue">$0</div></div>
+    <div class="dash-card"><div class="dash-lbl">Paid This Year</div><div class="dash-num" style="color:var(--green)" id="inv-paid-ytd">$0</div></div>
+    <div class="dash-card"><div class="dash-lbl">Drafts</div><div class="dash-num" id="inv-drafts">0</div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-pill active" onclick="filterInvoices('all',this)">All</button>
+    <button class="filter-pill" onclick="filterInvoices('draft',this)">Draft</button>
+    <button class="filter-pill" onclick="filterInvoices('sent',this)">Sent</button>
+    <button class="filter-pill" onclick="filterInvoices('overdue',this)">Overdue</button>
+    <button class="filter-pill" onclick="filterInvoices('paid',this)">Paid</button>
+  </div>
+  <div id="invList"><div class="empty-state"><div class="empty-icon">🧾</div><p>No invoices yet.</p></div></div>
+  <button class="btn-primary" onclick="openInvoice()" style="margin-top:10px">+ New Invoice</button>
+  <div class="notice" style="margin-top:12px">Marking an invoice <strong>Paid</strong> posts it to your ledger: it updates the linked appointment or apostille job, or creates one if the invoice isn't linked.</div>
 </div>
 
 <!-- ── APOSTILLE ── -->
@@ -2227,7 +2373,7 @@ body {
         <span id="mDistText"></span><input type="hidden" id="m-miles-calc">
       </div>
     </div>
-    <div class="irs-note"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+    <div class="irs-note"><strong class="irs-rate-lbl">IRS rate</strong></div>
     <button class="btn-primary" onclick="saveMileage()" style="margin-top:10px">Save Mileage</button>
   </div>
 
@@ -2251,17 +2397,22 @@ body {
     <div class="tax-title">SE Tax Breakdown — <span id="taxYear">2026</span></div>
     <div class="tax-row"><span class="tax-lbl">Gross Self-Employment Income</span><span class="tax-val gold" id="t-gross">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Business Expenses</span><span class="tax-val red" id="t-expenses">$0</span></div>
-    <div class="tax-row"><span class="tax-lbl">Mileage Deduction ($0.70/mi)</span><span class="tax-val red" id="t-mileage">$0</span></div>
+    <div class="tax-row"><span class="tax-lbl">Mileage Deduction (rate by trip date)</span><span class="tax-val red" id="t-mileage">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Net Profit</span><span class="tax-val" id="t-net">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Exempt Notarial Fees <span style="opacity:.55">§1402(c)</span></span><span class="tax-val green" id="t-exempt">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Income Subject to SE Tax</span><span class="tax-val" id="t-se-base">$0</span></div>
-    <div style="font-size:11px;color:rgba(11,24,41,.42);margin:-4px 0 10px" id="t-exempt-src">—</div>
+    <div style="font-size:10.5px;line-height:1.5;color:rgba(255,255,255,.4);margin:-2px 0 8px" id="t-exempt-src">—</div>
     <div class="tax-row"><span class="tax-lbl">SE Tax (15.3% × 92.35%)</span><span class="tax-val red" id="t-se-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">SE Deduction (½ SE Tax)</span><span class="tax-val green" id="t-se-deduct">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Est. Federal Income Tax (22%)</span><span class="tax-val red" id="t-fed-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Total Estimated Tax</span><span class="tax-val gold" id="t-total-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Per Quarter (÷4)</span><span class="tax-val green" id="t-per-quarter">$0</span></div>
     <div class="tax-note">Estimates only — confirm with your tax professional before filing. Fees for performing notarial acts are excluded from self-employment tax under IRC §1402(c)(1) as functions of a public office; they are still subject to ordinary income tax. Travel, printing, coordination and the non-notarial portion of loan-signing fees remain fully SE-taxable. Deposition income from DepoDirect/Esquire is tracked separately below.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>KristyOS P&amp;L by Service Line</div>
+    <div id="t-lines"></div>
   </div>
 
   <div class="card">
@@ -2306,6 +2457,60 @@ body {
   </div>
   <div class="page-title" style="font-size:20px;margin-top:4px">Progress</div>
   <div id="goalsList"><div class="empty-state"><div class="empty-icon">🎯</div><p>No goals set yet.</p></div></div>
+</div>
+
+<!-- ── PRICING PROFILE ── -->
+<div id="tab-pricing" class="tab-content">
+  <div class="page-title">Pricing Profile</div>
+  <p style="font-size:12px;color:rgba(11,24,41,.5);margin-bottom:14px;line-height:1.6">Your rate card. Invoices and add-on estimates pull these prices. Changing a price never alters an invoice you've already saved.</p>
+  <div id="pricingGroups"></div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Add a Rate Card Item</div>
+    <div class="field"><label>Section</label><select id="pr-new-group"></select></div>
+    <div class="field"><label>Item Name</label><input type="text" id="pr-new-label" placeholder="e.g. Hospital / Jail Visit"></div>
+    <div class="field"><label>Price ($)</label><input type="number" id="pr-new-price" step="0.01" min="0" inputmode="decimal"></div>
+    <label class="check-row"><input type="checkbox" id="pr-new-pass"> Billed at cost (pass-through)</label>
+    <button class="btn-primary" onclick="addPriceItem()">Add Item</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Texas Notarial Fees · SE-Exempt Basis</div>
+    <p style="font-size:11px;color:rgba(11,24,41,.45);margin-bottom:10px;line-height:1.6">Tex. Gov't Code §406.024 and §406.111. These set the portion of each job excluded from self-employment tax under IRC §1402(c). They never print on invoices.</p>
+    <div class="two-col">
+      <div class="field"><label>Ack — First Signer</label><input type="number" id="pf-ack_first" step="0.01" min="0" onchange="setNotaryFee('ack_first',this.value)"></div>
+      <div class="field"><label>Ack — Each Add'l</label><input type="number" id="pf-ack_add" step="0.01" min="0" onchange="setNotaryFee('ack_add',this.value)"></div>
+      <div class="field"><label>Oath / Jurat</label><input type="number" id="pf-oath" step="0.01" min="0" onchange="setNotaryFee('oath',this.value)"></div>
+      <div class="field"><label>RON Act</label><input type="number" id="pf-ron" step="0.01" min="0" onchange="setNotaryFee('ron',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>IRS Mileage Rates</div>
+    <p style="font-size:11px;color:rgba(11,24,41,.45);margin-bottom:6px;line-height:1.6">Each trip is deducted at the rate in effect on its date. Add the new rate each January, or whenever the IRS revises it mid-year.</p>
+    <div id="irsRatesList"></div>
+    <div class="two-col" style="margin-top:10px">
+      <div class="field"><label>Effective From</label><input type="date" id="irs-new-date"></div>
+      <div class="field"><label>Rate ($/mile)</label><input type="number" id="irs-new-rate" step="0.001" min="0" inputmode="decimal" placeholder="0.76"></div>
+    </div>
+    <button class="btn-secondary" style="width:100%" onclick="addIrsRate()">+ Add Rate</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Invoice Header &amp; Terms</div>
+    <div class="field"><label>Business Name</label><input type="text" id="bz-name" onchange="setBiz('name',this.value)"></div>
+    <div class="field"><label>DBA / Tagline</label><input type="text" id="bz-dba" onchange="setBiz('dba',this.value)"></div>
+    <div class="field"><label>Address</label><textarea id="bz-address" style="min-height:44px" onchange="setBiz('address',this.value)"></textarea></div>
+    <div class="two-col">
+      <div class="field"><label>Phone</label><input type="tel" id="bz-phone" onchange="setBiz('phone',this.value)"></div>
+      <div class="field"><label>Days Until Due</label><input type="number" id="bz-dueDays" min="0" step="1" onchange="setBiz('dueDays',this.value)"></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="bz-email" onchange="setBiz('email',this.value)"></div>
+    <div class="field"><label>Payment Instructions</label><textarea id="bz-payNote" style="min-height:44px" placeholder="e.g. Pay by card through the secure Stripe link in your email." onchange="setBiz('payNote',this.value)"></textarea></div>
+    <div class="field"><label>Terms (printed on every invoice)</label><textarea id="bz-terms" style="min-height:90px" onchange="setTerms(this.value)"></textarea></div>
+  </div>
+
+  <button class="btn-secondary" onclick="resetPricing()" style="width:100%">↻ Reset to Default Rate Card</button>
 </div>
 
 <!-- ── CREDENTIALS VAULT ── -->
@@ -2446,6 +2651,7 @@ body {
       <button class="btn-secondary" onclick="exportAllExpenses()" style="width:100%;text-align:left;padding:13px 16px">💳 All Expenses</button>
       <button class="btn-secondary" onclick="exportAllMileage()" style="width:100%;text-align:left;padding:13px 16px">🚗 All Mileage Log</button>
       <button class="btn-secondary" onclick="exportApostilleJobs()" style="width:100%;text-align:left;padding:13px 16px">🌐 All Apostille Jobs</button>
+      <button class="btn-secondary" onclick="exportAllInvoices()" style="width:100%;text-align:left;padding:13px 16px">🧾 All Invoices</button>
     </div>
   </div>
 
@@ -2479,6 +2685,8 @@ body {
       <div class="chip" data-val="depo" onclick="selectType(this)">Deposition</div>
       <div class="chip" data-val="ron" onclick="selectType(this)">RON</div>
       <div class="chip" data-val="general" onclick="selectType(this)">General Notary</div>
+      <div class="chip" data-val="officiant" onclick="selectType(this)">Officiant</div>
+      <div class="chip" data-val="translation" onclick="selectType(this)">Translation</div>
     </div>
   </div>
   <div class="field"><label>Client / Borrower</label><input type="text" id="f-client" placeholder="Full name"></div>
@@ -2499,10 +2707,15 @@ body {
   </div>
   <div class="notary-field-wrap" id="notaryCountRow">
     <div class="field" style="margin-bottom:0">
-      <label>📋 Number of Notarizations</label>
+      <label>📋 Notarial Acts</label>
       <input type="number" id="f-notary-count" placeholder="0" min="0" step="1">
     </div>
-    <div class="notary-hint">Each act = $10 TX statutory fee · sets your SE tax exemption</div>
+    <div class="notary-hint">Acknowledgment $10 first signer · oath/jurat $10 (Gov't Code §406.024) · sets your SE-tax exemption</div>
+    <div class="field" style="margin:10px 0 0">
+      <label>+ Additional Signers on Acknowledgments</label>
+      <input type="number" id="f-extra-signers" placeholder="0" min="0" step="1">
+    </div>
+    <div class="notary-hint">$1 each additional signer on the same certificate</div>
     <div class="field" style="margin:10px 0 0">
       <label>Notarial Fees Charged ($) — optional</label>
       <input type="number" id="f-notarial-fee" placeholder="leave blank to use acts × $10" step="0.01" min="0">
@@ -2607,7 +2820,7 @@ body {
         <span id="fDistText"></span><input type="hidden" id="f-miles-calc">
       </div>
     </div>
-    <div class="irs-note"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+    <div class="irs-note"><strong class="irs-rate-lbl">IRS rate</strong></div>
   </div>
   <div class="notice" id="depoMileNotice" style="display:none;margin-top:10px">🎙️ Deposition mileage tracked separately for 1099 records.</div>
   <div class="field" style="margin-top:10px"><label>Notes</label><textarea id="f-notes" placeholder="Document count, instructions, notes..."></textarea></div>
@@ -2640,6 +2853,11 @@ body {
       <input type="number" id="edit-notary-count" placeholder="0" min="0">
     </div>
     <div class="notary-hint">Tracks SE tax basis</div>
+    <div class="two-col" style="margin-top:10px">
+      <div class="field" style="margin-bottom:0"><label>+ Signers</label><input type="number" id="edit-extra-signers" placeholder="0" min="0"></div>
+      <div class="field" style="margin-bottom:0"><label>Notarial Fee $</label><input type="number" id="edit-notarial-fee" placeholder="auto" step="0.01" min="0"></div>
+    </div>
+    <div class="notary-hint">Leave Notarial Fee blank to use $10 per act + $1 per added signer</div>
   </div>
   <div class="two-col" style="margin-top:12px">
     <div class="field"><label>Fee ($)</label><input type="number" id="edit-fee" step="0.01"></div>
@@ -2827,7 +3045,7 @@ body {
     </div>
   </div>
   <div class="field" style="margin-top:10px"><label>Notes</label><textarea id="t-notes" placeholder="Notes for this trip..." style="min-height:44px"></textarea></div>
-  <div class="irs-note" style="margin-top:8px"><strong>2025 IRS Rate: $0.70/mile</strong></div>
+  <div class="irs-note" style="margin-top:8px"><strong class="irs-rate-lbl">IRS rate</strong></div>
   <div style="display:flex;gap:8px;margin-top:14px">
     <button class="btn-primary" onclick="saveTrip()" style="flex:1">Save Trip</button>
     <button class="btn-secondary" onclick="closeModal('addTripModal')" style="flex:0 0 80px">Cancel</button>
@@ -2850,6 +3068,11 @@ body {
       <option>Printing / Copies</option>
       <option>Notarization Fee</option>
       <option>Translation Fee</option>
+      <option>Austin Courier (Filing Agent)</option>
+      <option>RON Platform Fee</option>
+      <option>Stripe Processing</option>
+      <option>Shipping Label (Shippo)</option>
+      <option>Certified Business Record (SOS)</option>
       <option>Other</option>
     </select>
   </div>
@@ -2975,6 +3198,94 @@ body {
 </div>
 </div>
 
+<!-- INVOICE -->
+<div class="modal-overlay" id="invoiceModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title" id="invModalTitle">New Invoice</div>
+  <input type="hidden" id="inv-id">
+  <div class="two-col">
+    <div class="field"><label>Invoice #</label><input type="text" id="inv-number"></div>
+    <div class="field"><label>Status</label>
+      <select id="inv-status"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid ✓</option></select>
+    </div>
+  </div>
+  <div class="field"><label>Bill To (Client / Company)</label><input type="text" id="inv-client" placeholder="Full name or company"></div>
+  <div class="field"><label>Client Email / Phone</label><input type="text" id="inv-contact"></div>
+  <div class="field"><label>Billing Address</label><textarea id="inv-address" style="min-height:44px" placeholder="Optional"></textarea></div>
+  <div class="two-col">
+    <div class="field"><label>Service Line</label>
+      <select id="inv-line" onchange="onInvLineChange()">
+        <option value="general">General Notary</option><option value="loan">Loan Signing</option><option value="ron">RON</option>
+        <option value="apostille">Apostille</option><option value="officiant">Wedding Officiant</option><option value="translation">Translation</option>
+      </select>
+    </div>
+    <div class="field"><label>Service Date</label><input type="date" id="inv-service-date"></div>
+  </div>
+  <div class="two-col">
+    <div class="field"><label>Issue Date</label><input type="date" id="inv-date"></div>
+    <div class="field"><label>Due Date</label><input type="date" id="inv-due"></div>
+  </div>
+  <div class="field"><label>Ledger Record</label><select id="inv-link"></select>
+    <div style="font-size:10px;color:rgba(11,24,41,.45);margin-top:5px">Link the appointment or apostille job this bills, or leave it to create one when paid.</div>
+  </div>
+
+  <div class="card" style="margin:12px 0">
+    <div class="card-header"><div class="card-header-accent"></div>Line Items</div>
+    <div id="invLines"></div>
+    <div class="divider" style="margin:12px 0"></div>
+    <div class="section-eyebrow">From Pricing Profile</div>
+    <div class="inv-add-row">
+      <div class="field" style="margin-bottom:8px"><select id="inv-cat" aria-label="Rate card item"></select></div>
+      <div class="field" style="margin-bottom:8px"><input type="number" id="inv-cat-qty" value="1" min="1" step="1" inputmode="numeric" aria-label="Quantity"></div>
+    </div>
+    <button class="btn-secondary" style="width:100%" onclick="addCatalogLine()">+ Add Item</button>
+    <div class="section-eyebrow" style="margin-top:16px">Custom Line</div>
+    <div class="field"><input type="text" id="inv-cust-desc" placeholder="Description"></div>
+    <div class="inv-add-row">
+      <div class="field"><input type="number" id="inv-cust-amt" placeholder="Price ($)" step="0.01" inputmode="decimal"></div>
+      <div class="field"><input type="number" id="inv-cust-qty" value="1" min="1" step="1" inputmode="numeric" aria-label="Quantity"></div>
+    </div>
+    <label class="check-row" style="margin-top:0"><input type="checkbox" id="inv-cust-pass"> Billed at cost (pass-through)</label>
+    <button class="btn-secondary" style="width:100%" onclick="addCustomLine()">+ Add Custom Line</button>
+  </div>
+
+  <div class="notary-field-wrap" id="invNotaryBox">
+    <div class="three-col">
+      <div class="field" style="margin-bottom:0"><label>Acts</label><input type="number" id="inv-acts" min="0" step="1" placeholder="0" oninput="renderInvTotals()"></div>
+      <div class="field" style="margin-bottom:0"><label>+ Signers</label><input type="number" id="inv-extra" min="0" step="1" placeholder="0" oninput="renderInvTotals()"></div>
+      <div class="field" style="margin-bottom:0"><label>RON Acts</label><input type="number" id="inv-ron-acts" min="0" step="1" placeholder="0" oninput="renderInvTotals()"></div>
+    </div>
+    <div class="notary-hint">Acts = in-person acknowledgments, oaths and jurats ($10). + Signers = additional signers on one acknowledgment ($1). RON acts = $25. Sets the SE-exempt portion — for your books only.</div>
+  </div>
+
+  <div class="two-col">
+    <div class="field"><label>Roundtrip Miles</label><input type="number" id="inv-miles" step="0.1" min="0" placeholder="0"></div>
+    <div class="field"><label>Payment Method</label><input type="text" id="inv-method" placeholder="Stripe, Zelle, cash…"></div>
+  </div>
+  <div style="font-size:10px;color:rgba(11,24,41,.45);margin:-6px 0 10px">Miles are used only when the invoice creates a new record on payment.</div>
+  <label class="check-row"><input type="checkbox" id="inv-show-notary" onchange="renderInvTotals()"> Note the statutory notarial fee on the invoice</label>
+  <div class="field"><label>Notes to Client</label><textarea id="inv-notes" style="min-height:44px" placeholder="Optional"></textarea></div>
+
+  <div class="tax-box" id="invTotals"></div>
+
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveInvoice()" style="flex:1">Save Invoice</button>
+    <button class="btn-secondary" onclick="saveInvoice(true)" style="flex:0 0 108px">Save + View</button>
+  </div>
+  <button class="btn-secondary" onclick="closeModal('invoiceModal')" style="width:100%;margin-top:8px">Cancel</button>
+</div>
+</div>
+
+<!-- INVOICE PREVIEW / PRINT -->
+<div id="printArea">
+  <div class="print-bar">
+    <button class="btn-primary" style="width:auto;padding:10px 18px" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-secondary" onclick="closePrint()">Close</button>
+  </div>
+  <div id="printBody"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ══════════════════════════════════════
@@ -2986,7 +3297,6 @@ body {
 <script>
 
 // ── CONSTANTS
-const IRS_RATE = 0.70;
 const TX_FEE   = 10;
 
 // ── FIX #2: SHA-256 password (same structure as fixed file)
@@ -3029,6 +3339,711 @@ let credentials    = JSON.parse(localStorage.getItem('nbk_credentials') || '[]')
 let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
 const TX_ACT_FEE   = 10;   // Texas Gov't Code 406.024 — per notarial act
 
+// ══════════════════════════════════════════
+// KRISTYOS — PRICING PROFILE, TAX ALLOCATION, LEDGER
+// ══════════════════════════════════════════
+
+// Service lines whose fees are NOT notarial acts (no IRC 1402(c) exemption)
+const NON_NOTARIAL = ['depo','officiant','translation'];
+
+const LINE_LABELS = {
+  general:'General Notary', loan:'Loan Signing', ron:'RON', apostille:'Apostille',
+  officiant:'Wedding Officiant', translation:'Translation', overhead:'Overhead / Unassigned'
+};
+
+// Default rate card — Aug–Sep 2026. Every price is editable in the Pricing tab.
+// pass:true = billed to the client at cost (pass-through), booked with an offsetting expense.
+const PRICING_DEFAULTS = {
+  version: 1,
+  groups: [
+    { key:'mobile', label:'Mobile & RON Services', items:[
+      { id:'mob_std',    label:'Mobile Notary — Standard',              price:75,  line:'general', unit:'no printing included' },
+      { id:'mob_loan',   label:'Mobile Notary — Loan Signing',          price:165, line:'loan' },
+      { id:'ron_std',    label:'RON — Standard',                        price:75,  line:'ron', unit:'includes one signer' },
+      { id:'ron_loan',   label:'RON — Loan Signing',                    price:150, line:'ron', unit:'plus $25 per signer' },
+      { id:'ron_signer', label:'RON — Additional Signer',               price:25,  unit:'per signer' },
+      { id:'estate_one', label:'Estate Planning Document Support — Individual', price:145, line:'general' },
+      { id:'estate_two', label:'Estate Planning Document Support — Couple',     price:245, line:'general' },
+    ]},
+    { key:'travel', label:'Travel Zones', items:[
+      { id:'trav_1', label:'Travel — Under 15 miles', price:35, unit:'Cibolo, Schertz, Universal City, Converse' },
+      { id:'trav_2', label:'Travel — 15–30 miles',    price:55, unit:'San Antonio, Seguin, Live Oak, Garden Ridge' },
+      { id:'trav_3', label:'Travel — 31–45 miles',    price:75, unit:'New Braunfels, Marion, far NW San Antonio' },
+    ]},
+    { key:'addons', label:'Add-ons', items:[
+      { id:'rush',    label:'Rush / Same-Day / Weekend / After-Hours', price:50 },
+      { id:'witness', label:'Witness Provided',                        price:30, unit:'per witness' },
+      { id:'print',   label:'Print / Copy / Scan',                     price:25 },
+    ]},
+    { key:'apostille', label:'Apostille & Authentication', items:[
+      { id:'apo_std',      label:'Standard Apostille (Mail-In) — First Document', price:225, line:'apostille' },
+      { id:'apo_std_add',  label:'Standard — Each Additional Document',           price:75,  line:'apostille' },
+      { id:'apo_exec',     label:'Texas Executive Apostille — First Document',    price:400, line:'apostille', unit:'priority handling included' },
+      { id:'apo_exec_add', label:'Texas Executive — Each Additional Document',    price:100, line:'apostille' },
+      { id:'apo_fed',      label:'Federal Authentication (U.S. Dept. of State) — First Document', price:600, line:'apostille' },
+      { id:'apo_fed_add',  label:'Federal — Each Additional Document',            price:100, line:'apostille' },
+      { id:'apo_priority', label:'Priority Hand-Carried Handling',                price:150, unit:'Standard tier only' },
+      { id:'apo_ron_part', label:'RON — Additional Participant',                  price:25,  unit:'beyond one signer per document' },
+      { id:'apo_handling', label:'Shipping Handling',                             price:25,  unit:'per shipment leg' },
+      { id:'apo_ship',     label:'Return Shipping — Actual Carrier Cost',         price:0,   pass:true, unit:'enter the carrier cost' },
+      { id:'apo_record',   label:'Certified Texas Business Record',               price:15,  pass:true, unit:'state fee, billed at cost' },
+    ]},
+    { key:'translation', label:'Certified Translation', items:[
+      { id:'tr_page',     label:'Certified Translation — Per Page (Standard)',  price:50, pass:true, line:'translation' },
+      { id:'tr_page_exp', label:'Certified Translation — Per Page (Expedited)', price:65, pass:true, line:'translation' },
+      { id:'tr_coord',    label:'Translation Coordination',                     price:65, line:'translation', unit:'once per order' },
+    ]},
+    { key:'officiant', label:'Wedding Officiant', items:[
+      { id:'off_sign',  label:'Sign and Go',      price:150, line:'officiant' },
+      { id:'off_two',   label:'2GetHer Forever',  price:200, line:'officiant' },
+      { id:'off_life',  label:'LifeTime',         price:300, line:'officiant', unit:'includes rehearsal · travel zone charged twice · $100 non-refundable retainer applied to total' },
+    ]},
+  ],
+  // Tex. Gov't Code §406.024 and §406.111 — sets the SE-exempt notarial portion
+  notaryFees: { ack_first:10, ack_add:1, oath:10, ron:25 },
+  // IRS business standard mileage rates, applied by the date of each trip
+  irsRates: [
+    { from:'2025-01-01', rate:0.70 },
+    { from:'2026-01-01', rate:0.725 },
+    { from:'2026-07-01', rate:0.76 },
+  ],
+  business: {
+    name:'Notarized By Kristy LLC', dba:'Texas Notary Kristy',
+    address:'421 Landmark Falls, Cibolo, TX 78108',
+    phone:'210-628-9991', email:'kristy@notarizedbykristy.com',
+    payNote:'', dueDays:7,
+  },
+  terms: "Cancel or reschedule free with 24+ hours' notice; deposits are forfeited with less than 24 hours' notice. No-shows are charged the applicable travel fee plus any printing costs already incurred. Loan signings cancelled late or no-showed are charged the full service fee plus travel.",
+};
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+function loadPricing(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('nbk_pricing') || 'null'); } catch(e) {}
+  const d = clone(PRICING_DEFAULTS);
+  if (!saved) return d;
+  return { ...d, ...saved,
+    notaryFees: { ...d.notaryFees, ...(saved.notaryFees||{}) },
+    business:   { ...d.business,   ...(saved.business||{}) },
+    groups:   (saved.groups   && saved.groups.length)   ? saved.groups   : d.groups,
+    irsRates: (saved.irsRates && saved.irsRates.length) ? saved.irsRates : d.irsRates,
+  };
+}
+let pricing  = loadPricing();
+let invoices = JSON.parse(localStorage.getItem('nbk_invoices') || '[]');
+
+function priceItem(id){
+  for (const g of pricing.groups) { const it = g.items.find(i => i.id === id); if (it) return it; }
+  return null;
+}
+
+// ── MILEAGE: rate by date of travel
+function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function irsRate(date){
+  const d = date || todayISO();
+  const rates = [...pricing.irsRates].sort((a,b) => a.from < b.from ? -1 : 1);
+  let r = rates.length ? rates[0].rate : 0.70;
+  rates.forEach(x => { if (x.from <= d) r = x.rate; });
+  return r;
+}
+function mileDed(miles, date){ return (miles||0) * irsRate(date); }
+function rateLabel(date){
+  let s = irsRate(date).toFixed(3);
+  if (s.endsWith('0')) s = s.slice(0,-1);
+  return '$' + s + '/mile';
+}
+function updateIrsNotes(){
+  document.querySelectorAll('.irs-rate-lbl').forEach(el => {
+    el.textContent = 'IRS rate today: ' + rateLabel() + ' · each trip uses the rate in effect on its date';
+  });
+}
+
+// ── ADD-ON FEES pull from the pricing profile
+function refreshAddonFees(){
+  const p = id => { const it = priceItem(id); return it ? it.price : 0; };
+  ADDON_FEES = {
+    travel:p('trav_1'), printing:p('print'), extra_signers:p('ron_signer'), valid_id:0,
+    witness:p('witness'), loan_pkg:0, after_hours:p('rush'), ron_setup:0, rush:p('rush'),
+    notarized_copies:pricing.notaryFees.oath
+  };
+}
+
+// ── SE-EXEMPT NOTARIAL PORTION — IRC §1402(c)(1)
+// Acknowledgment: $10 first signer + $1 each additional signer · oath/jurat $10.
+// Uses the record-book override when entered. Never more than the fee collected.
+function apptExempt(a){
+  if (NON_NOTARIAL.includes(a.type)) return 0;
+  const nf = pricing.notaryFees;
+  const e = a.notarialFee > 0
+    ? a.notarialFee
+    : (a.notaryCount||0) * nf.ack_first + (a.extraSigners||0) * nf.ack_add;
+  return Math.min(e, a.fee||0);
+}
+
+// ── LEDGER: every income/expense/mile for a period prefix ('2026' or '2026-10'),
+// split by service line. Deposition 1099 income is tracked separately (Tax tab).
+function ledger(prefix){
+  const L = { lines:{}, gross:0, exempt:0, exp:0, miles:0, mileDed:0, acts:0, overrides:0 };
+  const line = k => L.lines[k] || (L.lines[k] = { gross:0, exempt:0, exp:0, miles:0, mileDed:0, count:0 });
+
+  appointments.forEach(a => {
+    if (a.type === 'depo' || !(a.date||'').startsWith(prefix)) return;
+    const l = line(a.type || 'general');
+    l.gross  += a.fee || 0;
+    l.exp    += a.expense || 0;
+    l.exempt += apptExempt(a);
+    l.miles  += a.miles || 0;
+    l.mileDed+= mileDed(a.miles, a.date);
+    l.count++;
+    if (!NON_NOTARIAL.includes(a.type)) L.acts += a.notaryCount || 0;
+    if (a.notarialFee > 0) L.overrides++;
+  });
+
+  apostilleJobs.forEach(j => {
+    const inPeriod = (j.received||'').startsWith(prefix);
+    let tripEx = 0;
+    (j.trips||[]).forEach(t => {
+      if (!(t.date||'').startsWith(prefix)) return;
+      const l = line('apostille');
+      l.miles  += t.miles || 0;
+      l.mileDed+= mileDed(t.miles, t.date);
+      tripEx   += (t.notaryCount||0) * pricing.notaryFees.ack_first;
+      L.acts   += t.notaryCount || 0;
+    });
+    if (inPeriod) {
+      const l = line('apostille');
+      l.gross += j.fee || 0;
+      l.exp   += (j.expenses||[]).reduce((s,e) => s + (e.amount||0), 0);
+      l.count++;
+      if (j.notarialFee > 0) { l.exempt += Math.min(j.notarialFee, j.fee||0); L.overrides++; return; }
+    }
+    if (tripEx && !(j.notarialFee > 0)) line('apostille').exempt += Math.min(tripEx, j.fee||0);
+  });
+
+  expenses.forEach(e => { if ((e.date||'').startsWith(prefix)) line('overhead').exp += e.amount || 0; });
+  mileage.forEach(m => {
+    if (!(m.date||'').startsWith(prefix)) return;
+    const l = line('overhead'); l.miles += m.miles || 0; l.mileDed += mileDed(m.miles, m.date);
+  });
+
+  Object.values(L.lines).forEach(l => {
+    l.exempt = Math.min(l.exempt, l.gross);
+    L.gross += l.gross; L.exempt += l.exempt; L.exp += l.exp; L.miles += l.miles; L.mileDed += l.mileDed;
+  });
+  return L;
+}
+
+// Schedule C net → SE base → SE tax (15.3% × 92.35%, nothing owed under $400)
+function seCalc(L){
+  const net    = Math.max(0, L.gross - L.exp - L.mileDed);
+  const seBase = Math.max(0, net - L.exempt);
+  const seTax  = (seBase * 0.9235) < 400 ? 0 : seBase * 0.9235 * 0.153;
+  return { net, seBase, seTax };
+}
+
+function renderPL(L, seTax){
+  const el = document.getElementById('t-lines'); if (!el) return;
+  const order = ['general','loan','ron','apostille','officiant','translation','overhead'];
+  const keys = Object.keys(L.lines).filter(k => { const l = L.lines[k]; return l.gross || l.exp || l.miles; })
+    .sort((a,b) => order.indexOf(a) - order.indexOf(b));
+  if (!keys.length) { el.innerHTML = '<p style="font-size:13px;color:rgba(11,24,41,.4)">No activity logged this year yet.</p>'; return; }
+  const m = v => (v<0?'-$':'$') + Math.abs(v).toFixed(2);
+  const cell = (lbl,val,color) => `<div><div class="pl-lbl">${lbl}</div><div class="pl-val"${color?` style="color:${color}"`:''}>${val}</div></div>`;
+  el.innerHTML = keys.map(k => {
+    const l = L.lines[k], net = l.gross - l.exp - l.mileDed;
+    return `<div class="pl-line">
+      <div class="pl-name">${LINE_LABELS[k]||k}${l.count?` <span>· ${l.count} job${l.count>1?'s':''}</span>`:''}${l.miles?` <span>· ${l.miles.toFixed(1)} mi</span>`:''}</div>
+      <div class="pl-grid">${cell('Gross',m(l.gross))}${cell('SE-Exempt',m(l.exempt),'var(--green)')}${cell('Costs + Miles',m(l.exp+l.mileDed),'var(--red)')}${cell('Net',m(net),net<0?'var(--red)':'')}</div>
+    </div>`;
+  }).join('') + `<div class="pl-total"><div class="pl-grid">
+      ${cell('Gross',m(L.gross))}${cell('SE-Exempt',m(L.exempt))}${cell('Net Profit',m(Math.max(0,L.gross-L.exp-L.mileDed)))}${cell('Est. SE Tax',m(seTax))}
+    </div></div>`;
+}
+
+// ── PRICING TAB
+function renderPricing(){
+  const g = document.getElementById('pricingGroups'); if (!g) return;
+  g.innerHTML = pricing.groups.map((grp,gi) => `<div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>${esc(grp.label)}</div>
+    ${grp.items.map((it,ii) => `<div class="price-row">
+      <div class="price-lbl">${esc(it.label)}${it.pass?'<span class="price-tag">At cost</span>':''}${it.unit?`<div class="price-unit">${esc(it.unit)}</div>`:''}</div>
+      <div class="price-input"><span>$</span><input type="number" step="0.01" min="0" inputmode="decimal" value="${it.price}" onchange="setPrice(${gi},${ii},this.value)">${it.custom?`<button class="price-del" onclick="delPriceItem(${gi},${ii})" aria-label="Remove">✕</button>`:''}</div>
+    </div>`).join('')}
+  </div>`).join('');
+
+  const sel = document.getElementById('pr-new-group');
+  if (sel) sel.innerHTML = pricing.groups.map((grp,gi) => `<option value="${gi}">${esc(grp.label)}</option>`).join('');
+
+  ['ack_first','ack_add','oath','ron'].forEach(k => { const el = document.getElementById('pf-'+k); if (el) el.value = pricing.notaryFees[k]; });
+  ['name','dba','address','phone','email','payNote','dueDays'].forEach(k => { const el = document.getElementById('bz-'+k); if (el) el.value = pricing.business[k] ?? ''; });
+  const t = document.getElementById('bz-terms'); if (t) t.value = pricing.terms || '';
+
+  const r = document.getElementById('irsRatesList');
+  if (r) r.innerHTML = [...pricing.irsRates].sort((a,b)=>a.from<b.from?-1:1).map(x => `<div class="price-row">
+      <div class="price-lbl">From ${fmtDate(x.from)}</div>
+      <div class="price-input"><span>$${x.rate}/mi</span><button class="price-del" onclick="delIrsRate('${x.from}')" aria-label="Remove">✕</button></div>
+    </div>`).join('');
+}
+function savePricing(){
+  localStorage.setItem('nbk_pricing', JSON.stringify(pricing));
+  refreshAddonFees(); updateIrsNotes();
+  const ind = document.getElementById('saveIndicator');
+  if (ind) { ind.classList.add('visible'); clearTimeout(saveTimer); saveTimer = setTimeout(()=>ind.classList.remove('visible'), 2000); }
+}
+function setPrice(gi,ii,v){ pricing.groups[gi].items[ii].price = Math.max(0, parseFloat(v)||0); savePricing(); }
+function delPriceItem(gi,ii){
+  if (!confirm('Remove this item from your rate card?')) return;
+  pricing.groups[gi].items.splice(ii,1); savePricing(); renderPricing();
+}
+function addPriceItem(){
+  const gi = parseInt(document.getElementById('pr-new-group').value);
+  const label = document.getElementById('pr-new-label').value.trim();
+  const price = parseFloat(document.getElementById('pr-new-price').value);
+  if (!label || isNaN(price)) { showToast('⚠️ Name and price required'); return; }
+  pricing.groups[gi].items.push({ id:'c_'+Date.now(), label, price, pass:document.getElementById('pr-new-pass').checked, custom:true });
+  savePricing(); renderPricing();
+  document.getElementById('pr-new-label').value=''; document.getElementById('pr-new-price').value=''; document.getElementById('pr-new-pass').checked=false;
+  showToast('✓ Added to rate card');
+}
+function setNotaryFee(k,v){ pricing.notaryFees[k] = Math.max(0, parseFloat(v)||0); savePricing(); renderTax(); }
+function setBiz(k,v){ pricing.business[k] = k==='dueDays' ? (parseInt(v)||0) : v.trim(); savePricing(); }
+function setTerms(v){ pricing.terms = v.trim(); savePricing(); }
+function addIrsRate(){
+  const from = document.getElementById('irs-new-date').value;
+  const rate = parseFloat(document.getElementById('irs-new-rate').value);
+  if (!from || !(rate > 0)) { showToast('⚠️ Date and rate required'); return; }
+  pricing.irsRates = pricing.irsRates.filter(x => x.from !== from).concat([{ from, rate }]);
+  savePricing(); renderPricing(); renderTax(); renderDashboard();
+  document.getElementById('irs-new-date').value=''; document.getElementById('irs-new-rate').value='';
+  showToast('✓ Mileage rate added');
+}
+function delIrsRate(from){
+  if (pricing.irsRates.length <= 1) { showToast('⚠️ Keep at least one rate'); return; }
+  if (!confirm('Remove this mileage rate?')) return;
+  pricing.irsRates = pricing.irsRates.filter(x => x.from !== from);
+  savePricing(); renderPricing(); renderTax(); renderDashboard();
+}
+function resetPricing(){
+  if (!confirm('Reset every price, fee, rate and term back to the default rate card?')) return;
+  pricing = clone(PRICING_DEFAULTS); savePricing(); renderPricing(); renderTax(); renderDashboard();
+  showToast('↻ Rate card reset');
+}
+
+// ══════════════════════════════════════════
+// INVOICES
+// ══════════════════════════════════════════
+let invFilter = 'all';
+let invDraftLines = [];
+
+function addDays(iso, n){
+  const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + (n||0));
+  d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10);
+}
+function money(v){ return '$' + (v||0).toFixed(2); }
+
+function nextInvNumber(year){
+  const re = new RegExp('^NBK-' + year + '-(\\d+)$');
+  const max = invoices.reduce((m,i) => { const x = (i.number||'').match(re); return x ? Math.max(m, parseInt(x[1])) : m; }, 0);
+  return 'NBK-' + year + '-' + String(max + 1).padStart(4,'0');
+}
+
+function invTotals(inv){
+  const lines = inv.lines || [];
+  const total = lines.reduce((s,l) => s + l.qty * l.price, 0);
+  const pass  = lines.filter(l => l.pass).reduce((s,l) => s + l.qty * l.price, 0);
+  const nf = pricing.notaryFees;
+  const notarial = NON_NOTARIAL.includes(inv.line) ? 0
+    : (inv.acts||0) * nf.ack_first + (inv.extra||0) * nf.ack_add + (inv.ronActs||0) * nf.ron;
+  const exempt = Math.min(notarial, Math.max(0, total - pass));
+  return { total, pass, service: total - pass, exempt, seTaxable: Math.max(0, total - pass - exempt) };
+}
+
+function invStatus(inv){
+  if (inv.status === 'paid') return 'paid';
+  if (inv.status === 'sent' && inv.due && inv.due < todayISO()) return 'overdue';
+  return inv.status || 'draft';
+}
+
+function linkedRef(inv){
+  const l = inv.postedTo || inv.link || '';
+  const [k, id] = l.split(':');
+  return (k && id) ? { k, id: parseInt(id) } : null;
+}
+function linkLabel(inv){
+  const r = linkedRef(inv); if (!r) return 'Not linked · a ledger record is created when paid';
+  if (r.k === 'appt')  { const a = appointments.find(x => x.id === r.id);  return a ? '🔗 Appt: ' + esc(a.client) + ' · ' + fmtDate(a.date) : '🔗 Linked appointment (deleted)'; }
+  if (r.k === 'apost') { const j = apostilleJobs.find(x => x.id === r.id); return j ? '🔗 Apostille: ' + esc(j.client) + ' · ' + esc(j.doctype) : '🔗 Linked apostille job (deleted)'; }
+  return '';
+}
+
+const BASE_ITEM = { general:'mob_std', loan:'mob_loan', ron:'ron_std', officiant:'off_sign', translation:'tr_coord' };
+const ADDON_ITEM = { travel:'trav_1', printing:'print', witness:'witness', rush:'rush', after_hours:'rush', extra_signers:'ron_signer' };
+function lineFromItem(it, qty){ return { desc: it.label, qty: qty||1, price: it.price, pass: !!it.pass }; }
+
+function openInvoice(opts){
+  opts = opts || {};
+  const today = todayISO();
+  let inv;
+  if (opts.id) {
+    const found = invoices.find(x => x.id === opts.id); if (!found) return;
+    inv = clone(found);
+  } else {
+    inv = { id:0, number:nextInvNumber(today.slice(0,4)), status:'draft', client:'', contact:'', address:'',
+            line:'general', serviceDate:today, date:today, due:addDays(today, pricing.business.dueDays),
+            link:'', lines:[], acts:0, extra:0, ronActs:0, miles:0, method:'', showNotary:false, notes:'' };
+    if (opts.fromAppt) {
+      const a = appointments.find(x => x.id === opts.fromAppt);
+      if (a) {
+        inv.client = a.client; inv.serviceDate = a.date || today;
+        inv.line = (a.type === 'depo' || !a.type) ? 'general' : a.type;
+        inv.link = 'appt:' + a.id;
+        inv.acts = a.notaryCount || 0; inv.extra = a.extraSigners || 0; inv.miles = a.miles || 0;
+        if (a.fee > 0) {
+          inv.lines.push({ desc: typeLabel(a.type) + ' — ' + fmtDate(a.date), qty:1, price:a.fee, pass:false });
+        } else {
+          const base = priceItem(BASE_ITEM[inv.line]); if (base) inv.lines.push(lineFromItem(base,1));
+          (a.addons||[]).forEach(k => { const it = priceItem(ADDON_ITEM[k]); if (it) inv.lines.push(lineFromItem(it,1)); });
+        }
+      }
+    }
+    if (opts.fromApost) {
+      const j = apostilleJobs.find(x => x.id === opts.fromApost);
+      if (j) {
+        inv.client = j.client; inv.contact = j.contact || ''; inv.line = 'apostille';
+        inv.serviceDate = j.received || today; inv.link = 'apost:' + j.id;
+        inv.acts = (j.trips||[]).reduce((s,t) => s + (t.notaryCount||0), 0);
+        if (j.fee > 0) inv.lines.push({ desc:'Apostille services — ' + j.doctype + (j.country ? ' (' + j.country + ')' : ''), qty:1, price:j.fee, pass:false });
+      }
+    }
+  }
+  invDraftLines = (inv.lines||[]).map(l => ({...l}));
+  const setV = (id,v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+  setV('inv-id', inv.id || ''); setV('inv-number', inv.number); setV('inv-status', inv.status);
+  setV('inv-client', inv.client); setV('inv-contact', inv.contact); setV('inv-address', inv.address);
+  setV('inv-line', inv.line); setV('inv-service-date', inv.serviceDate); setV('inv-date', inv.date); setV('inv-due', inv.due);
+  setV('inv-acts', inv.acts || ''); setV('inv-extra', inv.extra || ''); setV('inv-ron-acts', inv.ronActs || '');
+  setV('inv-miles', inv.miles || ''); setV('inv-method', inv.method); setV('inv-notes', inv.notes);
+  document.getElementById('inv-show-notary').checked = !!inv.showNotary;
+  populateInvLink(inv.postedTo || inv.link);
+  populateInvCatalog();
+  document.getElementById('invModalTitle').textContent = inv.id ? 'Edit Invoice' : 'New Invoice';
+  onInvLineChange();
+  renderInvLines();
+  openModal('invoiceModal');
+}
+
+function populateInvLink(current){
+  const sel = document.getElementById('inv-link'); if (!sel) return;
+  const appts = appointments.filter(a => a.type !== 'depo').slice().sort((a,b) => b.date > a.date ? 1 : -1).slice(0, 60);
+  if (current && current.startsWith('appt:')) {
+    const id = parseInt(current.split(':')[1]);
+    if (!appts.find(a => a.id === id)) { const a = appointments.find(x => x.id === id); if (a) appts.unshift(a); }
+  }
+  sel.innerHTML = '<option value="">— Create new record when paid —</option>'
+    + (appts.length ? '<optgroup label="Appointments">' + appts.map(a =>
+        `<option value="appt:${a.id}">${esc(a.client)} · ${fmtDate(a.date)} · ${typeLabel(a.type)}</option>`).join('') + '</optgroup>' : '')
+    + (apostilleJobs.length ? '<optgroup label="Apostille Jobs">' + apostilleJobs.map(j =>
+        `<option value="apost:${j.id}">${esc(j.client)} · ${esc(j.doctype)}</option>`).join('') + '</optgroup>' : '');
+  sel.value = current || '';
+}
+
+function populateInvCatalog(){
+  const sel = document.getElementById('inv-cat'); if (!sel) return;
+  sel.innerHTML = pricing.groups.map(g => `<optgroup label="${esc(g.label)}">` + g.items.map(it =>
+    `<option value="${it.id}">${esc(it.label)} — $${it.price}${it.pass?' (at cost)':''}</option>`).join('') + '</optgroup>').join('');
+}
+
+function onInvLineChange(){
+  const line = document.getElementById('inv-line').value;
+  document.getElementById('invNotaryBox').style.display = NON_NOTARIAL.includes(line) ? 'none' : 'block';
+  renderInvTotals();
+}
+
+function addCatalogLine(){
+  const it = priceItem(document.getElementById('inv-cat').value); if (!it) return;
+  const qty = Math.max(1, parseInt(document.getElementById('inv-cat-qty').value) || 1);
+  invDraftLines.push(lineFromItem(it, qty));
+  if (it.line && !invDraftLines.slice(0,-1).length) {
+    document.getElementById('inv-line').value = it.line; onInvLineChange();
+  }
+  document.getElementById('inv-cat-qty').value = 1;
+  renderInvLines();
+}
+function addCustomLine(){
+  const desc = document.getElementById('inv-cust-desc').value.trim();
+  const price = parseFloat(document.getElementById('inv-cust-amt').value);
+  const qty = Math.max(1, parseInt(document.getElementById('inv-cust-qty').value) || 1);
+  if (!desc || isNaN(price)) { showToast('⚠️ Description and price required'); return; }
+  invDraftLines.push({ desc, qty, price, pass: document.getElementById('inv-cust-pass').checked });
+  document.getElementById('inv-cust-desc').value=''; document.getElementById('inv-cust-amt').value='';
+  document.getElementById('inv-cust-qty').value=1; document.getElementById('inv-cust-pass').checked=false;
+  renderInvLines();
+}
+function updInvLine(i,k,v){
+  if (!invDraftLines[i]) return;
+  invDraftLines[i][k] = k === 'qty' ? Math.max(1, parseInt(v)||1) : (parseFloat(v)||0);
+  renderInvLines();
+}
+function delInvLine(i){ invDraftLines.splice(i,1); renderInvLines(); }
+
+function renderInvLines(){
+  const el = document.getElementById('invLines');
+  if (!invDraftLines.length) {
+    el.innerHTML = '<p style="font-size:12px;color:rgba(11,24,41,.4)">No line items yet — add from your pricing profile below.</p>';
+  } else {
+    el.innerHTML = invDraftLines.map((l,i) => `<div class="inv-line">
+      <div class="inv-line-desc">${esc(l.desc)}${l.pass?'<span class="price-tag">At cost</span>':''}
+        <div class="price-input" style="margin-top:6px">
+          <input type="number" value="${l.qty}" min="1" step="1" inputmode="numeric" style="width:54px" onchange="updInvLine(${i},'qty',this.value)" aria-label="Quantity">
+          <span>× $</span>
+          <input type="number" value="${l.price}" step="0.01" min="0" inputmode="decimal" onchange="updInvLine(${i},'price',this.value)" aria-label="Rate">
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="inv-line-amt">${money(l.qty*l.price)}</div>
+        <button class="price-del" onclick="delInvLine(${i})" aria-label="Remove line">✕</button>
+      </div>
+    </div>`).join('');
+  }
+  renderInvTotals();
+}
+
+function readInvForm(){
+  const v = id => document.getElementById(id).value;
+  return {
+    id: parseInt(v('inv-id')) || 0,
+    number: v('inv-number').trim(), status: v('inv-status'),
+    client: v('inv-client').trim(), contact: v('inv-contact').trim(), address: v('inv-address').trim(),
+    line: v('inv-line'), serviceDate: v('inv-service-date'), date: v('inv-date'), due: v('inv-due'),
+    link: v('inv-link'),
+    acts: parseInt(v('inv-acts'))||0, extra: parseInt(v('inv-extra'))||0, ronActs: parseInt(v('inv-ron-acts'))||0,
+    miles: parseFloat(v('inv-miles'))||0, method: v('inv-method').trim(),
+    showNotary: document.getElementById('inv-show-notary').checked,
+    notes: v('inv-notes').trim(),
+    lines: invDraftLines.map(l => ({...l})),
+  };
+}
+
+function renderInvTotals(){
+  const box = document.getElementById('invTotals'); if (!box) return;
+  const t = invTotals(readInvForm());
+  box.innerHTML = `<div class="tax-title">Invoice Total &amp; Tax Allocation</div>
+    <div class="tax-row"><span class="tax-lbl">Services</span><span class="tax-val">${money(t.service)}</span></div>
+    ${t.pass?`<div class="tax-row"><span class="tax-lbl">Billed at cost (pass-through)</span><span class="tax-val">${money(t.pass)}</span></div>`:''}
+    <div class="tax-row"><span class="tax-lbl">Invoice Total</span><span class="tax-val gold">${money(t.total)}</span></div>
+    <div class="tax-row"><span class="tax-lbl">🟢 SE-exempt notarial portion</span><span class="tax-val green">${money(t.exempt)}</span></div>
+    <div class="tax-row"><span class="tax-lbl">🔹 Subject to SE tax</span><span class="tax-val">${money(t.seTaxable)}</span></div>
+    ${t.pass?`<div class="tax-row"><span class="tax-lbl">🛑 Pass-through (offsetting expense)</span><span class="tax-val red">${money(t.pass)}</span></div>`:''}
+    <div class="tax-note">The tax allocation is for your books only — it never prints on the client's invoice.</div>`;
+}
+
+function saveInvoice(andPrint){
+  const inv = readInvForm();
+  if (!inv.client) { showToast('⚠️ Client name required'); return; }
+  if (!inv.lines.length) { showToast('⚠️ Add at least one line item'); return; }
+  if (!inv.number) inv.number = nextInvNumber((inv.date||todayISO()).slice(0,4));
+  if (invoices.some(x => x.number === inv.number && x.id !== inv.id)) { showToast('⚠️ Invoice number already used'); return; }
+  const t = invTotals(inv); inv.total = t.total; inv.exempt = t.exempt; inv.pass = t.pass;
+
+  const idx = invoices.findIndex(x => x.id === inv.id);
+  if (idx >= 0) {
+    const prev = invoices[idx];
+    inv.created = prev.created; inv.postedTo = prev.postedTo; inv.sentDate = prev.sentDate; inv.paidDate = prev.paidDate;
+    if (prev.postedTo && inv.link !== prev.postedTo && inv.link) inv.postedTo = inv.link;
+    invoices[idx] = inv;
+  } else {
+    inv.id = Date.now(); inv.created = new Date().toISOString();
+    invoices.unshift(inv);
+  }
+  const posted = applyInvoiceStatus(inv);
+  save(); refreshAfterInvoice();
+  closeModal('invoiceModal');
+  showToast(posted ? '✓ ' + inv.number + ' paid · posted to ledger' : '✓ ' + inv.number + ' saved');
+  if (andPrint) printInvoice(inv.id);
+}
+
+// Returns true when the invoice was posted to the ledger as paid
+function applyInvoiceStatus(inv){
+  const today = todayISO();
+  if (inv.status === 'sent') { inv.sentDate = inv.sentDate || today; syncLinked(inv, 'invoiced'); }
+  if (inv.status === 'paid') { inv.sentDate = inv.sentDate || today; inv.paidDate = inv.paidDate || today; postInvoice(inv); return true; }
+  return false;
+}
+
+function syncLinked(inv, payState){
+  const r = linkedRef(inv); if (!r) return false;
+  if (r.k === 'appt') {
+    const a = appointments.find(x => x.id === r.id); if (!a) return false;
+    a.fee = inv.total; a.paid = payState; a.dueDate = inv.due || a.dueDate || '';
+    a.invoiceId = inv.id; a.invoiceNumber = inv.number;
+    if (!NON_NOTARIAL.includes(a.type)) {
+      a.notaryCount = (inv.acts||0) + (inv.ronActs||0);
+      a.extraSigners = inv.extra || 0;
+      a.notarialFee = inv.exempt || 0;
+    }
+    return true;
+  }
+  if (r.k === 'apost') {
+    const j = apostilleJobs.find(x => x.id === r.id); if (!j) return false;
+    j.fee = inv.total; j.paid = payState;
+    j.balance = payState === 'paid' ? 0 : Math.max(0, inv.total - (j.deposit||0));
+    j.notarialFee = inv.exempt || 0;
+    j.invoiceId = inv.id; j.invoiceNumber = inv.number;
+    return true;
+  }
+  return false;
+}
+
+function postInvoice(inv){
+  if (syncLinked(inv, 'paid')) { inv.postedTo = inv.postedTo || inv.link; return; }
+  const d = inv.serviceDate || inv.paidDate;
+  const acts = (inv.acts||0) + (inv.ronActs||0);
+  const passLines = (inv.lines||[]).filter(l => l.pass);
+  if (inv.line === 'apostille') {
+    const id = Date.now() + 1;
+    apostilleJobs.unshift({
+      id, client: inv.client, doctype: 'Per invoice ' + inv.number, country: '', received: d,
+      contact: inv.contact || '', intl: false, fee: inv.total, deposit: 0, balance: 0, paid: 'paid',
+      stage: 0, tracking: '', notes: 'Created from invoice ' + inv.number,
+      notarialFee: inv.exempt || 0,
+      trips: (inv.miles || acts) ? [{ id: id + 1, date: d, time: '', location: '', miles: inv.miles || 0, notaryCount: acts, addons: [], notes: 'From invoice ' + inv.number }] : [],
+      expenses: passLines.map((l,i) => ({ id: id + 10 + i, cat: 'Pass-through (at cost)', desc: l.desc, amount: l.qty * l.price, date: d })),
+      invoiceId: inv.id, invoiceNumber: inv.number, created: new Date().toISOString(),
+    });
+    inv.postedTo = 'apost:' + id;
+  } else {
+    const id = Date.now() + 2;
+    const non = NON_NOTARIAL.includes(inv.line);
+    appointments.unshift({
+      id, type: inv.line, client: inv.client, date: d, time: '', location: '', company: '',
+      status: 'completed', notaryCount: non ? 0 : acts, extraSigners: non ? 0 : (inv.extra||0),
+      fee: inv.total, paid: 'paid', notarialFee: non ? 0 : (inv.exempt||0), dueDate: inv.due || '',
+      expense: inv.pass || 0, miles: inv.miles || 0, addons: [],
+      notes: 'Created from invoice ' + inv.number + (inv.pass ? ' · pass-through costs booked as expense' : ''),
+      invoiceId: inv.id, invoiceNumber: inv.number, created: new Date().toISOString(),
+    });
+    inv.postedTo = 'appt:' + id;
+  }
+}
+
+function setInvStatus(id, st){
+  const inv = invoices.find(x => x.id === id); if (!inv) return;
+  if (st === 'paid' && !confirm('Mark ' + inv.number + ' paid and post it to your ledger?')) return;
+  inv.status = st;
+  applyInvoiceStatus(inv);
+  save(); refreshAfterInvoice();
+  showToast(st === 'paid' ? '✓ ' + inv.number + ' paid · posted to ledger' : '📧 ' + inv.number + ' marked sent');
+}
+function deleteInvoice(id){
+  const inv = invoices.find(x => x.id === id); if (!inv) return;
+  const msg = inv.postedTo
+    ? 'Delete ' + inv.number + '?\n\nThe ledger record it posted to stays — delete that separately if you need to.'
+    : 'Delete ' + inv.number + '?';
+  if (!confirm(msg)) return;
+  invoices = invoices.filter(x => x.id !== id);
+  save(); refreshAfterInvoice(); showToast('Deleted');
+}
+function invoiceFromAppt(apptId){
+  const a = appointments.find(x => x.id === apptId);
+  if (a && a.invoiceId && invoices.find(i => i.id === a.invoiceId)) { openInvoice({ id: a.invoiceId }); return; }
+  openInvoice({ fromAppt: apptId });
+}
+function invoiceFromApost(jobId){
+  const j = apostilleJobs.find(x => x.id === jobId);
+  if (j && j.invoiceId && invoices.find(i => i.id === j.invoiceId)) { openInvoice({ id: j.invoiceId }); return; }
+  openInvoice({ fromApost: jobId });
+}
+function refreshAfterInvoice(){
+  renderInvoices(); renderAll(); renderApostille(); renderTax(); renderDashboard(); renderBackupStats();
+}
+
+function filterInvoices(f, el){
+  invFilter = f;
+  el.closest('.filter-bar').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active'); renderInvoices();
+}
+
+function renderInvoices(){
+  const year = String(new Date().getFullYear());
+  const set = (id,v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const open = invoices.filter(i => ['sent','overdue'].includes(invStatus(i)));
+  set('inv-out', money(open.reduce((s,i) => s + (i.total||0), 0)));
+  set('inv-overdue', money(invoices.filter(i => invStatus(i) === 'overdue').reduce((s,i) => s + (i.total||0), 0)));
+  set('inv-paid-ytd', money(invoices.filter(i => i.status === 'paid' && (i.paidDate||'').startsWith(year)).reduce((s,i) => s + (i.total||0), 0)));
+  set('inv-drafts', invoices.filter(i => invStatus(i) === 'draft').length);
+
+  const list = invoices.filter(i => invFilter === 'all' || invStatus(i) === invFilter)
+    .sort((a,b) => (b.date||'') > (a.date||'') ? 1 : (b.date||'') < (a.date||'') ? -1 : (b.number > a.number ? 1 : -1));
+  set('invCount', list.length);
+  const c = document.getElementById('invList'); if (!c) return;
+  if (!list.length) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div><p>No invoices here yet.</p></div>'; return; }
+  const badge = { draft:['','Draft'], sent:['invoiced','📧 Sent'], overdue:['unpaid','⚠️ Overdue'], paid:['paid','✓ Paid'] };
+  c.innerHTML = list.map(i => {
+    const st = invStatus(i), b = badge[st];
+    return `<div class="inv-card st-${st}">
+      <div class="inv-top">
+        <div style="min-width:0"><div class="inv-num">${esc(i.number)} · ${LINE_LABELS[i.line]||i.line}</div><div class="inv-client">${esc(i.client)}</div></div>
+        <div class="inv-total">${money(i.total)}</div>
+      </div>
+      <div class="inv-meta">Issued ${fmtDate(i.date)}${i.due?' · Due '+fmtDate(i.due):''}${i.paidDate&&st==='paid'?' · Paid '+fmtDate(i.paidDate):''}<br>${linkLabel(i)}</div>
+      <div class="pills">
+        <span class="pill ${b[0]}">${b[1]}</span>
+        ${i.exempt?`<span class="pill notary">SE-exempt ${money(i.exempt)}</span>`:''}
+        ${i.pass?`<span class="pill exp">At cost ${money(i.pass)}</span>`:''}
+      </div>
+      <div class="appt-actions">
+        <button class="btn-sm" onclick="openInvoice({id:${i.id}})">Edit</button>
+        <button class="btn-sm" onclick="printInvoice(${i.id})">View / PDF</button>
+        ${st==='draft'?`<button class="btn-sm" onclick="setInvStatus(${i.id},'sent')">Mark Sent</button>`:''}
+        ${st!=='paid'?`<button class="btn-success" onclick="setInvStatus(${i.id},'paid')">Mark Paid</button>`:''}
+        <button class="btn-danger" onclick="deleteInvoice(${i.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function printInvoice(id){
+  const inv = invoices.find(x => x.id === id); if (!inv) return;
+  const b = pricing.business, t = invTotals(inv), st = invStatus(inv);
+  const br = s => esc(s).replace(/\n/g,'<br>');
+  const rows = (inv.lines||[]).map(l => `<tr>
+      <td>${esc(l.desc)}${l.pass?'<div style="font-size:10px;color:#8a6518">Billed at cost</div>':''}</td>
+      <td class="r">${l.qty}</td><td class="r">${money(l.price)}</td><td class="r">${money(l.qty*l.price)}</td></tr>`).join('');
+  document.getElementById('printBody').innerHTML = `<div class="pi">
+    <div class="pi-head">
+      <div>
+        <div class="pi-brand">${esc(b.name)}</div>
+        ${b.dba?`<div class="pi-sub">${esc(b.dba)}</div>`:''}
+        <div class="pi-contact">${br(b.address)}${b.phone?'<br>'+esc(b.phone):''}${b.email?'<br>'+esc(b.email):''}</div>
+      </div>
+      <div>
+        <div class="pi-title">INVOICE</div>
+        <div class="pi-meta">No. ${esc(inv.number)}<br>Issued ${fmtDate(inv.date)}${inv.due&&st!=='paid'?'<br>Due '+fmtDate(inv.due):''}${inv.serviceDate?'<br>Service date '+fmtDate(inv.serviceDate):''}</div>
+        ${st==='paid'?'<div style="text-align:right"><span class="pi-paid">PAID</span></div>':''}
+      </div>
+    </div>
+    <div class="pi-billto"><div class="pi-lbl">Bill To</div><strong>${esc(inv.client)}</strong>${inv.address?'<br>'+br(inv.address):''}${inv.contact?'<br>'+esc(inv.contact):''}</div>
+    <table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="pi-totals">
+      ${t.pass?`<div><span>Services</span><span>${money(t.service)}</span></div><div><span>Billed at cost</span><span>${money(t.pass)}</span></div>`:''}
+      <div class="pi-grand"><span>${st==='paid'?'Total Paid':'Total Due'}</span><span>${money(t.total)}</span></div>
+      ${st==='paid'&&inv.paidDate?`<div style="font-size:11px;color:#1C7A50"><span>Paid ${fmtDate(inv.paidDate)}${inv.method?' · '+esc(inv.method):''}</span><span></span></div>`:''}
+    </div>
+    ${inv.showNotary&&t.exempt?`<div class="pi-note">Total includes ${money(t.exempt)} in Texas notarial fees as set by Tex. Gov't Code §406.024${inv.ronActs?' and §406.111':''}.</div>`:''}
+    ${inv.notes?`<div class="pi-note">${br(inv.notes)}</div>`:''}
+    ${b.payNote?`<div class="pi-note"><strong>Payment:</strong> ${br(b.payNote)}</div>`:''}
+    ${pricing.terms?`<div class="pi-note"><strong>Terms:</strong> ${br(pricing.terms)}</div>`:''}
+    <div class="pi-note" style="text-align:center;border:none;color:#8a6518">Thank you for choosing ${esc(b.name)}.</div>
+  </div>`;
+  document.getElementById('printArea').classList.add('open');
+  document.title = inv.number + ' — ' + inv.client;   // becomes the PDF file name
+}
+function closePrint(){
+  document.getElementById('printArea').classList.remove('open');
+  document.title = 'NBK Command Center';
+}
+
 let selectedType   = 'loan';
 let selectedStatus = 'confirmed';
 let apptTypeFilter = 'all';
@@ -3045,6 +4060,9 @@ function save() {
   localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
   localStorage.setItem('nbk_goals',     JSON.stringify(goals));
   localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
+  localStorage.setItem('nbk_quarters',  JSON.stringify(quarterlyStatus));
+  localStorage.setItem('nbk_invoices',  JSON.stringify(invoices));
+  localStorage.setItem('nbk_pricing',   JSON.stringify(pricing));
   // Phase 1: save indicator
   const ind = document.getElementById('saveIndicator');
   if (ind) {
@@ -3083,8 +4101,12 @@ function initApp() {
   });
   const gm = document.getElementById('goal-month');
   if(gm) gm.value = String(now.getMonth()+1).padStart(2,'0');
+  refreshAddonFees();
+  updateIrsNotes();
   populateMonthFilters();
   renderAll();
+  renderInvoices();
+  renderPricing();
   renderTax();   // renderTax calls renderQuarterly(perQtr) internally — no separate call needed
   renderGoals();
   renderApostille();
@@ -3101,14 +4123,15 @@ function initApp() {
 function showTab(tab) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['dashboard','appointments','apostille','expenses','tax','goals','vault','exports'][i] === tab);
-  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  window.scrollTo(0,0);
   if(tab==='dashboard') renderDashboard();
   if(tab==='tax')       renderTax();
   if(tab==='goals')     renderGoals();
   if(tab==='apostille') renderApostille();
   if(tab==='vault')     renderVault();
+  if(tab==='invoices')  renderInvoices();
+  if(tab==='pricing')   renderPricing();
   if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderBackupStats(); }
 }
 
@@ -3124,7 +4147,7 @@ function updateMonthDefault() {
 // ── HELPERS
 function fmtDate(d){if(!d)return'';const[y,m,day]=d.split('-');return new Date(y,m-1,day).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function fmt12(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr%12||12)+':'+m+' '+(hr<12?'AM':'PM');}
-function typeLabel(t){return{loan:'Loan Signing',depo:'Deposition',ron:'RON',apostille:'Apostille',general:'General Notary'}[t]||t;}
+function typeLabel(t){return{loan:'Loan Signing',depo:'Deposition',ron:'RON',apostille:'Apostille',general:'General Notary',officiant:'Wedding Officiant',translation:'Translation'}[t]||t;}
 function statusClass(s){return{confirmed:'badge-confirmed',pending:'badge-pending',completed:'badge-completed',cancelled:'badge-cancelled'}[s]||'';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -3141,7 +4164,7 @@ function selectType(el){
   const isDepo = selectedType==='depo';
   document.getElementById('mileageApptSection').style.display = isDepo ? 'none' : 'block';
   document.getElementById('depoMileNotice').style.display     = isDepo ? 'block' : 'none';
-  document.getElementById('notaryCountRow').style.display     = isDepo ? 'none' : 'block';
+  document.getElementById('notaryCountRow').style.display     = NON_NOTARIAL.includes(selectedType) ? 'none' : 'block';
 }
 function selectStatus(el){
   document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('selected'));
@@ -3154,7 +4177,8 @@ const ADDON_LABELS = {
   after_hours:'After Hours',ron_setup:'RON Setup',rush:'Rush',
   notarized_copies:'Cert. Copies'
 };
-const ADDON_FEES = {
+let ADDON_FEES = {   // replaced from the Pricing Profile at startup — see refreshAddonFees()
+ 
   travel:25,printing:15,extra_signers:25,valid_id:0,witness:25,
   loan_pkg:0,after_hours:50,ron_setup:0,rush:50,notarized_copies:10
 };
@@ -3207,7 +4231,8 @@ function saveAppointment(){
     location:document.getElementById('f-location').value,
     company:document.getElementById('f-company').value,
     status:selectedStatus,
-    notaryCount: selectedType==='depo' ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
+    notaryCount: NON_NOTARIAL.includes(selectedType) ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
+    extraSigners: NON_NOTARIAL.includes(selectedType) ? 0 : (parseInt(document.getElementById('f-extra-signers').value)||0),
     fee:parseFloat(document.getElementById('f-fee').value)||0,
     paid:document.getElementById('f-paid').value,
     notarialFee: parseFloat(document.getElementById('f-notarial-fee')?.value)||0,
@@ -3222,7 +4247,7 @@ function saveAppointment(){
   closeModal('addApptModal'); resetApptForm();
 }
 function resetApptForm(){
-  ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles','f-due','f-notarial-fee'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-client','f-time','f-location','f-company','f-fee','f-expense','f-notes','f-notary-count','f-miles','f-due','f-notarial-fee','f-extra-signers'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-paid').value='unpaid';
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.remove('selected'));
@@ -3256,8 +4281,8 @@ function renderAppts(){
   const c=document.getElementById('apptList');
   if(!list.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';return;}
   c.innerHTML=list.map(a=>{
-    const ded=(a.miles*IRS_RATE).toFixed(2);
-    const nFee=(a.notaryCount||0)*TX_FEE;
+    const ded=mileDed(a.miles,a.date).toFixed(2);
+    const nFee=apptExempt(a).toFixed(2);
     const paidClass = a.paid==='paid'?'paid':a.paid==='invoiced'?'invoiced':'unpaid';
     const paidLabel = a.paid==='paid'?'✓ Paid':a.paid==='invoiced'?'📧 Invoiced':'⏳ Unpaid';
     // Addon pills
@@ -3281,10 +4306,12 @@ function renderAppts(){
         ${a.miles?`<span class="pill miles">🚗 ${a.miles}mi · $${ded}</span>`:''}
         ${addonPills}
         ${apostilleBadge}
+        ${a.invoiceNumber?`<span class="pill inv">🧾 ${a.invoiceNumber}</span>`:''}
       </div>
       ${a.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:8px;padding-top:8px;border-top:1px solid var(--parchment-2)">📝 ${a.notes}</div>`:''}
       <div class="appt-actions">
         <button class="btn-sm" onclick="editAppt(${a.id})">Edit</button>
+        ${a.type!=='depo'?`<button class="btn-sm" onclick="invoiceFromAppt(${a.id})">🧾 ${a.invoiceId?'Invoice':'Create Invoice'}</button>`:''}
         <button class="btn-danger" onclick="deleteAppt(${a.id})">Delete</button>
       </div>
     </div>`;
@@ -3306,7 +4333,9 @@ function editAppt(id){
   document.getElementById('edit-miles').value=a.miles||'';
   document.getElementById('edit-notes').value=a.notes||'';
   document.getElementById('editMilesRow').style.display=a.type==='depo'?'none':'block';
-  document.getElementById('editNotaryRow').style.display=a.type==='depo'?'none':'block';
+  document.getElementById('editNotaryRow').style.display=NON_NOTARIAL.includes(a.type)?'none':'block';
+  document.getElementById('edit-extra-signers').value=a.extraSigners||'';
+  document.getElementById('edit-notarial-fee').value=a.notarialFee||'';
   setCheckedReqs('editReqGrid', a.addons||[]);
   openModal('editApptModal');
 }
@@ -3321,7 +4350,9 @@ function saveEdit(){
     location:document.getElementById('edit-location').value,
     company:document.getElementById('edit-company').value,
     status:document.getElementById('edit-status').value,
-    notaryCount:isDepo?0:(parseInt(document.getElementById('edit-notary-count').value)||0),
+    notaryCount:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseInt(document.getElementById('edit-notary-count').value)||0),
+    extraSigners:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseInt(document.getElementById('edit-extra-signers').value)||0),
+    notarialFee:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseFloat(document.getElementById('edit-notarial-fee').value)||0),
     fee:parseFloat(document.getElementById('edit-fee').value)||0,
     paid:document.getElementById('edit-paid').value,
     expense:parseFloat(document.getElementById('edit-expense').value)||0,
@@ -3433,7 +4464,7 @@ function renderApostille() {
       return `<div class="apost-trip-row">
         <div class="apost-trip-header">
           <div><div class="apost-trip-date">${t.date?fmtDate(t.date):'No date'}${t.time?' &middot; '+fmt12(t.time):''}</div>${t.location?`<div class="apost-trip-loc">\ud83d\udccd ${t.location}</div>`:''}</div>
-          <div style="text-align:right">${t.miles?`<div class="mile-val" style="font-size:13px">${t.miles} mi</div><div class="mile-ded">$${(t.miles*IRS_RATE).toFixed(2)}</div>`:''}</div>
+          <div style="text-align:right">${t.miles?`<div class="mile-val" style="font-size:13px">${t.miles} mi</div><div class="mile-ded">$${mileDed(t.miles,t.date).toFixed(2)}</div>`:''}</div>
         </div>
         <div class="apost-trip-pills">${t.notaryCount?`<span class="pill notary">\ud83d\udccb ${t.notaryCount} &middot; $${(t.notaryCount*TX_FEE).toFixed(0)}</span>`:''}${addonPills}</div>
         ${t.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:4px">\ud83d\udcdd ${t.notes}</div>`:''}
@@ -3462,11 +4493,12 @@ function renderApostille() {
         <div class="apost-stage-dots">${stageDots}</div>
         <div class="apost-summary-pills">
           <span class="pill ${paidClass}">${paidLabel}</span>
-          ${totalTripMiles?`<span class="pill miles">\ud83d\ude97 ${totalTripMiles.toFixed(1)}mi &middot; $${(totalTripMiles*IRS_RATE).toFixed(2)}</span>`:''}
+          ${totalTripMiles?`<span class="pill miles">\ud83d\ude97 ${totalTripMiles.toFixed(1)}mi &middot; $${trips.reduce((s,t)=>s+mileDed(t.miles,t.date),0).toFixed(2)}</span>`:''}
           ${totalNotary?`<span class="pill notary">\ud83d\udccb ${totalNotary}</span>`:''}
           ${totalExpAmt?`<span class="pill exp">Exp $${totalExpAmt.toFixed(2)}</span>`:''}
           ${trips.length?`<span class="pill">${trips.length} trip${trips.length>1?'s':''}</span>`:''}
         </div>
+        ${j.invoiceNumber?`<div class="apost-tracking" style="color:var(--gold-mid)">🧾 ${j.invoiceNumber}</div>`:''}
         ${j.tracking?`<div class="apost-tracking">\ud83d\udce6 Tracking: ${j.tracking}</div>`:''}
         ${j.notes?`<div style="font-size:11px;color:rgba(11,24,41,.45);padding:0 16px 8px">\ud83d\udcdd ${j.notes}</div>`:''}
       </div>
@@ -3480,6 +4512,7 @@ function renderApostille() {
       </div>
       <div class="apost-card-actions">
         <button class="btn-sm" onclick="editApostille(${j.id})">Edit Job</button>
+        <button class="btn-sm" onclick="invoiceFromApost(${j.id})">🧾 ${j.invoiceId?'Invoice':'Create Invoice'}</button>
         ${j.stage<5?`<button class="btn-success" onclick="advanceApostille(${j.id})">\u2192 Next Stage</button>`:''}
         <button class="btn-danger" onclick="deleteApostille(${j.id})">Delete Job</button>
       </div>
@@ -3694,7 +4727,7 @@ function renderMileage(){
   c.innerHTML=all.map(m=>`
     <div class="mile-card">
       <div><div class="mile-desc">${m.desc}${m.fromAppt?` <span style="font-size:9px;background:var(--amber-bg);color:var(--amber);padding:1px 5px;border-radius:3px;font-weight:700">${m.tag||'APPT'}</span>`:''}</div><div class="mile-date">${fmtDate(m.date)}</div></div>
-      <div><div class="mile-val">${m.miles} mi</div><div class="mile-ded">$${(m.miles*IRS_RATE).toFixed(2)}</div>${!m.fromAppt?`<button class="btn-danger" onclick="deleteMileage(${m.id})" style="margin-top:4px;font-size:9px;padding:2px 7px">Del</button>`:''}</div>
+      <div><div class="mile-val">${m.miles} mi</div><div class="mile-ded">$${mileDed(m.miles,m.date).toFixed(2)}</div>${!m.fromAppt?`<button class="btn-danger" onclick="deleteMileage(${m.id})" style="margin-top:4px;font-size:9px;padding:2px 7px">Del</button>`:''}</div>
     </div>`).join('');
 }
 function deleteMileage(id){if(!confirm('Delete?'))return;mileage=mileage.filter(m=>m.id!==id);save();renderMileage();renderStatsStrip();renderTax();}
@@ -3712,7 +4745,7 @@ async function calcMileage(){
     const dd=await rr.json();if(dd.code!=='Ok')throw new Error('Route not found');
     const miOne=dd.routes[0].distance/1609.344, total=rt?miOne*2:miOne;
     hm.value=total.toFixed(1);
-    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${(total*IRS_RATE).toFixed(2)}</span>`;
+    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${mileDed(total).toFixed(2)}</span>`;
   }catch(err){rt2.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;hm.value='';}
 }
 async function calcApptMileage(){
@@ -3728,76 +4761,40 @@ async function calcApptMileage(){
     const dd=await rr.json();if(dd.code!=='Ok')throw new Error('Route not found');
     const miOne=dd.routes[0].distance/1609.344, total=rt?miOne*2:miOne;
     hm.value=total.toFixed(1);
-    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${(total*IRS_RATE).toFixed(2)}</span><br><span style="font-size:10px;color:rgba(11,24,41,.4)">Tap Save to record</span>`;
+    rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${mileDed(total).toFixed(2)}</span><br><span style="font-size:10px;color:rgba(11,24,41,.4)">Tap Save to record</span>`;
   }catch(err){rt2.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;hm.value='';}
 }
 
-// ── TAX — FIX #6: safe DOM access
+// ── TAX — KristyOS allocation: per-trip IRS rate, TX statutory fee math, exemption capped at fee collected
 function renderTax(){
-  const year=String(new Date().getFullYear()); // Must be String for .startsWith() to work
-  const yearAppts=appointments.filter(a=>a.date?.startsWith(year));
-  const nonDepo=yearAppts.filter(a=>a.type!=='depo');
-
-  // Apostille jobs received this year (income + expenses + trip miles/notarizations)
-  const yearApost=apostilleJobs.filter(j=>(j.received||'').startsWith(year));
-  const apostIncome=yearApost.reduce((s,j)=>s+(j.fee||0),0);
-  const apostExp=yearApost.reduce((s,j)=>s+(j.expenses||[]).reduce((se,e)=>se+e.amount,0),0);
-  const apostTripMiles=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(year)).reduce((sm,t)=>sm+(t.miles||0),0),0);
-  const apostNotary=apostilleJobs.reduce((s,j)=>s+(j.trips||[]).filter(t=>(t.date||'').startsWith(year)).reduce((sn,t)=>sn+(t.notaryCount||0),0),0);
-
-  const gross      = nonDepo.reduce((s,a)=>s+(a.fee||0),0) + apostIncome;
-  const apptExp    = yearAppts.reduce((s,a)=>s+(a.expense||0),0);
-  const standExp   = expenses.filter(e=>e.date?.startsWith(year)).reduce((s,e)=>s+e.amount,0);
-  const totalExp   = apptExp + apostExp + standExp;
-  const apptMiles  = nonDepo.reduce((s,a)=>s+(a.miles||0),0);
-  const standMiles = mileage.filter(m=>m.date?.startsWith(year)).reduce((s,m)=>s+m.miles,0);
-  const mileDeduction = (apptMiles + apostTripMiles + standMiles) * IRS_RATE;
-  // ── IRC 1402(c)(1): fees for performing notarial acts are a public office
-  // function and are EXCLUDED from self-employment tax. They remain subject to
-  // ordinary income tax. Travel, printing, coordination and loan-signing fees
-  // above the statutory act fee are NOT exempt.
-  //
-  // Source: the actual notarial fee entered on the appointment when given,
-  // otherwise acts x $10 (the Texas statutory rate). Your paper record book is
-  // the substantiating document for this figure.
-  let exemptOverride = 0, exemptEstimated = 0, overrideCount = 0;
-  nonDepo.forEach(a => {
-    if (a.notarialFee > 0) { exemptOverride += a.notarialFee; overrideCount++; }
-    else { exemptEstimated += (a.notaryCount||0) * TX_ACT_FEE; }
-  });
-  exemptEstimated += apostNotary * TX_ACT_FEE;
-  // Never exempt more than was actually collected
-  const exemptNotarial = Math.min(gross, exemptOverride + exemptEstimated);
-
-  const netProfit = Math.max(0, gross - totalExp - mileDeduction);   // income-tax base
-  const seBase    = Math.max(0, netProfit - exemptNotarial);         // SE-tax base
-  const netSE     = netProfit;                                       // display: net profit
-  // No SE tax is owed on net earnings under $400
-  const seTax   = (seBase * 0.9235) < 400 ? 0 : seBase * 0.9235 * 0.153;
-  const seDeduct= seTax / 2;
-  const fedTax  = Math.max(0, netProfit - seDeduct) * 0.22;
-  const totalTax= seTax + fedTax;
-  const perQtr  = totalTax / 4;
-  const depoIncome=parseFloat(document.getElementById('depo-income-input')?.value)||0;
-  const depoExp=parseFloat(document.getElementById('depo-expense-input')?.value)||0;
-  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  set('t-gross','$'+gross.toFixed(2));
-  set('t-expenses','-$'+totalExp.toFixed(2));
-  set('t-mileage','-$'+mileDeduction.toFixed(2));
-  set('t-net','$'+netSE.toFixed(2));
-  set('t-exempt','-$'+exemptNotarial.toFixed(2));
-  set('t-se-base','$'+seBase.toFixed(2));
-  set('t-exempt-src', overrideCount
-      ? 'From your record book on ' + overrideCount + ' appointment' + (overrideCount===1?'':'s') + ' \u00b7 rest estimated at acts \u00d7 $10'
-      : 'Estimated \u00b7 acts \u00d7 $10 statutory rate');
-  set('t-se-tax','$'+seTax.toFixed(2));
-  set('t-se-deduct','-$'+seDeduct.toFixed(2));
-  set('t-fed-tax','$'+fedTax.toFixed(2));
-  set('t-total-tax','$'+totalTax.toFixed(2));
-  set('t-per-quarter','$'+perQtr.toFixed(2));
-  set('t-depo-gross','$'+depoIncome.toFixed(2));
-  set('t-depo-exp','-$'+depoExp.toFixed(2));
-  set('t-depo-net','$'+Math.max(0,depoIncome-depoExp).toFixed(2));
+  const year = String(new Date().getFullYear());
+  const L = ledger(year);
+  const { net: netProfit, seBase, seTax } = seCalc(L);
+  const seDeduct = seTax / 2;
+  const fedTax   = Math.max(0, netProfit - seDeduct) * 0.22;
+  const totalTax = seTax + fedTax;
+  const perQtr   = totalTax / 4;
+  const depoIncome = parseFloat(document.getElementById('depo-income-input')?.value) || 0;
+  const depoExp    = parseFloat(document.getElementById('depo-expense-input')?.value) || 0;
+  const set = (id,val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('t-gross', '$' + L.gross.toFixed(2));
+  set('t-expenses', '-$' + L.exp.toFixed(2));
+  set('t-mileage', '-$' + L.mileDed.toFixed(2));
+  set('t-net', '$' + netProfit.toFixed(2));
+  set('t-exempt', '-$' + L.exempt.toFixed(2));
+  set('t-se-base', '$' + seBase.toFixed(2));
+  set('t-exempt-src', (L.overrides
+      ? 'From your record book / invoices on ' + L.overrides + ' record' + (L.overrides===1?'':'s') + ' · rest at $10 first signer + $1 each added'
+      : 'Estimated · $10 per act + $1 per additional signer') + ' · ' + L.miles.toFixed(1) + ' mi at the IRS rate for each trip date');
+  set('t-se-tax', '$' + seTax.toFixed(2));
+  set('t-se-deduct', '-$' + seDeduct.toFixed(2));
+  set('t-fed-tax', '$' + fedTax.toFixed(2));
+  set('t-total-tax', '$' + totalTax.toFixed(2));
+  set('t-per-quarter', '$' + perQtr.toFixed(2));
+  set('t-depo-gross', '$' + depoIncome.toFixed(2));
+  set('t-depo-exp', '-$' + depoExp.toFixed(2));
+  set('t-depo-net', '$' + Math.max(0, depoIncome - depoExp).toFixed(2));
+  renderPL(L, seTax);
   renderQuarterly(perQtr);
 }
 function renderQuarterly(perQtr){
@@ -3892,6 +4889,10 @@ function renderMoneyOwed(){
       return { ...a, days: Math.floor((today - due) / 86400000) };
     })
     .sort((x,y) => y.days - x.days);
+  invoices.filter(i => i.status === 'sent' && i.due && !(linkedRef(i) && linkedRef(i).k === 'appt'))
+    .forEach(i => owed.push({ client: i.client + ' · ' + i.number, fee: i.total, paid: 'invoiced',
+      days: Math.floor((today - new Date(i.due + 'T00:00:00')) / 86400000) }));
+  owed.sort((x,y) => y.days - x.days);
 
   const late   = owed.filter(o => o.days > 0);
   const dueSum = late.reduce((s,o) => s + (o.fee||0), 0);
@@ -3966,7 +4967,7 @@ function renderDashboard(){
   const netEl=document.getElementById('d-net');
   if(netEl){ netEl.style.color=net>=0?'var(--ink-mid)':'var(--red)'; countUp(netEl,Math.abs(net),net<0?'-$':'$'); }
   const dedEl=document.getElementById('d-deduction');
-  if(dedEl) countUp(dedEl,totalMiles*IRS_RATE,'$');
+  if(dedEl) countUp(dedEl,ledger(mo).mileDed,'$');
   const dAppts=document.getElementById('d-appts');
   if(dAppts) dAppts.textContent=monthAppts.length;
   const dNot=document.getElementById('d-notarizations');
@@ -4070,8 +5071,21 @@ function populateMonthFilters(){
 
 function renderAll(){renderAppts();renderExpenses();renderMileage();renderStatsStrip();populateMonthFilters();}
 
-// ── CSV EXPORTS (identical to fixed file)
+// ── CSV EXPORTS
 function dlCSV(content,filename){const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function csvQ(s){return `"${String(s==null?'':s).replace(/"/g,'""')}"`;}
+
+// Service-line P&L block shared by the monthly archive and the year package
+function plCSV(L){
+  const order=['general','loan','ron','apostille','officiant','translation','overhead'];
+  let csv='SERVICE LINE P&L\nService Line,Jobs,Gross,SE-Exempt (Notarial),Subject to SE Tax,Expenses,Miles,Mileage Deduction,Net\n';
+  order.filter(k=>L.lines[k]).forEach(k=>{const l=L.lines[k];
+    csv+=[LINE_LABELS[k],l.count,l.gross.toFixed(2),l.exempt.toFixed(2),Math.max(0,l.gross-l.exempt).toFixed(2),l.exp.toFixed(2),l.miles.toFixed(1),l.mileDed.toFixed(2),(l.gross-l.exp-l.mileDed).toFixed(2)].join(',')+'\n';});
+  const s=seCalc(L);
+  csv+=['TOTAL','',L.gross.toFixed(2),L.exempt.toFixed(2),Math.max(0,L.gross-L.exempt).toFixed(2),L.exp.toFixed(2),L.miles.toFixed(1),L.mileDed.toFixed(2),s.net.toFixed(2)].join(',')+'\n';
+  csv+=`Income subject to SE tax (after expenses & mileage),$${s.seBase.toFixed(2)}\nEstimated SE tax,$${s.seTax.toFixed(2)}\n`;
+  return csv;
+}
 
 function exportMonthly(){
   const mo=document.getElementById('exp-month').value, yr=document.getElementById('exp-year').value;
@@ -4080,77 +5094,87 @@ function exportMonthly(){
   const filtAppts=appointments.filter(a=>a.date?.startsWith(key));
   const filtExp=expenses.filter(e=>e.date?.startsWith(key));
   const filtMile=mileage.filter(m=>m.date?.startsWith(key));
-  if(!filtAppts.length&&!filtExp.length&&!filtMile.length){showToast('⚠️ No data for '+monthName);return;}
+  const filtApost=apostilleJobs.filter(j=>(j.received||'').startsWith(key));
+  const filtInv=invoices.filter(i=>(i.date||'').startsWith(key));
+  if(!filtAppts.length&&!filtExp.length&&!filtMile.length&&!filtApost.length&&!filtInv.length){showToast('⚠️ No data for '+monthName);return;}
+  const L=ledger(key);
   let csv='NBK BUSINESS TRACKER — '+monthName.toUpperCase()+'\nExported: '+new Date().toLocaleDateString('en-US')+'\n\n';
-  csv+='APPOINTMENTS\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees ($),Total Fee ($),Paid,Expenses ($),Miles,Mile Deduction ($),Notes\n';
-  filtAppts.forEach(a=>{const nf=(a.notaryCount||0)*TX_FEE,md=(a.miles||0)*IRS_RATE;csv+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,nf.toFixed(2),(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,md.toFixed(2),`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
-  const ti=filtAppts.reduce((s,a)=>s+(a.fee||0),0),tn=filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0),tae=filtAppts.reduce((s,a)=>s+(a.expense||0),0),tam=filtAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.miles||0),0);
-  csv+=`\nMONTH TOTALS,,,,,,, ${tn}, $${(tn*TX_FEE).toFixed(2)}, $${ti.toFixed(2)},,,${tam.toFixed(1)},$${(tam*IRS_RATE).toFixed(2)}\n`;
+  csv+='APPOINTMENTS\nType,Client,Date,Time,Location,Company,Status,Notarial Acts,Add\'l Signers,SE-Exempt Notarial ($),Total Fee ($),Paid,Invoice,Expenses ($),Miles,IRS Rate,Mile Deduction ($),Notes\n';
+  filtAppts.forEach(a=>{csv+=[a.type,csvQ(a.client),a.date,a.time||'',csvQ(a.location),csvQ(a.company),a.status,a.notaryCount||0,a.extraSigners||0,apptExempt(a).toFixed(2),(a.fee||0).toFixed(2),a.paid,a.invoiceNumber||'',(a.expense||0).toFixed(2),a.miles||0,irsRate(a.date),mileDed(a.miles,a.date).toFixed(2),csvQ(a.notes)].join(',')+'\n';});
+  csv+='\nAPOSTILLE JOBS\nClient,Document,Country,Received,Fee ($),Paid,Invoice,Job Expenses ($),Trip Miles,Mile Deduction ($)\n';
+  filtApost.forEach(j=>{const tm=(j.trips||[]).reduce((s,t)=>s+(t.miles||0),0),td=(j.trips||[]).reduce((s,t)=>s+mileDed(t.miles,t.date),0);
+    csv+=[csvQ(j.client),csvQ(j.doctype),csvQ(j.country),j.received||'',(j.fee||0).toFixed(2),j.paid,j.invoiceNumber||'',(j.expenses||[]).reduce((s,e)=>s+e.amount,0).toFixed(2),tm,td.toFixed(2)].join(',')+'\n';});
+  csv+='\nINVOICES ISSUED\nNumber,Client,Service Line,Issued,Due,Status,Total ($),SE-Exempt ($),Billed at Cost ($),Paid Date\n';
+  filtInv.forEach(i=>{csv+=[i.number,csvQ(i.client),LINE_LABELS[i.line]||i.line,i.date,i.due||'',invStatus(i),(i.total||0).toFixed(2),(i.exempt||0).toFixed(2),(i.pass||0).toFixed(2),i.paidDate||''].join(',')+'\n';});
   csv+='\nEXPENSES\nCategory,Description,Amount ($),Date\n';
-  filtExp.forEach(e=>{csv+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
+  filtExp.forEach(e=>{csv+=[csvQ(e.cat),csvQ(e.desc),e.amount.toFixed(2),e.date].join(',')+'\n';});
   const tse=filtExp.reduce((s,e)=>s+e.amount,0);
-  csv+=`TOTAL,,$${tse.toFixed(2)}\n\nSTANDALONE MILEAGE\nDescription,Miles,Deduction ($),Date\n`;
-  filtMile.forEach(m=>{csv+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date].join(',')+'\n';});
-  const tsm=filtMile.reduce((s,m)=>s+m.miles,0);
-  csv+=`TOTAL,${tsm.toFixed(1)},$${(tsm*IRS_RATE).toFixed(2)}\n\nMONTH SUMMARY\nGross Income,$${ti.toFixed(2)}\nTotal Expenses,$${(tae+tse).toFixed(2)}\nTotal Miles,${(tam+tsm).toFixed(1)}\nMile Deduction,$${((tam+tsm)*IRS_RATE).toFixed(2)}\nNet (before tax),$${(ti-(tae+tse)-((tam+tsm)*IRS_RATE)).toFixed(2)}\nTotal Notarizations,${tn}\nNotary State Fees,$${(tn*TX_FEE).toFixed(2)}\n`;
+  csv+=`TOTAL,,$${tse.toFixed(2)}\n\nSTANDALONE MILEAGE\nDescription,Miles,IRS Rate,Deduction ($),Date\n`;
+  filtMile.forEach(m=>{csv+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date].join(',')+'\n';});
+  csv+='\n'+plCSV(L);
   const prev=document.getElementById('monthly-preview');
-  if(prev){prev.style.display='block';prev.innerHTML=`✅ <strong>${monthName}:</strong> ${filtAppts.length} appointments · $${ti.toFixed(2)} income · ${tn} notarizations · ${(tam+tsm).toFixed(1)} miles`;}
+  if(prev){prev.style.display='block';prev.innerHTML=`✅ <strong>${monthName}:</strong> ${filtAppts.length} appointments · ${filtApost.length} apostille · $${L.gross.toFixed(2)} gross · $${L.exempt.toFixed(2)} SE-exempt · ${L.miles.toFixed(1)} miles`;}
   dlCSV(csv,`NBK_${monthName.replace(' ','_')}.csv`);
   showToast('📥 Archived: '+monthName);
 }
 
 function exportYearPackage(){
   const yr=document.getElementById('exp-tax-year').value;
+  const L=ledger(yr), s=seCalc(L);
   const ya=appointments.filter(a=>a.date?.startsWith(yr)),ye=expenses.filter(e=>e.date?.startsWith(yr)),ym=mileage.filter(m=>m.date?.startsWith(yr));
-  const nd=ya.filter(a=>a.type!=='depo'),da=ya.filter(a=>a.type==='depo');
-  const gross=nd.reduce((s,a)=>s+(a.fee||0),0),depoIncome=da.reduce((s,a)=>s+(a.fee||0),0);
-  const ae=ya.reduce((s,a)=>s+(a.expense||0),0),se=ye.reduce((s,e)=>s+e.amount,0),totalExp=ae+se;
-  const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm,mileDeduct=totalMiles*IRS_RATE;
-  const tn=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-mileDeduct);
-  // IRC 1402(c)(1) — notarial act fees excluded from SE tax
-  const exemptNotarial=Math.min(gross, nd.reduce((s,a)=>
-    s + (a.notarialFee>0 ? a.notarialFee : (a.notaryCount||0)*TX_ACT_FEE), 0));
-  const seBase=Math.max(0,netSE-exemptNotarial);
-  const seTax=(seBase*0.9235)<400?0:seBase*0.9235*0.153,fedTax=Math.max(0,netSE-seTax/2)*0.22;
-  let csv1=`NBK APPOINTMENTS — TAX YEAR ${yr}\nType,Client,Date,Time,Location,Company,Status,Notarizations,Notary Fees,Total Fee,Paid,Appt Expenses,Miles,Mile Deduction,Notes\n`;
-  ya.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv1+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,((a.notaryCount||0)*TX_FEE).toFixed(2),(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,((a.miles||0)*IRS_RATE).toFixed(2),`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});
+  const da=ya.filter(a=>a.type==='depo');
+  const depoIncome=da.reduce((x,a)=>x+(a.fee||0),0);
+  const fedTax=Math.max(0,s.net-s.seTax/2)*0.22;
+
+  let csv1=`NBK APPOINTMENTS — TAX YEAR ${yr}\nType,Client,Date,Time,Location,Company,Status,Notarial Acts,Add'l Signers,SE-Exempt Notarial,Total Fee,Paid,Invoice,Appt Expenses,Miles,IRS Rate,Mile Deduction,Notes\n`;
+  ya.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv1+=[a.type,csvQ(a.client),a.date,a.time||'',csvQ(a.location),csvQ(a.company),a.status,a.notaryCount||0,a.extraSigners||0,apptExempt(a).toFixed(2),(a.fee||0).toFixed(2),a.paid,a.invoiceNumber||'',(a.expense||0).toFixed(2),a.miles||0,irsRate(a.date),mileDed(a.miles,a.date).toFixed(2),csvQ(a.notes)].join(',')+'\n';});
+  csv1+=`\nAPOSTILLE JOBS\nClient,Document,Country,Received,Fee,Paid,Invoice,Job Expenses\n`;
+  apostilleJobs.filter(j=>(j.received||'').startsWith(yr)).forEach(j=>{csv1+=[csvQ(j.client),csvQ(j.doctype),csvQ(j.country),j.received,(j.fee||0).toFixed(2),j.paid,j.invoiceNumber||'',(j.expenses||[]).reduce((x,e)=>x+e.amount,0).toFixed(2)].join(',')+'\n';});
   dlCSV(csv1,`NBK_${yr}_Appointments.csv`);
-  let csv2=`NBK EXPENSES — TAX YEAR ${yr}\nCategory,Description,Amount,Date\n`;
-  ye.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv2+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});
-  csv2+=`\nTOTAL,,$${se.toFixed(2)}\nAppointment Expenses,,$${ae.toFixed(2)}\nGRAND TOTAL,,$${totalExp.toFixed(2)}\n`;
+
+  let csv2=`NBK EXPENSES — TAX YEAR ${yr}\nCategory,Description,Amount,Date,Source\n`;
+  ye.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv2+=[csvQ(e.cat),csvQ(e.desc),e.amount.toFixed(2),e.date,'Standalone'].join(',')+'\n';});
+  ya.filter(a=>a.expense).forEach(a=>{csv2+=['Appointment expense',csvQ(a.client+' ('+typeLabel(a.type)+')'),a.expense.toFixed(2),a.date,'Appointment'].join(',')+'\n';});
+  apostilleJobs.filter(j=>(j.received||'').startsWith(yr)).forEach(j=>(j.expenses||[]).forEach(e=>{csv2+=[csvQ(e.cat),csvQ(j.client+' — '+e.desc),e.amount.toFixed(2),e.date,'Apostille job'].join(',')+'\n';}));
+  csv2+=`\nGRAND TOTAL,,$${L.exp.toFixed(2)}\n`;
   dlCSV(csv2,`NBK_${yr}_Expenses.csv`);
-  let csv3=`NBK MILEAGE LOG — TAX YEAR ${yr}\nDescription,Miles,Deduction,Date,Source\n`;
-  [...nd.filter(a=>a.miles).map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'})),...ym.map(m=>({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}))].sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv3+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date,m.src].join(',')+'\n';});
-  csv3+=`\nTOTAL MILES,${totalMiles.toFixed(1)},$${mileDeduct.toFixed(2)}\nIRS Rate,$${IRS_RATE}/mile\n`;
+
+  let csv3=`NBK MILEAGE LOG — TAX YEAR ${yr}\nDescription,Miles,IRS Rate,Deduction,Date,Source\n`;
+  const trips=[];
+  ya.filter(a=>a.miles&&a.type!=='depo').forEach(a=>trips.push({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'}));
+  apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles&&(t.date||'').startsWith(yr)).forEach(t=>trips.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date,src:'Apostille'})));
+  ym.forEach(m=>trips.push({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}));
+  trips.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv3+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date,m.src].join(',')+'\n';});
+  csv3+=`\nTOTAL MILES,${L.miles.toFixed(1)},,$${L.mileDed.toFixed(2)}\nRates applied by trip date (IRS Notice 2026-10 and mid-year revision)\n`;
   dlCSV(csv3,`NBK_${yr}_Mileage.csv`);
-  let csv4=`NBK TAX SUMMARY — ${yr}\nNotarized By Kristy LLC\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSELF-EMPLOYMENT INCOME\nGross Notary Income,$${gross.toFixed(2)}\nTotal Notarizations,${tn}\nTX State Notary Fees,$${(tn*TX_FEE).toFixed(2)}\n\n1099 CONTRACTOR INCOME\nDeposition Income,$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n\nDEDUCTIONS\nTotal Business Expenses,$${totalExp.toFixed(2)}\nTotal Business Miles,${totalMiles.toFixed(1)}\nMileage Deduction,$${mileDeduct.toFixed(2)}\n\nSE TAX ESTIMATE\nNet SE Income,$${netSE.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${seTax.toFixed(2)}\n½ SE Tax Deduction,$${(seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(seTax+fedTax).toFixed(2)}\n\nAPPOINTMENT BREAKDOWN\nType,Count,Total Revenue,Notarizations\n`;
-  ['loan','depo','ron','apostille','general'].forEach(t=>{const ta=ya.filter(a=>a.type===t);if(!ta.length)return;csv4+=[typeLabel(t),ta.length,ta.reduce((s,a)=>s+(a.fee||0),0).toFixed(2),ta.reduce((s,a)=>s+(a.notaryCount||0),0)].join(',')+'\n';});
-  const perQ=((seTax+fedTax)/4).toFixed(2);
-  csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Due Date,Est. Amount,Status\n`;
-  [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 16, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{csv4+=`${q[0]},$${perQ},${q[1]},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;});
-  csv4+=`\nSELF-EMPLOYMENT TAX EXEMPTION\nExempt notarial fees (IRC 1402(c)(1)),$${exemptNotarial.toFixed(2)}\nSource,Notarial fees per appointment record; paper record book is the substantiating document\nIncome subject to SE tax,$${seBase.toFixed(2)}\n`;
-  csv4+='\n* Estimates only. Consult your tax professional.\n* Fees for performing notarial acts are excluded from self-employment tax under\n  IRC 1402(c)(1) as functions of a public office. They remain subject to income tax.\n  Schedule SE filers typically note "Exempt-Notary" for this amount.\n* Travel, printing, coordination and non-notarial loan-signing fees remain SE-taxable.\n* Deposition income reported separately on 1099-NEC.\n';
+
+  let csv4=`NBK TAX SUMMARY — ${yr}\n${pricing.business.name}\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSCHEDULE C (NOTARY, APOSTILLE, OFFICIANT, TRANSLATION)\nGross Income,$${L.gross.toFixed(2)}\nTotal Business Expenses,$${L.exp.toFixed(2)}\nTotal Business Miles,${L.miles.toFixed(1)}\nMileage Deduction,$${L.mileDed.toFixed(2)}\nNet Profit,$${s.net.toFixed(2)}\n\n`;
+  csv4+=plCSV(L);
+  csv4+=`\nSELF-EMPLOYMENT TAX EXEMPTION\nNotarial acts,${L.acts}\nExempt notarial fees (IRC 1402(c)(1)),$${L.exempt.toFixed(2)}\nBasis,Tex. Gov't Code 406.024 — $10 first signer + $1 each additional signer; oath/jurat $10; RON per 406.111 where invoiced\nIncome subject to SE tax,$${s.seBase.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${s.seTax.toFixed(2)}\n½ SE Tax Deduction,$${(s.seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(s.seTax+fedTax).toFixed(2)}\n`;
+  csv4+=`\n1099 CONTRACTOR INCOME\nDeposition Income (logged appts),$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n`;
+  const perQ=((s.seTax+fedTax)/4).toFixed(2);
+  csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Est. Amount,Due Date,Status\n`;
+  [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 15, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{csv4+=`${q[0]},$${perQ},${csvQ(q[1])},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;});
+  csv4+='\n* Estimates only. Consult your tax professional.\n* Fees for performing notarial acts are excluded from self-employment tax under\n  IRC 1402(c)(1) as functions of a public office. They remain subject to income tax.\n  Schedule SE filers typically note "Exempt-Notary" for this amount.\n* Travel, printing, coordination, officiant, translation and non-notarial loan-signing fees remain SE-taxable.\n* Pass-through costs billed at cost are booked as offsetting expenses.\n* Deposition income reported separately on 1099-NEC.\n';
   dlCSV(csv4,`NBK_${yr}_Tax_Summary_For_Accountant.csv`);
   showToast('📦 Year package — 4 files downloaded');
 }
 
-function exportAllAppointments(){let csv='Type,Client,Date,Time,Location,Company,Status,Notarizations,Fee,Paid,Expenses,Miles,Notes\n';appointments.sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv+=[a.type,a.client,a.date,a.time||'',a.location||'',a.company||'',a.status,a.notaryCount||0,(a.fee||0).toFixed(2),a.paid,(a.expense||0).toFixed(2),a.miles||0,`"${(a.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});dlCSV(csv,'NBK_All_Appointments_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All appointments exported');}
-function exportAllExpenses(){let csv='Category,Description,Amount,Date\n';expenses.sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv+=[e.cat,e.desc,e.amount.toFixed(2),e.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Expenses_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All expenses exported');}
-function exportAllMileage(){let csv='Description,Miles,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))].sort((a,b)=>a.date>b.date?1:-1);all.forEach(m=>{csv+=[m.desc,m.miles,(m.miles*IRS_RATE).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 All mileage exported');}
-function exportApostilleJobs(){let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Notes\n';apostilleJobs.forEach(j=>{csv+=[j.client,j.doctype,j.country||'',j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',j.tracking||'',`"${(j.notes||'').replace(/"/g,'""')}"`].join(',')+'\n';});dlCSV(csv,'NBK_Apostille_Jobs_'+new Date().toISOString().slice(0,10)+'.csv');showToast('📥 Apostille jobs exported');}
+function exportAllAppointments(){let csv='Type,Client,Date,Time,Location,Company,Status,Notarial Acts,Add\'l Signers,SE-Exempt,Fee,Paid,Invoice,Expenses,Miles,Notes\n';appointments.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv+=[a.type,csvQ(a.client),a.date,a.time||'',csvQ(a.location),csvQ(a.company),a.status,a.notaryCount||0,a.extraSigners||0,apptExempt(a).toFixed(2),(a.fee||0).toFixed(2),a.paid,a.invoiceNumber||'',(a.expense||0).toFixed(2),a.miles||0,csvQ(a.notes)].join(',')+'\n';});dlCSV(csv,'NBK_All_Appointments_'+todayISO()+'.csv');showToast('📥 All appointments exported');}
+function exportAllExpenses(){let csv='Category,Description,Amount,Date\n';expenses.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv+=[csvQ(e.cat),csvQ(e.desc),e.amount.toFixed(2),e.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Expenses_'+todayISO()+'.csv');showToast('📥 All expenses exported');}
+function exportAllMileage(){let csv='Description,Miles,IRS Rate,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))];apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles).forEach(t=>all.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date})));all.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+todayISO()+'.csv');showToast('📥 All mileage exported');}
+function exportApostilleJobs(){let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Invoice,Notes\n';apostilleJobs.forEach(j=>{csv+=[csvQ(j.client),csvQ(j.doctype),csvQ(j.country),j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',csvQ(j.tracking),j.invoiceNumber||'',csvQ(j.notes)].join(',')+'\n';});dlCSV(csv,'NBK_Apostille_Jobs_'+todayISO()+'.csv');showToast('📥 Apostille jobs exported');}
+function exportAllInvoices(){let csv='Number,Client,Contact,Service Line,Service Date,Issued,Due,Status,Total,SE-Exempt,Billed at Cost,Sent,Paid,Method,Linked To\n';invoices.slice().sort((a,b)=>a.number>b.number?1:-1).forEach(i=>{csv+=[i.number,csvQ(i.client),csvQ(i.contact),LINE_LABELS[i.line]||i.line,i.serviceDate||'',i.date||'',i.due||'',invStatus(i),(i.total||0).toFixed(2),(i.exempt||0).toFixed(2),(i.pass||0).toFixed(2),i.sentDate||'',i.paidDate||'',csvQ(i.method),i.postedTo||i.link||''].join(',')+'\n';});dlCSV(csv,'NBK_Invoices_'+todayISO()+'.csv');showToast('📥 Invoices exported');}
 
 function updateYearPreview(){
-  const yr=document.getElementById('exp-tax-year')?.value||new Date().getFullYear().toString();
-  const ya=appointments.filter(a=>a.date?.startsWith(yr)),ye=expenses.filter(e=>e.date?.startsWith(yr)),ym=mileage.filter(m=>m.date?.startsWith(yr));
-  const nd=ya.filter(a=>a.type!=='depo');
-  const gross=nd.reduce((s,a)=>s+(a.fee||0),0),depo=ya.filter(a=>a.type==='depo').reduce((s,a)=>s+(a.fee||0),0);
-  const totalExp=ya.reduce((s,a)=>s+(a.expense||0),0)+ye.reduce((s,e)=>s+e.amount,0);
-  const am=nd.reduce((s,a)=>s+(a.miles||0),0),sm=ym.reduce((s,m)=>s+m.miles,0),totalMiles=am+sm;
-  const totalN=nd.reduce((s,a)=>s+(a.notaryCount||0),0),netSE=Math.max(0,gross-totalExp-totalMiles*IRS_RATE),seTax=netSE*0.9235*0.153;
+  const yr=document.getElementById('exp-tax-year')?.value||String(new Date().getFullYear());
+  const L=ledger(yr), s=seCalc(L);
+  const ya=appointments.filter(a=>a.date?.startsWith(yr));
+  const depo=ya.filter(a=>a.type==='depo').reduce((x,a)=>x+(a.fee||0),0);
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  set('yp-appts',ya.length);set('yp-income','$'+gross.toFixed(2));set('yp-depo','$'+depo.toFixed(2));
-  set('yp-expenses','$'+totalExp.toFixed(2));set('yp-miles',totalMiles.toFixed(1)+' mi');
-  set('yp-milededuct','$'+(totalMiles*IRS_RATE).toFixed(2));set('yp-notarizations',totalN);set('yp-setax','~$'+seTax.toFixed(2));
+  set('yp-appts',ya.length);set('yp-income','$'+L.gross.toFixed(2));set('yp-depo','$'+depo.toFixed(2));
+  set('yp-expenses','$'+L.exp.toFixed(2));set('yp-miles',L.miles.toFixed(1)+' mi');
+  set('yp-milededuct','$'+L.mileDed.toFixed(2));set('yp-notarizations',L.acts);set('yp-setax','~$'+s.seTax.toFixed(2));
 }
 
 // ══════════════════════════════════════════
@@ -4487,6 +5511,8 @@ function renderBackupStats() {
     <div class="backup-stat"><div class="backup-stat-num">${expenses.length}</div><div class="backup-stat-lbl">Expenses</div></div>
     <div class="backup-stat"><div class="backup-stat-num">${mileage.length}</div><div class="backup-stat-lbl">Mileage</div></div>
     <div class="backup-stat"><div class="backup-stat-num">${goals.length}</div><div class="backup-stat-lbl">Goals</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${invoices.length}</div><div class="backup-stat-lbl">Invoices</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${tripCount}</div><div class="backup-stat-lbl">Trips</div></div>
   `;
 }
 
@@ -4502,6 +5528,7 @@ function exportFullBackup() {
       expenses: expenses.length,
       mileage: mileage.length,
       goals: goals.length,
+      invoices: invoices.length,
     },
     data: {
       appointments,
@@ -4511,6 +5538,8 @@ function exportFullBackup() {
       mileage,
       goals,
       quarterlyStatus,
+      invoices,
+      pricing,
       depoIncome:  document.getElementById('depo-income-input')?.value || '',
       depoExpense: document.getElementById('depo-expense-input')?.value || '',
     }
@@ -4604,6 +5633,8 @@ function previewBackup(event) {
       ['Expenses',       (d.expenses||[]).length],
       ['Mileage entries',(d.mileage||[]).length],
       ['Goals',          (d.goals||[]).length],
+      ['Invoices',       (d.invoices||[]).length],
+      ['Pricing profile', d.pricing ? 'Included' : '—'],
     ];
 
     document.getElementById('restorePreviewBody').innerHTML = rows.map(([l,v])=>
@@ -4663,6 +5694,8 @@ function confirmRestore() {
     mileage        = d.mileage        || [];
     goals          = d.goals          || [];
     quarterlyStatus= d.quarterlyStatus|| {};
+    invoices       = d.invoices       || [];
+    if (d.pricing) pricing = { ...clone(PRICING_DEFAULTS), ...d.pricing };
   } else {
     // MERGE — skip records whose id already exists
     const mergeById = (current, incoming) => {
@@ -4675,6 +5708,7 @@ function confirmRestore() {
     credentials   = mergeById(credentials,   d.credentials);
     expenses      = mergeById(expenses,      d.expenses);
     mileage       = mergeById(mileage,       d.mileage);
+    invoices      = mergeById(invoices,      d.invoices);
     // Goals key on `key` (YYYY-MM), not id — incoming wins for same month
     const goalKeys = new Set(goals.map(g=>g.key));
     goals = [...goals, ...((d.goals||[]).filter(g=>!goalKeys.has(g.key)))];
@@ -4689,8 +5723,12 @@ function confirmRestore() {
   if (de && d.depoExpense !== undefined) de.value = d.depoExpense;
 
   save();
+  refreshAddonFees();
+  updateIrsNotes();
   populateMonthFilters();
   renderAll();
+  renderInvoices();
+  renderPricing();
   renderApostille();
   renderVault();
   renderGoals();
@@ -4700,7 +5738,7 @@ function confirmRestore() {
   updateYearPreview();
 
   const total = appointments.length + apostilleJobs.length + credentials.length
-              + expenses.length + mileage.length + goals.length;
+              + expenses.length + mileage.length + goals.length + invoices.length;
   showToast(`✓ Restored — ${total} records now in app`);
   cancelRestore();
 }
