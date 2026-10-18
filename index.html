@@ -2367,6 +2367,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <button class="tab-btn active" data-tab="dashboard" onclick="showTab('dashboard')">Home</button>
   <button class="tab-btn" data-tab="appointments" onclick="showTab('appointments')">Appts</button>
   <button class="tab-btn" data-tab="invoices" onclick="showTab('invoices')">Invoices</button>
+  <button class="tab-btn" data-tab="clients" onclick="showTab('clients')">Clients</button>
   <button class="tab-btn" data-tab="apostille" onclick="showTab('apostille')">Apostille</button>
   <button class="tab-btn" data-tab="expenses" onclick="showTab('expenses')">Expenses</button>
   <button class="tab-btn" data-tab="tax" onclick="showTab('tax')">Tax</button>
@@ -2489,6 +2490,15 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div id="invList"><div class="empty-state"><div class="empty-icon">🧾</div><p>No invoices yet.</p></div></div>
   <button class="btn-primary" onclick="openInvoice()" style="margin-top:10px">+ New Invoice</button>
   <div class="notice" style="margin-top:12px">Marking an invoice <strong>Paid</strong> posts it to your ledger: it updates the linked appointment or apostille job, or creates one if the invoice isn't linked.</div>
+</div>
+
+<!-- ── CLIENTS ── -->
+<div id="tab-clients" class="tab-content">
+  <div class="page-title">Clients <span class="page-badge" id="clientCount">0</span></div>
+  <div class="field"><input type="search" placeholder="Search name, email, phone or type" oninput="searchClients(this.value)" aria-label="Search clients"></div>
+  <div id="clientList"></div>
+  <button class="btn-primary" onclick="openClient()" style="margin-top:10px">+ Add Client</button>
+  <div class="notice" style="margin-top:12px">New clients are added here automatically the first time you invoice them.</div>
 </div>
 
 <!-- ── APOSTILLE ── -->
@@ -2617,14 +2627,15 @@ body { background: #FFFFFF; color: var(--charcoal); }
 
   <div class="card">
     <div class="card-header"><div class="card-header-accent"></div>Deposition Income (1099)</div>
-    <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:12px">Enter deposition income separately — not subject to the same SE tax calculation as notary work.</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Totals itself from the depositions you log in Appts (DepoDirect, Skribe). Use "Other" only for pay you didn't log as a job.</p>
     <div class="two-col">
-      <div class="field"><label>Depo Income YTD ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
-      <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="renderTax()"></div>
+      <div class="field"><label>Other Depo Income ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="saveDepoExtra()"></div>
+      <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="saveDepoExtra()"></div>
     </div>
     <div class="tax-box" style="margin-bottom:0">
       <div class="tax-title">🎙️ Deposition 1099 Summary</div>
       <div class="tax-row"><span class="tax-lbl">Depo Income</span><span class="tax-val gold" id="t-depo-gross">$0</span></div>
+      <div style="font-size:11px;color:var(--muted);margin:-2px 0 6px" id="t-depo-src"></div>
       <div class="tax-row"><span class="tax-lbl">Depo Expenses</span><span class="tax-val red" id="t-depo-exp">$0</span></div>
       <div class="tax-row"><span class="tax-lbl">Depo Net</span><span class="tax-val green" id="t-depo-net">$0</span></div>
     </div>
@@ -2706,8 +2717,22 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <div class="field"><label>Days Until Due</label><input type="number" id="bz-dueDays" min="0" step="1" onchange="setBiz('dueDays',this.value)"></div>
     </div>
     <div class="field"><label>Email</label><input type="email" id="bz-email" onchange="setBiz('email',this.value)"></div>
+    <div class="field"><label>Default Pay-Now Link (Stripe)</label><input type="url" id="bz-payLink" placeholder="https://buy.stripe.com/…" onchange="setBiz('payLink',this.value)"></div>
+    <div class="field"><label>Apostille Filing Agent</label><input type="text" id="bz-filingAgent" onchange="setBiz('filingAgent',this.value)"></div>
     <div class="field"><label>Payment Instructions</label><textarea id="bz-payNote" style="min-height:44px" placeholder="e.g. Pay by card through the secure Stripe link in your email." onchange="setBiz('payNote',this.value)"></textarea></div>
     <div class="field"><label>Terms (printed on every invoice)</label><textarea id="bz-terms" style="min-height:90px" onchange="setTerms(this.value)"></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Email Templates</div>
+    <div class="field"><label>Template</label><select id="tpl-pick" onchange="loadTpl()"></select></div>
+    <div class="field"><label>Subject</label><input type="text" id="tpl-subject"></div>
+    <div class="field"><label>Message</label><textarea id="tpl-body" style="min-height:220px"></textarea></div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:10px">Fill-ins: {client_first} {client} {invoice_number} {total} {balance_due} {deposit} {due_date} {service_date} {service_line} {line_items} {pay_line} {pay_link} {paid_date} {business} {phone} {email}</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn-primary" style="flex:1" onclick="saveTpl()">Save Template</button>
+      <button class="btn-secondary" onclick="resetTpl()">Reset</button>
+    </div>
   </div>
 
   <button class="btn-secondary" onclick="resetPricing()" style="width:100%">↻ Reset to Default Rate Card</button>
@@ -2718,6 +2743,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="page-title">Credentials Vault <span class="page-badge" id="vaultCount">0</span></div>
 
   <!-- Alert banners — rendered by JS -->
+  <div id="vaultPreload"></div>
   <div id="vaultAlerts"></div>
 
   <!-- Summary strip -->
@@ -2852,6 +2878,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <button class="btn-secondary" onclick="exportAllMileage()" style="width:100%;text-align:left;padding:13px 16px">🚗 All Mileage Log</button>
       <button class="btn-secondary" onclick="exportApostilleJobs()" style="width:100%;text-align:left;padding:13px 16px">🌐 All Apostille Jobs</button>
       <button class="btn-secondary" onclick="exportAllInvoices()" style="width:100%;text-align:left;padding:13px 16px">🧾 All Invoices</button>
+      <button class="btn-secondary" onclick="exportClients()" style="width:100%;text-align:left;padding:13px 16px">👥 Client List</button>
     </div>
   </div>
 
@@ -2889,7 +2916,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <div class="chip" data-val="translation" onclick="selectType(this)">Translation</div>
     </div>
   </div>
-  <div class="field"><label>Client / Borrower</label><input type="text" id="f-client" placeholder="Full name"></div>
+  <div class="field"><label>Client / Borrower</label><input type="text" id="f-client" list="clientNames" autocomplete="off" placeholder="Full name"></div>
   <div class="two-col">
     <div class="field"><label>Date</label><input type="date" id="f-date"></div>
     <div class="field"><label>Time</label><input type="time" id="f-time"></div>
@@ -2921,6 +2948,18 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <input type="number" id="f-notarial-fee" placeholder="leave blank to use acts × $10" step="0.01" min="0">
     </div>
     <div class="notary-hint" style="margin-top:5px">Only fill this in when the actual notarial fee differs from $10 per act — RON acts are $25 in Texas, and copy certifications are charged per page. Copy the figure from your paper record book.</div>
+  </div>
+<div class="card" style="margin:12px 0;display:none" id="fDepoFields">
+    <div class="card-header"><div class="card-header-accent"></div>Deposition Pay</div>
+    <div class="two-col">
+      <div class="field"><label>Hours on Record</label><input type="number" id="f-depo-hours" step="0.25" min="0" inputmode="decimal"></div>
+      <div class="field"><label>Base / Minimum ($)</label><input type="number" id="f-depo-base" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('f')"></div>
+      <div class="field"><label>Overage / OT ($)</label><input type="number" id="f-depo-over" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('f')"></div>
+      <div class="field"><label>Add'l Witnesses ($)</label><input type="number" id="f-depo-wit" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('f')"></div>
+    </div>
+    <div class="field"><label>Other — exhibits, travel pay ($)</label><input type="number" id="f-depo-other" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('f')"></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600"><span>Expected pay</span><span id="f-depo-total">$0.00</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">Copy these from your pay calculator. The total fills in the fee, and the Tax tab adds it to your 1099 income.</div>
   </div>
   <!-- SERVICE REQUIREMENTS CHECKLIST -->
   <div class="card" style="margin:12px 0" id="serviceReqCard">
@@ -3037,7 +3076,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="modal-handle"></div>
   <div class="modal-title">Edit Appointment</div>
   <input type="hidden" id="edit-id">
-  <div class="field"><label>Client</label><input type="text" id="edit-client"></div>
+  <div class="field"><label>Client</label><input type="text" id="edit-client" list="clientNames" autocomplete="off"></div>
   <div class="two-col">
     <div class="field"><label>Date</label><input type="date" id="edit-date"></div>
     <div class="field"><label>Time</label><input type="time" id="edit-time"></div>
@@ -3058,6 +3097,18 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <div class="field" style="margin-bottom:0"><label>Notarial Fee $</label><input type="number" id="edit-notarial-fee" placeholder="auto" step="0.01" min="0"></div>
     </div>
     <div class="notary-hint">Leave Notarial Fee blank to use $10 per act + $1 per added signer</div>
+  </div>
+  <div class="card" style="margin:12px 0;display:none" id="editDepoFields">
+    <div class="card-header"><div class="card-header-accent"></div>Deposition Pay</div>
+    <div class="two-col">
+      <div class="field"><label>Hours on Record</label><input type="number" id="edit-depo-hours" step="0.25" min="0" inputmode="decimal"></div>
+      <div class="field"><label>Base / Minimum ($)</label><input type="number" id="edit-depo-base" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('edit')"></div>
+      <div class="field"><label>Overage / OT ($)</label><input type="number" id="edit-depo-over" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('edit')"></div>
+      <div class="field"><label>Add'l Witnesses ($)</label><input type="number" id="edit-depo-wit" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('edit')"></div>
+    </div>
+    <div class="field"><label>Other — exhibits, travel pay ($)</label><input type="number" id="edit-depo-other" step="0.01" min="0" inputmode="decimal" oninput="calcDepo('edit')"></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600"><span>Expected pay</span><span id="edit-depo-total">$0.00</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">Copy these from your pay calculator. The total fills in the fee, and the Tax tab adds it to your 1099 income.</div>
   </div>
   <div class="two-col" style="margin-top:12px">
     <div class="field"><label>Fee ($)</label><input type="number" id="edit-fee" step="0.01"></div>
@@ -3098,7 +3149,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="modal-title">New Apostille Job</div>
 
   <!-- Job details -->
-  <div class="field"><label>Client Name</label><input type="text" id="ap-client" placeholder="Full name"></div>
+  <div class="field"><label>Client Name</label><input type="text" id="ap-client" list="clientNames" autocomplete="off" placeholder="Full name"></div>
   <div class="field"><label>Document Type</label>
     <select id="ap-doctype">
       <option>Birth Certificate</option><option>Diploma / Transcript</option>
@@ -3181,14 +3232,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="field"><label>Destination Country</label><input type="text" id="ap-edit-country"></div>
   <div class="field"><label>Client Contact</label><input type="text" id="ap-edit-contact"></div>
   <div class="field"><label>Current Stage</label>
-    <select id="ap-edit-stage">
-      <option value="0">1 — Intake / Document Review</option>
-      <option value="1">2 — Notarization</option>
-      <option value="2">3 — SOS Submission</option>
-      <option value="3">4 — SOS Processing</option>
-      <option value="4">5 — Return Shipping</option>
-      <option value="5">6 — Delivered ✓</option>
-    </select>
+    <select id="ap-edit-stage"></select>
   </div>
   <div class="two-col">
     <div class="field"><label>Fee ($)</label><input type="number" id="ap-edit-fee" step="0.01"></div>
@@ -3410,8 +3454,11 @@ body { background: #FFFFFF; color: var(--charcoal); }
       <select id="inv-status"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid ✓</option></select>
     </div>
   </div>
-  <div class="field"><label>Bill To (Client / Company)</label><input type="text" id="inv-client" placeholder="Full name or company"></div>
-  <div class="field"><label>Client Email / Phone</label><input type="text" id="inv-contact"></div>
+  <div class="field"><label>Bill To (Client / Company)</label><input type="text" id="inv-client" list="clientNames" autocomplete="off" placeholder="Start typing a saved client…" onchange="fillInvFromClient()"></div>
+  <div class="two-col">
+    <div class="field"><label>Client Email</label><input type="email" id="inv-email" list="clientEmails" autocomplete="off"></div>
+    <div class="field"><label>Client Phone</label><input type="tel" id="inv-contact"></div>
+  </div>
   <div class="field"><label>Billing Address</label><textarea id="inv-address" style="min-height:44px" placeholder="Optional"></textarea></div>
   <div class="two-col">
     <div class="field"><label>Service Line</label>
@@ -3464,6 +3511,10 @@ body { background: #FFFFFF; color: var(--charcoal); }
     <div class="field"><label>Payment Method</label><input type="text" id="inv-method" placeholder="Stripe, Zelle, cash…"></div>
   </div>
   <div style="font-size:10px;color:rgba(11,24,41,.45);margin:-6px 0 10px">Miles are used only when the invoice creates a new record on payment.</div>
+  <div class="two-col">
+    <div class="field"><label>Deposit / Retainer Received</label><input type="number" id="inv-deposit" step="0.01" min="0" inputmode="decimal" placeholder="0.00" oninput="renderInvTotals()"></div>
+    <div class="field"><label>Pay-Now Link</label><input type="url" id="inv-paylink" placeholder="https://…" autocomplete="off"></div>
+  </div>
   <label class="check-row"><input type="checkbox" id="inv-show-notary" onchange="renderInvTotals()"> Note the statutory notarial fee on the invoice</label>
   <div class="field"><label>Notes to Client</label><textarea id="inv-notes" style="min-height:44px" placeholder="Optional"></textarea></div>
 
@@ -3471,7 +3522,10 @@ body { background: #FFFFFF; color: var(--charcoal); }
 
   <div style="display:flex;gap:8px;margin-top:14px">
     <button class="btn-primary" onclick="saveInvoice()" style="flex:1">Save Invoice</button>
-    <button class="btn-secondary" onclick="saveInvoice(true)" style="flex:0 0 108px">Save + View</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn-secondary" onclick="saveInvoice(true)" style="flex:1">Save + View PDF</button>
+    <button class="btn-secondary" onclick="saveInvoice('email')" style="flex:1">Save + Email</button>
   </div>
   <button class="btn-secondary" onclick="closeModal('invoiceModal')" style="width:100%;margin-top:8px">Cancel</button>
 </div>
@@ -3484,6 +3538,74 @@ body { background: #FFFFFF; color: var(--charcoal); }
     <button class="btn-secondary" onclick="closePrint()">Close</button>
   </div>
   <div id="printBody"></div>
+</div>
+
+<datalist id="clientNames"></datalist>
+<datalist id="clientEmails"></datalist>
+
+<!-- CLIENT -->
+<div class="modal-overlay" id="clientModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title" id="clientModalTitle">New Client</div>
+  <input type="hidden" id="cl-id">
+  <div class="field"><label>Client or Company Name</label><input type="text" id="cl-name" autocomplete="off"></div>
+  <div class="two-col">
+    <div class="field"><label>Type</label>
+      <select id="cl-type">
+        <option value="individual">Individual</option><option value="title">Title / Escrow</option><option value="law">Law Firm</option>
+        <option value="referral">Referral Partner</option><option value="business">Business</option><option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Contact Person</label><input type="text" id="cl-contactName" placeholder="Optional"></div>
+  </div>
+  <div class="field"><label>Email</label><input type="email" id="cl-email"></div>
+  <div class="field"><label>Phone</label><input type="tel" id="cl-phone"></div>
+  <div class="field"><label>Billing Address</label><textarea id="cl-address" style="min-height:44px"></textarea></div>
+  <div class="field"><label>Notes</label><textarea id="cl-notes" style="min-height:44px" placeholder="Usual services, preferences, referral source…"></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-primary" onclick="saveClient()" style="flex:1">Save Client</button>
+    <button class="btn-secondary" onclick="closeModal('clientModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- NO-SHOW / LATE CANCEL -->
+<div class="modal-overlay" id="noShowModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">No-Show / Late Cancel</div>
+  <input type="hidden" id="ns-id">
+  <div style="font-size:13px;font-weight:600;margin-bottom:6px" id="ns-client"></div>
+  <div class="notice" id="ns-policy"></div>
+  <div class="field" id="ns-full-row"><label>Full Service Fee ($)</label><input type="number" id="ns-full" step="0.01" min="0" inputmode="decimal" oninput="calcNoShow()"></div>
+  <div class="field"><label>Travel Zone</label><select id="ns-zone" onchange="calcNoShow()"></select></div>
+  <label class="check-row"><input type="checkbox" id="ns-print" onchange="calcNoShow()"> <span id="ns-print-lbl">Printing already incurred</span></label>
+  <div class="tax-box"><div class="tax-row"><span class="tax-lbl">Charge per your policy</span><span class="tax-val gold" id="ns-total">$0.00</span></div></div>
+  <label class="check-row"><input type="checkbox" id="ns-invoice" checked> Create an invoice for this charge</label>
+  <div style="display:flex;gap:8px;margin-top:6px">
+    <button class="btn-primary" onclick="applyNoShow()" style="flex:1">Apply Charge</button>
+    <button class="btn-secondary" onclick="closeModal('noShowModal')" style="flex:0 0 80px">Cancel</button>
+  </div>
+</div>
+</div>
+
+<!-- EMAIL INVOICE -->
+<div class="modal-overlay" id="emailModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Email Invoice</div>
+  <input type="hidden" id="em-id">
+  <div class="field"><label>To</label><input type="email" id="em-to" list="clientEmails" autocomplete="off" placeholder="client@email.com"></div>
+  <div class="field"><label>Message</label><select id="em-tpl" onchange="applyEmailTemplate()"></select></div>
+  <div class="field"><label>Subject</label><input type="text" id="em-subject"></div>
+  <div class="field"><textarea id="em-body" style="min-height:240px" aria-label="Email message"></textarea></div>
+  <label class="check-row" id="em-mark-row"><input type="checkbox" id="em-mark"> Mark this invoice Sent</label>
+  <button class="btn-primary" onclick="sendEmailMail()">✉️ Open in Mail</button>
+  <button class="btn-secondary" id="em-share" onclick="sendEmailShare()" style="width:100%;margin-top:8px">📎 Send with PDF attached</button>
+  <div style="font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.6"><strong>Open in Mail</strong> fills in the client, subject and message — you just tap Send. <strong>Send with PDF</strong> attaches the invoice; pick Mail from the share sheet and add the recipient there.</div>
+  <button class="btn-secondary" onclick="closeModal('emailModal')" style="width:100%;margin-top:10px;background:#fff;color:var(--charcoal);border:1px solid var(--blush-line)">Cancel</button>
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -3611,9 +3733,20 @@ const PRICING_DEFAULTS = {
     name:'Notarized By Kristy LLC', dba:'Texas Notary Kristy',
     address:'421 Landmark Falls, Cibolo, TX 78108',
     phone:'210-628-9991', email:'kristy@notarizedbykristy.com',
-    payNote:'', dueDays:7,
+    payNote:'', dueDays:7, payLink:'https://buy.stripe.com/dRm5kCezm2aa9D2dcCcIE08', filingAgent:'Kendra',
   },
   terms: "Cancel or reschedule free with 24+ hours' notice; deposits are forfeited with less than 24 hours' notice. No-shows are charged the applicable travel fee plus any printing costs already incurred. Loan signings cancelled late or no-showed are charged the full service fee plus travel.",
+  emailTemplates: [
+    { id:'invoice', name:'New invoice',
+      subject:'Invoice {invoice_number} from {business}',
+      body:"Hi {client_first},\n\nThank you for choosing {business}. Here is your invoice {invoice_number} for {service_line} on {service_date}.\n\n{line_items}\n\nAmount due: {balance_due}\nDue: {due_date}\n{pay_line}\nIf you have any questions, just reply to this email or call me at {phone}.\n\nWarmly,\nKristy Davis\n{business}\n{phone} · {email}" },
+    { id:'reminder', name:'Friendly reminder',
+      subject:'Reminder: invoice {invoice_number} — {balance_due}',
+      body:"Hi {client_first},\n\nI hope you're doing well. This is a friendly reminder that invoice {invoice_number} for {balance_due} was due {due_date}.\n\n{pay_line}\nIf it's already on its way, thank you, and please disregard this note. If anything about the invoice needs a second look, just let me know.\n\nThank you,\nKristy Davis\n{business}\n{phone}" },
+    { id:'receipt', name:'Paid — thank you',
+      subject:'Thank you — invoice {invoice_number} is paid',
+      body:"Hi {client_first},\n\nThank you! I received your payment of {total} for invoice {invoice_number} on {paid_date}. Your account is paid in full.\n\nIt was a pleasure working with you, and I'm here whenever you need a notary again.\n\nWarmly,\nKristy Davis\n{business}\n{phone} · {email}" },
+  ],
 };
 
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -3630,7 +3763,12 @@ function loadPricing(){
     irsRates: (saved.irsRates && saved.irsRates.length) ? saved.irsRates : d.irsRates,
   };
 }
-let pricing  = loadPricing();
+function fixPricingGaps(pr){
+  if (!pr.business.payLink) pr.business.payLink = PRICING_DEFAULTS.business.payLink;
+  return pr;
+}
+let pricing  = fixPricingGaps(loadPricing());
+const PAY_QR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsAQAAAABRBrPYAAACZ0lEQVR42u2aQZabMBBEfyPe0+zgBniXYzA3A98MboJvgHc4ASoLyQzzssi8sU0WUe9slVhUQ3d1SSa+ENeML8X/A2Pjzc+oK2aTBgAKrfelYky8vToLtSRp8BKASZqcqKWVRpLUpSwcALuaWQuLQaHFWgB6y4GLmSXengdbMoDFmq6Yv/C0NvH2DFj+uexcc1u5/JjzxNvRWSgEXHCif3czVBMyyH9BpcTbvxE/bTU5UY8uiZ8nwt52O2T0ZW57mGKM9pGQn6grpo+lRO+3YWZmGVxKGVxzgFvO+Z0li6qmL3d9YVo/NrvZ6u6mRO/jpUYaYdPyc1T46nAr4JPCPyYLXTFBM2D7OStEi1+hVsrCATC/cq61sp+z4GYxK+cy8fZU2Pqn+FdXTKZIfZjB/Lx13CnUrETvg7BKM9IlN7XcvOjLm5md/IpZeslfr/DvxtoM4BSNNYoJqEIBSi/5AeLHS201gjqc1FaS1IU1SantHvItjF7SgN0/iyhBYfs3ZeFRbanRJEkrzYATtSbUVhNJWx5U8CeCigyqphlwYfpSGwXO37OQJXofLPi7k6vYdmE7z1qTtjymIuFXmiH+3sT+p8aceHsZzKxkG6ikGXXRcwDq0Wk7bE9Z+DbMYpRhh8xOAH0Jm6+we9pkm7/vgwSNThB1MpmfMGdJ292RcJISFWcqNYfA4gUGkEYs6E51LGZ28ovRJ8/hxbCdybbk1B3K4C0azuJyckq8HQzryyWjkWboK4lzrSVd5nkQVkiboHSSmXmFAqTh5mRN6qevb7sx/Mx9zlK4Qkjw2JLn8HKYpbvH34L9BkSK0M/s0+N3AAAAAElFTkSuQmCC';   // QR for the default Stripe pay link (verified)
 let invoices = JSON.parse(localStorage.getItem('nbk_invoices') || '[]');
 
 function priceItem(id){
@@ -3776,7 +3914,8 @@ function renderPricing(){
   if (sel) sel.innerHTML = pricing.groups.map((grp,gi) => `<option value="${gi}">${esc(grp.label)}</option>`).join('');
 
   ['ack_first','ack_add','oath','ron'].forEach(k => { const el = document.getElementById('pf-'+k); if (el) el.value = pricing.notaryFees[k]; });
-  ['name','dba','address','phone','email','payNote','dueDays'].forEach(k => { const el = document.getElementById('bz-'+k); if (el) el.value = pricing.business[k] ?? ''; });
+  renderTplEditor();
+  ['name','dba','address','phone','email','payNote','dueDays','payLink','filingAgent'].forEach(k => { const el = document.getElementById('bz-'+k); if (el) el.value = pricing.business[k] ?? ''; });
   const t = document.getElementById('bz-terms'); if (t) t.value = pricing.terms || '';
 
   const r = document.getElementById('irsRatesList');
@@ -3856,7 +3995,8 @@ function invTotals(inv){
   const notarial = NON_NOTARIAL.includes(inv.line) ? 0
     : (inv.acts||0) * nf.ack_first + (inv.extra||0) * nf.ack_add + (inv.ronActs||0) * nf.ron;
   const exempt = Math.min(notarial, Math.max(0, total - pass));
-  return { total, pass, service: total - pass, exempt, seTaxable: Math.max(0, total - pass - exempt) };
+  const deposit = Math.min(Math.max(0, inv.deposit||0), total);
+  return { total, pass, service: total - pass, exempt, seTaxable: Math.max(0, total - pass - exempt), deposit, balance: total - deposit };
 }
 
 function invStatus(inv){
@@ -3891,7 +4031,12 @@ function openInvoice(opts){
   } else {
     inv = { id:0, number:nextInvNumber(today.slice(0,4)), status:'draft', client:'', contact:'', address:'',
             line:'general', serviceDate:today, date:today, due:addDays(today, pricing.business.dueDays),
-            link:'', lines:[], acts:0, extra:0, ronActs:0, miles:0, method:'', showNotary:false, notes:'' };
+            link:'', lines:[], acts:0, extra:0, ronActs:0, miles:0, method:'', showNotary:false, notes:'',
+            email:'', deposit:0, payLink: pricing.business.payLink || '' };
+    if (opts.clientId) {
+      const c = clients.find(x => x.id === opts.clientId);
+      if (c) { inv.client = c.name; inv.email = c.email||''; inv.contact = c.phone||''; inv.address = c.address||''; inv.clientId = c.id; if (c.type === 'title') inv.line = 'loan'; }
+    }
     if (opts.fromAppt) {
       const a = appointments.find(x => x.id === opts.fromAppt);
       if (a) {
@@ -3907,6 +4052,10 @@ function openInvoice(opts){
         }
       }
     }
+    if (opts.fromAppt || opts.fromApost) {
+      const c = findClient(inv.client);
+      if (c) { inv.email = inv.email || c.email || ''; inv.contact = inv.contact || c.phone || ''; inv.address = inv.address || c.address || ''; }
+    }
     if (opts.fromApost) {
       const j = apostilleJobs.find(x => x.id === opts.fromApost);
       if (j) {
@@ -3917,10 +4066,12 @@ function openInvoice(opts){
       }
     }
   }
+  if (!opts.id) { const c = findClient(inv.client); if (c) { inv.email = inv.email || c.email || ''; inv.contact = inv.contact || c.phone || ''; inv.address = inv.address || c.address || ''; } }
   invDraftLines = (inv.lines||[]).map(l => ({...l}));
   const setV = (id,v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
   setV('inv-id', inv.id || ''); setV('inv-number', inv.number); setV('inv-status', inv.status);
   setV('inv-client', inv.client); setV('inv-contact', inv.contact); setV('inv-address', inv.address);
+  setV('inv-email', inv.email); setV('inv-deposit', inv.deposit || ''); setV('inv-paylink', inv.payLink);
   setV('inv-line', inv.line); setV('inv-service-date', inv.serviceDate); setV('inv-date', inv.date); setV('inv-due', inv.due);
   setV('inv-acts', inv.acts || ''); setV('inv-extra', inv.extra || ''); setV('inv-ron-acts', inv.ronActs || '');
   setV('inv-miles', inv.miles || ''); setV('inv-method', inv.method); setV('inv-notes', inv.notes);
@@ -4015,6 +4166,7 @@ function readInvForm(){
     id: parseInt(v('inv-id')) || 0,
     number: v('inv-number').trim(), status: v('inv-status'),
     client: v('inv-client').trim(), contact: v('inv-contact').trim(), address: v('inv-address').trim(),
+    email: v('inv-email').trim(), deposit: parseFloat(v('inv-deposit'))||0, payLink: v('inv-paylink').trim(),
     line: v('inv-line'), serviceDate: v('inv-service-date'), date: v('inv-date'), due: v('inv-due'),
     link: v('inv-link'),
     acts: parseInt(v('inv-acts'))||0, extra: parseInt(v('inv-extra'))||0, ronActs: parseInt(v('inv-ron-acts'))||0,
@@ -4035,6 +4187,8 @@ function renderInvTotals(){
     <div class="tax-row"><span class="tax-lbl">🟢 SE-exempt notarial portion</span><span class="tax-val green">${money(t.exempt)}</span></div>
     <div class="tax-row"><span class="tax-lbl">🔹 Subject to SE tax</span><span class="tax-val">${money(t.seTaxable)}</span></div>
     ${t.pass?`<div class="tax-row"><span class="tax-lbl">🛑 Pass-through (offsetting expense)</span><span class="tax-val red">${money(t.pass)}</span></div>`:''}
+    ${t.deposit?`<div class="tax-row"><span class="tax-lbl">Deposit / retainer received</span><span class="tax-val">-${money(t.deposit)}</span></div><div class="tax-row"><span class="tax-lbl">Balance due</span><span class="tax-val gold">${money(t.balance)}</span></div>`:''}
+    ${invDraftLines.some(l=>/lifetime/i.test(l.desc))&&!t.deposit?`<div class="tax-note">LifeTime carries a $100 non-refundable retainer — enter it under Deposit once it's paid.</div>`:''}
     <div class="tax-note">The tax allocation is for your books only — it never prints on the client's invoice.</div>`;
 }
 
@@ -4044,7 +4198,9 @@ function saveInvoice(andPrint){
   if (!inv.lines.length) { showToast('⚠️ Add at least one line item'); return; }
   if (!inv.number) inv.number = nextInvNumber((inv.date||todayISO()).slice(0,4));
   if (invoices.some(x => x.number === inv.number && x.id !== inv.id)) { showToast('⚠️ Invoice number already used'); return; }
-  const t = invTotals(inv); inv.total = t.total; inv.exempt = t.exempt; inv.pass = t.pass;
+  if (inv.payLink && !/^https:\/\//i.test(inv.payLink)) { showToast('⚠️ Pay link must start with https://'); return; }
+  const t = invTotals(inv); inv.total = t.total; inv.exempt = t.exempt; inv.pass = t.pass; inv.deposit = t.deposit;
+  inv.clientId = upsertClientFromInvoice(inv);
 
   const idx = invoices.findIndex(x => x.id === inv.id);
   if (idx >= 0) {
@@ -4060,7 +4216,8 @@ function saveInvoice(andPrint){
   save(); refreshAfterInvoice();
   closeModal('invoiceModal');
   showToast(posted ? '✓ ' + inv.number + ' paid · posted to ledger' : '✓ ' + inv.number + ' saved');
-  if (andPrint) printInvoice(inv.id);
+  if (andPrint === 'email') openEmail(inv.id);
+  else if (andPrint) printInvoice(inv.id);
 }
 
 // Returns true when the invoice was posted to the ledger as paid
@@ -4105,7 +4262,7 @@ function postInvoice(inv){
     apostilleJobs.unshift({
       id, client: inv.client, doctype: 'Per invoice ' + inv.number, country: '', received: d,
       contact: inv.contact || '', intl: false, fee: inv.total, deposit: 0, balance: 0, paid: 'paid',
-      stage: 0, tracking: '', notes: 'Created from invoice ' + inv.number,
+      stage: 0, stageV: 2, tracking: '', notes: 'Created from invoice ' + inv.number,
       notarialFee: inv.exempt || 0,
       trips: (inv.miles || acts) ? [{ id: id + 1, date: d, time: '', location: '', miles: inv.miles || 0, notaryCount: acts, addons: [], notes: 'From invoice ' + inv.number }] : [],
       expenses: passLines.map((l,i) => ({ id: id + 10 + i, cat: 'Pass-through (at cost)', desc: l.desc, amount: l.qty * l.price, date: d })),
@@ -4168,8 +4325,8 @@ function renderInvoices(){
   const year = String(new Date().getFullYear());
   const set = (id,v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   const open = invoices.filter(i => ['sent','overdue'].includes(invStatus(i)));
-  set('inv-out', money(open.reduce((s,i) => s + (i.total||0), 0)));
-  set('inv-overdue', money(invoices.filter(i => invStatus(i) === 'overdue').reduce((s,i) => s + (i.total||0), 0)));
+  set('inv-out', money(open.reduce((s,i) => s + invBalance(i), 0)));
+  set('inv-overdue', money(invoices.filter(i => invStatus(i) === 'overdue').reduce((s,i) => s + invBalance(i), 0)));
   set('inv-paid-ytd', money(invoices.filter(i => i.status === 'paid' && (i.paidDate||'').startsWith(year)).reduce((s,i) => s + (i.total||0), 0)));
   set('inv-drafts', invoices.filter(i => invStatus(i) === 'draft').length);
 
@@ -4184,9 +4341,9 @@ function renderInvoices(){
     return `<div class="inv-card st-${st}">
       <div class="inv-top">
         <div style="min-width:0"><div class="inv-num">${esc(i.number)} · ${LINE_LABELS[i.line]||i.line}</div><div class="inv-client">${esc(i.client)}</div></div>
-        <div class="inv-total">${money(i.total)}</div>
+        <div style="text-align:right"><div class="inv-total">${money(i.total)}</div>${i.deposit&&st!=='paid'?`<div style="font-size:11px;color:var(--rose-deep)">Due ${money(invBalance(i))}</div>`:''}</div>
       </div>
-      <div class="inv-meta">Issued ${fmtDate(i.date)}${i.due?' · Due '+fmtDate(i.due):''}${i.paidDate&&st==='paid'?' · Paid '+fmtDate(i.paidDate):''}<br>${linkLabel(i)}</div>
+      <div class="inv-meta">${i.lastEmailed?'✉️ Emailed '+fmtDate(i.lastEmailed)+' · ':''}Issued ${fmtDate(i.date)}${i.due?' · Due '+fmtDate(i.due):''}${i.paidDate&&st==='paid'?' · Paid '+fmtDate(i.paidDate):''}<br>${linkLabel(i)}</div>
       <div class="pills">
         <span class="pill ${b[0]}">${b[1]}</span>
         ${i.exempt?`<span class="pill notary">SE-exempt ${money(i.exempt)}</span>`:''}
@@ -4195,6 +4352,7 @@ function renderInvoices(){
       <div class="appt-actions">
         <button class="btn-sm" onclick="openInvoice({id:${i.id}})">Edit</button>
         <button class="btn-sm" onclick="printInvoice(${i.id})">View / PDF</button>
+        <button class="btn-sm" onclick="openEmail(${i.id})">✉️ Email</button>
         ${st==='draft'?`<button class="btn-sm" onclick="setInvStatus(${i.id},'sent')">Mark Sent</button>`:''}
         ${st!=='paid'?`<button class="btn-success" onclick="setInvStatus(${i.id},'paid')">Mark Paid</button>`:''}
         <button class="btn-danger" onclick="deleteInvoice(${i.id})">Delete</button>
@@ -4203,14 +4361,19 @@ function renderInvoices(){
   }).join('');
 }
 
-function printInvoice(id){
-  const inv = invoices.find(x => x.id === id); if (!inv) return;
+// The client-facing invoice document — used for the on-screen view, printing, and the emailed PDF
+function invoiceDocHTML(inv){
   const b = pricing.business, t = invTotals(inv), st = invStatus(inv);
   const br = s => esc(s).replace(/\n/g,'<br>');
   const rows = (inv.lines||[]).map(l => `<tr>
-      <td>${esc(l.desc)}${l.pass?'<div style="font-size:10px;color:#8a6518">Billed at cost</div>':''}</td>
+      <td>${esc(l.desc)}${l.pass?'<div style="font-size:10px;color:#A8842F">Billed at cost</div>':''}</td>
       <td class="r">${l.qty}</td><td class="r">${money(l.price)}</td><td class="r">${money(l.qty*l.price)}</td></tr>`).join('');
-  document.getElementById('printBody').innerHTML = `<div class="pi">
+  const payBtn = inv.payLink && st !== 'paid' ? `<div class="pi-note" style="text-align:center;border:none">
+      ${inv.payLink===PRICING_DEFAULTS.business.payLink?`<img src="${PAY_QR}" alt="Scan to pay" style="width:110px;height:110px;display:block;margin:0 auto 8px;image-rendering:pixelated">`:''}
+      <a href="${esc(inv.payLink)}" style="display:inline-block;background:#C9A44C;color:#fff;padding:10px 26px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px">Pay Online</a>
+      <div style="font-size:11px;margin-top:6px;color:#4A4044">Scan or tap to pay ${money(t.balance)} · enter invoice <strong>${esc(inv.number)}</strong> at checkout</div>
+      <div style="font-size:10px;margin-top:3px;word-break:break-all;color:#8A7C80">${esc(inv.payLink)}</div></div>` : '';
+  return `<div class="pi">
     <div class="pi-head">
       <div>
         <div class="pi-brand">${esc(b.name)}</div>
@@ -4223,19 +4386,25 @@ function printInvoice(id){
         ${st==='paid'?'<div style="text-align:right"><span class="pi-paid">PAID</span></div>':''}
       </div>
     </div>
-    <div class="pi-billto"><div class="pi-lbl">Bill To</div><strong>${esc(inv.client)}</strong>${inv.address?'<br>'+br(inv.address):''}${inv.contact?'<br>'+esc(inv.contact):''}</div>
+    <div class="pi-billto"><div class="pi-lbl">Bill To</div><strong>${esc(inv.client)}</strong>${inv.address?'<br>'+br(inv.address):''}${inv.email?'<br>'+esc(inv.email):''}${inv.contact?'<br>'+esc(inv.contact):''}</div>
     <table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="pi-totals">
       ${t.pass?`<div><span>Services</span><span>${money(t.service)}</span></div><div><span>Billed at cost</span><span>${money(t.pass)}</span></div>`:''}
-      <div class="pi-grand"><span>${st==='paid'?'Total Paid':'Total Due'}</span><span>${money(t.total)}</span></div>
-      ${st==='paid'&&inv.paidDate?`<div style="font-size:11px;color:#1C7A50"><span>Paid ${fmtDate(inv.paidDate)}${inv.method?' · '+esc(inv.method):''}</span><span></span></div>`:''}
+      ${t.deposit?`<div><span>Total</span><span>${money(t.total)}</span></div><div><span>Deposit / retainer received</span><span>-${money(t.deposit)}</span></div>`:''}
+      <div class="pi-grand"><span>${st==='paid'?'Total Paid':(t.deposit?'Balance Due':'Total Due')}</span><span>${money(st==='paid'?t.total:t.balance)}</span></div>
+      ${st==='paid'&&inv.paidDate?`<div style="font-size:11px;color:#3E7D5A"><span>Paid ${fmtDate(inv.paidDate)}${inv.method?' · '+esc(inv.method):''}</span><span></span></div>`:''}
     </div>
+    ${payBtn}
     ${inv.showNotary&&t.exempt?`<div class="pi-note">Total includes ${money(t.exempt)} in Texas notarial fees as set by Tex. Gov't Code §406.024${inv.ronActs?' and §406.111':''}.</div>`:''}
     ${inv.notes?`<div class="pi-note">${br(inv.notes)}</div>`:''}
     ${b.payNote?`<div class="pi-note"><strong>Payment:</strong> ${br(b.payNote)}</div>`:''}
     ${pricing.terms?`<div class="pi-note"><strong>Terms:</strong> ${br(pricing.terms)}</div>`:''}
-    <div class="pi-note" style="text-align:center;border:none;color:#8a6518">Thank you for choosing ${esc(b.name)}.</div>
+    <div class="pi-note" style="text-align:center;border:none;color:#A8842F">Thank you for choosing ${esc(b.name)}.</div>
   </div>`;
+}
+function printInvoice(id){
+  const inv = invoices.find(x => x.id === id); if (!inv) return;
+  document.getElementById('printBody').innerHTML = invoiceDocHTML(inv);
   document.getElementById('printArea').classList.add('open');
   document.title = inv.number + ' — ' + inv.client;   // becomes the PDF file name
 }
@@ -4262,6 +4431,7 @@ function save() {
   localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
   localStorage.setItem('nbk_quarters',  JSON.stringify(quarterlyStatus));
   localStorage.setItem('nbk_invoices',  JSON.stringify(invoices));
+  localStorage.setItem('nbk_clients',   JSON.stringify(clients));
   localStorage.setItem('nbk_pricing',   JSON.stringify(pricing));
   // Phase 1: save indicator
   const ind = document.getElementById('saveIndicator');
@@ -4303,9 +4473,12 @@ function initApp() {
   if(gm) gm.value = String(now.getMonth()+1).padStart(2,'0');
   refreshAddonFees();
   updateIrsNotes();
+  migrateApostilleStages();
+  loadDepoExtra();
   populateMonthFilters();
   renderAll();
   renderInvoices();
+  renderClients();
   renderPricing();
   renderTax();   // renderTax calls renderQuarterly(perQtr) internally — no separate call needed
   renderGoals();
@@ -4331,6 +4504,7 @@ function showTab(tab) {
   if(tab==='apostille') renderApostille();
   if(tab==='vault')     renderVault();
   if(tab==='invoices')  renderInvoices();
+  if(tab==='clients')   renderClients();
   if(tab==='pricing')   renderPricing();
   if(tab==='exports')   { updateYearPreview(); updateMonthDefault(); renderBackupStats(); }
 }
@@ -4364,6 +4538,7 @@ function selectType(el){
   const isDepo = selectedType==='depo';
   document.getElementById('mileageApptSection').style.display = isDepo ? 'none' : 'block';
   document.getElementById('depoMileNotice').style.display     = isDepo ? 'block' : 'none';
+  document.getElementById('fDepoFields').style.display        = isDepo ? 'block' : 'none';
   document.getElementById('notaryCountRow').style.display     = NON_NOTARIAL.includes(selectedType) ? 'none' : 'block';
 }
 function selectStatus(el){
@@ -4433,6 +4608,7 @@ function saveAppointment(){
     status:selectedStatus,
     notaryCount: NON_NOTARIAL.includes(selectedType) ? 0 : (parseInt(document.getElementById('f-notary-count').value)||0),
     extraSigners: NON_NOTARIAL.includes(selectedType) ? 0 : (parseInt(document.getElementById('f-extra-signers').value)||0),
+    depo: selectedType==='depo' ? readDepo('f') : null,
     fee:parseFloat(document.getElementById('f-fee').value)||0,
     paid:document.getElementById('f-paid').value,
     notarialFee: parseFloat(document.getElementById('f-notarial-fee')?.value)||0,
@@ -4455,6 +4631,7 @@ function resetApptForm(){
   selectedType='loan';
   document.getElementById('mileageApptSection').style.display='block';
   document.getElementById('depoMileNotice').style.display='none';
+  document.getElementById('fDepoFields').style.display='none'; fillDepo('f', null);
   document.getElementById('notaryCountRow').style.display='block';
   document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('selected'));
   document.querySelector('#statusChips .chip[data-val="confirmed"]').classList.add('selected');
@@ -4507,11 +4684,14 @@ function renderAppts(){
         ${addonPills}
         ${apostilleBadge}
         ${a.invoiceNumber?`<span class="pill inv">🧾 ${a.invoiceNumber}</span>`:''}
+        ${a.noShow?`<span class="pill unpaid">No-show charge</span>`:''}
+        ${a.depo&&a.depo.hours?`<span class="pill">🎙️ ${a.depo.hours} hrs</span>`:''}
       </div>
       ${a.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:8px;padding-top:8px;border-top:1px solid var(--parchment-2)">📝 ${a.notes}</div>`:''}
       <div class="appt-actions">
         <button class="btn-sm" onclick="editAppt(${a.id})">Edit</button>
         ${a.type!=='depo'?`<button class="btn-sm" onclick="invoiceFromAppt(${a.id})">🧾 ${a.invoiceId?'Invoice':'Create Invoice'}</button>`:''}
+        ${a.type!=='depo'&&a.status!=='cancelled'?`<button class="btn-sm" onclick="openNoShow(${a.id})">No-show / Late cancel</button>`:''}
         <button class="btn-danger" onclick="deleteAppt(${a.id})">Delete</button>
       </div>
     </div>`;
@@ -4535,6 +4715,7 @@ function editAppt(id){
   document.getElementById('editMilesRow').style.display=a.type==='depo'?'none':'block';
   document.getElementById('editNotaryRow').style.display=NON_NOTARIAL.includes(a.type)?'none':'block';
   document.getElementById('edit-extra-signers').value=a.extraSigners||'';
+  document.getElementById('editDepoFields').style.display=a.type==='depo'?'block':'none'; fillDepo('edit', a.depo);
   document.getElementById('edit-notarial-fee').value=a.notarialFee||'';
   setCheckedReqs('editReqGrid', a.addons||[]);
   openModal('editApptModal');
@@ -4552,6 +4733,7 @@ function saveEdit(){
     status:document.getElementById('edit-status').value,
     notaryCount:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseInt(document.getElementById('edit-notary-count').value)||0),
     extraSigners:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseInt(document.getElementById('edit-extra-signers').value)||0),
+    depo:appointments[idx].type==='depo'?readDepo('edit'):null,
     notarialFee:NON_NOTARIAL.includes(appointments[idx].type)?0:(parseFloat(document.getElementById('edit-notarial-fee').value)||0),
     fee:parseFloat(document.getElementById('edit-fee').value)||0,
     paid:document.getElementById('edit-paid').value,
@@ -4570,7 +4752,8 @@ function deleteAppt(id){
 
 
 // ── APOSTILLE V2 — TRIPS + EXPENSES MODEL
-const AP_STAGES = ['Intake','Notarization','SOS Submit','SOS Processing','Shipping','Delivered ✓'];
+const AP_STAGES = ['Intake Form Sent','Eligibility Review','Quote Sent','Agreement Signed','Payment Cleared','With Filing Agent','Filed at SOS','Shipped','Delivered ✓'];
+const AP_DONE = AP_STAGES.length - 1;
 
 function openAddApostille() {
   const now = new Date().toISOString().split('T')[0];
@@ -4617,7 +4800,7 @@ function saveApostille() {
     fee, deposit,
     balance:  Math.max(0, fee - deposit),
     paid:     document.getElementById('ap-paid').value,
-    stage: 0, tracking: '',
+    stage: 0, stageV: 2, tracking: '',
     notes: document.getElementById('ap-notes').value,
     trips, expenses: [],
     created: new Date().toISOString(),
@@ -4635,14 +4818,14 @@ function filterApostille(f, el) {
 
 function renderApostille() {
   let list = apostilleJobs;
-  if (apostilleFilter === 'active')    list = list.filter(j=>j.stage<5);
-  if (apostilleFilter === 'completed') list = list.filter(j=>j.stage>=5);
+  if (apostilleFilter === 'active')    list = list.filter(j=>j.stage<AP_DONE);
+  if (apostilleFilter === 'completed') list = list.filter(j=>j.stage>=AP_DONE);
   document.getElementById('apostilleCount').textContent = list.length;
   const all = apostilleJobs;
   const totalRevenue = all.reduce((s,j)=>s+(j.fee||0),0);
   const totalMiles   = all.reduce((s,j)=>s+(j.trips||[]).reduce((sm,t)=>sm+(t.miles||0),0),0);
   const totalBalance = all.filter(j=>j.paid!=='paid').reduce((s,j)=>s+(j.balance||0),0);
-  const activeCount  = all.filter(j=>j.stage<5).length;
+  const activeCount  = all.filter(j=>j.stage<AP_DONE).length;
   const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setEl('apost-active-count',activeCount);
   setEl('apost-revenue','$'+totalRevenue.toFixed(2));
@@ -4651,7 +4834,7 @@ function renderApostille() {
   const c = document.getElementById('apostilleList');
   if (!list.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">\ud83c\udf10</div><p>No apostille jobs.</p></div>';return;}
   c.innerHTML = list.map(j=>{
-    const pct  = Math.round((j.stage/5)*100);
+    const pct  = Math.round((j.stage/AP_DONE)*100);
     const trips = j.trips||[], expenses = j.expenses||[];
     const totalTripMiles = trips.reduce((s,t)=>s+(t.miles||0),0);
     const totalNotary    = trips.reduce((s,t)=>s+(t.notaryCount||0),0);
@@ -4689,7 +4872,8 @@ function renderApostille() {
           <div class="apost-job-fee-col"><div class="apost-job-fee">$${j.fee.toFixed(2)}</div>${j.paid==='paid'?'<div class="apost-paid-tag">Paid \u2713</div>':j.balance>0?`<div class="apost-balance-due">Due $${j.balance.toFixed(2)}</div>`:''}</div>
         </div>
         <div class="apost-progress-wrap"><div class="apost-progress-bar" style="width:${pct}%"></div></div>
-        <div class="apost-stage-label">${pct}% &middot; Stage ${j.stage+1} of 6</div>
+        <div class="apost-stage-label">${pct}% &middot; Stage ${j.stage+1} of ${AP_STAGES.length}</div>
+        ${apostWaitLine(j)}
         <div class="apost-stage-dots">${stageDots}</div>
         <div class="apost-summary-pills">
           <span class="pill ${paidClass}">${paidLabel}</span>
@@ -4699,7 +4883,7 @@ function renderApostille() {
           ${trips.length?`<span class="pill">${trips.length} trip${trips.length>1?'s':''}</span>`:''}
         </div>
         ${j.invoiceNumber?`<div class="apost-tracking" style="color:var(--gold-mid)">🧾 ${j.invoiceNumber}</div>`:''}
-        ${j.tracking?`<div class="apost-tracking">\ud83d\udce6 Tracking: ${j.tracking}</div>`:''}
+        ${trackingHTML(j)}
         ${j.notes?`<div style="font-size:11px;color:rgba(11,24,41,.45);padding:0 16px 8px">\ud83d\udcdd ${j.notes}</div>`:''}
       </div>
       <div class="apost-section">
@@ -4713,7 +4897,7 @@ function renderApostille() {
       <div class="apost-card-actions">
         <button class="btn-sm" onclick="editApostille(${j.id})">Edit Job</button>
         <button class="btn-sm" onclick="invoiceFromApost(${j.id})">🧾 ${j.invoiceId?'Invoice':'Create Invoice'}</button>
-        ${j.stage<5?`<button class="btn-success" onclick="advanceApostille(${j.id})">\u2192 Next Stage</button>`:''}
+        ${j.stage<AP_DONE?`<button class="btn-success" onclick="advanceApostille(${j.id})">\u2192 Next Stage</button>`:''}
         <button class="btn-danger" onclick="deleteApostille(${j.id})">Delete Job</button>
       </div>
     </div>`;
@@ -4722,7 +4906,7 @@ function renderApostille() {
 
 function advanceApostille(id) {
   const idx=apostilleJobs.findIndex(j=>j.id===id);
-  if(idx===-1||apostilleJobs[idx].stage>=5)return;
+  if(idx===-1||apostilleJobs[idx].stage>=AP_DONE)return;
   apostilleJobs[idx].stage++;
   save();renderApostille();renderDashboard();showToast('\u2192 '+AP_STAGES[apostilleJobs[idx].stage]);
 }
@@ -4733,6 +4917,7 @@ function editApostille(id) {
   document.getElementById('ap-edit-doctype').value=j.doctype;
   document.getElementById('ap-edit-country').value=j.country||'';
   document.getElementById('ap-edit-contact').value=j.contact||'';
+  fillStageSelect();
   document.getElementById('ap-edit-stage').value=j.stage;
   document.getElementById('ap-edit-fee').value=j.fee||'';
   document.getElementById('ap-edit-deposit').value=j.deposit||'';
@@ -4974,7 +5159,10 @@ function renderTax(){
   const fedTax   = Math.max(0, netProfit - seDeduct) * 0.22;
   const totalTax = seTax + fedTax;
   const perQtr   = totalTax / 4;
-  const depoIncome = parseFloat(document.getElementById('depo-income-input')?.value) || 0;
+  const depoJobs   = appointments.filter(a => a.type === 'depo' && (a.date||'').startsWith(year));
+  const depoLogged = depoJobs.reduce((s,a) => s + (a.fee||0), 0);
+  const depoOther  = parseFloat(document.getElementById('depo-income-input')?.value) || 0;
+  const depoIncome = depoLogged + depoOther;
   const depoExp    = parseFloat(document.getElementById('depo-expense-input')?.value) || 0;
   const set = (id,val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('t-gross', '$' + L.gross.toFixed(2));
@@ -4992,6 +5180,7 @@ function renderTax(){
   set('t-total-tax', '$' + totalTax.toFixed(2));
   set('t-per-quarter', '$' + perQtr.toFixed(2));
   set('t-depo-gross', '$' + depoIncome.toFixed(2));
+  set('t-depo-src', depoJobs.length + ' logged deposition' + (depoJobs.length===1?'':'s') + ' · ' + money(depoLogged) + (depoOther ? ' + ' + money(depoOther) + ' other' : '') + ' · ' + money(depoJobs.filter(a=>a.paid!=='paid').reduce((s,a)=>s+(a.fee||0),0)) + ' not yet paid');
   set('t-depo-exp', '-$' + depoExp.toFixed(2));
   set('t-depo-net', '$' + Math.max(0, depoIncome - depoExp).toFixed(2));
   renderPL(L, seTax);
@@ -5090,7 +5279,7 @@ function renderMoneyOwed(){
     })
     .sort((x,y) => y.days - x.days);
   invoices.filter(i => i.status === 'sent' && i.due && !(linkedRef(i) && linkedRef(i).k === 'appt'))
-    .forEach(i => owed.push({ client: i.client + ' · ' + i.number, fee: i.total, paid: 'invoiced',
+    .forEach(i => owed.push({ client: i.client + ' · ' + i.number, fee: invBalance(i), paid: 'invoiced',
       days: Math.floor((today - new Date(i.due + 'T00:00:00')) / 86400000) }));
   owed.sort((x,y) => y.days - x.days);
 
@@ -5200,7 +5389,7 @@ function renderDashboard(){
   }
 
   // Active apostille
-  const active=apostilleJobs.filter(j=>j.stage<5);
+  const active=apostilleJobs.filter(j=>j.stage<AP_DONE);
   document.getElementById('d-apostille-active').innerHTML=active.length?
     active.slice(0,3).map(j=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--parchment-2);font-size:12px"><span style="font-weight:600;color:var(--ink-deep)">${j.client} · ${j.doctype}</span><span style="color:var(--gold-mid);font-weight:700">Stage ${j.stage+1}: ${AP_STAGES[j.stage]}</span></div>`).join(''):
     '<p style="font-size:13px;color:rgba(11,24,41,.4)">No active apostille jobs.</p>';
@@ -5365,6 +5554,8 @@ function exportAllExpenses(){let csv='Category,Description,Amount,Date\n';expens
 function exportAllMileage(){let csv='Description,Miles,IRS Rate,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))];apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles).forEach(t=>all.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date})));all.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+todayISO()+'.csv');showToast('📥 All mileage exported');}
 function exportApostilleJobs(){let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Invoice,Notes\n';apostilleJobs.forEach(j=>{csv+=[csvQ(j.client),csvQ(j.doctype),csvQ(j.country),j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',csvQ(j.tracking),j.invoiceNumber||'',csvQ(j.notes)].join(',')+'\n';});dlCSV(csv,'NBK_Apostille_Jobs_'+todayISO()+'.csv');showToast('📥 Apostille jobs exported');}
 function exportAllInvoices(){let csv='Number,Client,Contact,Service Line,Service Date,Issued,Due,Status,Total,SE-Exempt,Billed at Cost,Sent,Paid,Method,Linked To\n';invoices.slice().sort((a,b)=>a.number>b.number?1:-1).forEach(i=>{csv+=[i.number,csvQ(i.client),csvQ(i.contact),LINE_LABELS[i.line]||i.line,i.serviceDate||'',i.date||'',i.due||'',invStatus(i),(i.total||0).toFixed(2),(i.exempt||0).toFixed(2),(i.pass||0).toFixed(2),i.sentDate||'',i.paidDate||'',csvQ(i.method),i.postedTo||i.link||''].join(',')+'\n';});dlCSV(csv,'NBK_Invoices_'+todayISO()+'.csv');showToast('📥 Invoices exported');}
+
+function exportClients(){let csv='Name,Type,Contact Person,Email,Phone,Address,Jobs,Billed,Open Balance,Last Job,Notes\n';clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{const s=clientStats(c);csv+=[csvQ(c.name),CLIENT_TYPES[c.type]||'',csvQ(c.contactName),csvQ(c.email),csvQ(c.phone),csvQ(c.address),s.jobs,s.billed.toFixed(2),s.open.toFixed(2),s.last,csvQ(c.notes)].join(',')+'\n';});dlCSV(csv,'NBK_Clients_'+todayISO()+'.csv');showToast('📥 Client list exported');}
 
 function updateYearPreview(){
   const yr=document.getElementById('exp-tax-year')?.value||String(new Date().getFullYear());
@@ -5546,6 +5737,7 @@ function filterVault(f, el) {
 
 // ── RENDER VAULT
 function renderVault() {
+  renderVaultPreload();
   const today = new Date(); today.setHours(0,0,0,0);
 
   let list = credentials;
@@ -5712,6 +5904,7 @@ function renderBackupStats() {
     <div class="backup-stat"><div class="backup-stat-num">${mileage.length}</div><div class="backup-stat-lbl">Mileage</div></div>
     <div class="backup-stat"><div class="backup-stat-num">${goals.length}</div><div class="backup-stat-lbl">Goals</div></div>
     <div class="backup-stat"><div class="backup-stat-num">${invoices.length}</div><div class="backup-stat-lbl">Invoices</div></div>
+    <div class="backup-stat"><div class="backup-stat-num">${clients.length}</div><div class="backup-stat-lbl">Clients</div></div>
     <div class="backup-stat"><div class="backup-stat-num">${tripCount}</div><div class="backup-stat-lbl">Trips</div></div>
   `;
 }
@@ -5729,6 +5922,7 @@ function exportFullBackup() {
       mileage: mileage.length,
       goals: goals.length,
       invoices: invoices.length,
+      clients: clients.length,
     },
     data: {
       appointments,
@@ -5739,6 +5933,7 @@ function exportFullBackup() {
       goals,
       quarterlyStatus,
       invoices,
+      clients,
       pricing,
       depoIncome:  document.getElementById('depo-income-input')?.value || '',
       depoExpense: document.getElementById('depo-expense-input')?.value || '',
@@ -5834,6 +6029,7 @@ function previewBackup(event) {
       ['Mileage entries',(d.mileage||[]).length],
       ['Goals',          (d.goals||[]).length],
       ['Invoices',       (d.invoices||[]).length],
+      ['Clients',        (d.clients||[]).length],
       ['Pricing profile', d.pricing ? 'Included' : '—'],
     ];
 
@@ -5895,6 +6091,7 @@ function confirmRestore() {
     goals          = d.goals          || [];
     quarterlyStatus= d.quarterlyStatus|| {};
     invoices       = d.invoices       || [];
+    clients        = d.clients        || [];
     if (d.pricing) pricing = { ...clone(PRICING_DEFAULTS), ...d.pricing };
   } else {
     // MERGE — skip records whose id already exists
@@ -5909,6 +6106,7 @@ function confirmRestore() {
     expenses      = mergeById(expenses,      d.expenses);
     mileage       = mergeById(mileage,       d.mileage);
     invoices      = mergeById(invoices,      d.invoices);
+    clients       = mergeById(clients,       d.clients);
     // Goals key on `key` (YYYY-MM), not id — incoming wins for same month
     const goalKeys = new Set(goals.map(g=>g.key));
     goals = [...goals, ...((d.goals||[]).filter(g=>!goalKeys.has(g.key)))];
@@ -5922,10 +6120,12 @@ function confirmRestore() {
   if (di && d.depoIncome  !== undefined) di.value = d.depoIncome;
   if (de && d.depoExpense !== undefined) de.value = d.depoExpense;
 
+  migrateApostilleStages();
   save();
   refreshAddonFees();
   updateIrsNotes();
   populateMonthFilters();
+  renderClients();
   renderAll();
   renderInvoices();
   renderPricing();
@@ -5938,9 +6138,452 @@ function confirmRestore() {
   updateYearPreview();
 
   const total = appointments.length + apostilleJobs.length + credentials.length
-              + expenses.length + mileage.length + goals.length + invoices.length;
+              + expenses.length + mileage.length + goals.length + invoices.length + clients.length;
   showToast(`✓ Restored — ${total} records now in app`);
   cancelRestore();
+}
+
+
+// ══════════════════════════════════════════
+// CLIENTS
+// ══════════════════════════════════════════
+let clients = JSON.parse(localStorage.getItem('nbk_clients') || '[]');
+let clientSearch = '';
+const CLIENT_TYPES = { individual:'Individual', title:'Title / Escrow', law:'Law Firm', referral:'Referral Partner', business:'Business', other:'Other' };
+
+function findClient(name){
+  const n = (name||'').trim().toLowerCase();
+  return n ? clients.find(c => (c.name||'').trim().toLowerCase() === n) : null;
+}
+function invBalance(i){ return Math.max(0, (i.total||0) - (i.deposit||0)); }
+
+function clientStats(c){
+  const n = (c.name||'').trim().toLowerCase();
+  const m = x => (x||'').trim().toLowerCase() === n;
+  const appts = appointments.filter(a => m(a.client));
+  const jobs  = apostilleJobs.filter(j => m(j.client));
+  const invs  = invoices.filter(i => i.clientId === c.id || m(i.client));
+  const billed = appts.reduce((s,a) => s + (a.fee||0), 0) + jobs.reduce((s,j) => s + (j.fee||0), 0);
+  const open = invs.filter(i => ['sent','overdue'].includes(invStatus(i))).reduce((s,i) => s + invBalance(i), 0);
+  const dates = [...appts.map(a => a.date), ...jobs.map(j => j.received)].filter(Boolean).sort();
+  return { jobs: appts.length + jobs.length, invoices: invs.length, billed, open, last: dates[dates.length-1] || '' };
+}
+
+function refreshClientLists(){
+  const names = document.getElementById('clientNames');
+  if (names) names.innerHTML = clients.slice().sort((a,b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}"></option>`).join('');
+  const emails = document.getElementById('clientEmails');
+  if (emails) emails.innerHTML = clients.filter(c => c.email).map(c => `<option value="${esc(c.email)}">${esc(c.name)}</option>`).join('');
+}
+
+function searchClients(v){ clientSearch = (v||'').toLowerCase(); renderClients(); }
+
+function renderClients(){
+  refreshClientLists();
+  const c = document.getElementById('clientList'); if (!c) return;
+  const list = clients
+    .filter(x => !clientSearch || [x.name, x.contactName, x.email, x.phone, CLIENT_TYPES[x.type]].join(' ').toLowerCase().includes(clientSearch))
+    .sort((a,b) => a.name.localeCompare(b.name));
+  const cnt = document.getElementById('clientCount'); if (cnt) cnt.textContent = clients.length;
+  if (!list.length) {
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><p>${clients.length ? 'No clients match that search.' : 'No clients yet.<br>Add your regulars once and every invoice fills itself in.'}</p></div>`;
+    return;
+  }
+  c.innerHTML = list.map(x => {
+    const s = clientStats(x);
+    return `<div class="inv-card" style="border-left-color:var(--rose)">
+      <div class="inv-top">
+        <div style="min-width:0"><div class="inv-num">${CLIENT_TYPES[x.type]||'Client'}${x.contactName?' · '+esc(x.contactName):''}</div><div class="inv-client">${esc(x.name)}</div></div>
+        <div style="text-align:right"><div class="inv-total">${money(s.billed)}</div><div style="font-size:11px;color:var(--muted)">billed</div></div>
+      </div>
+      <div class="inv-meta">${[x.email?esc(x.email):'', x.phone?esc(x.phone):''].filter(Boolean).join(' · ') || 'No contact info yet'}${s.last?'<br>Last job '+fmtDate(s.last):''}</div>
+      <div class="pills">
+        <span class="pill">${s.jobs} job${s.jobs===1?'':'s'}</span>
+        ${s.invoices?`<span class="pill inv">${s.invoices} invoice${s.invoices===1?'':'s'}</span>`:''}
+        ${s.open?`<span class="pill unpaid">Owes ${money(s.open)}</span>`:''}
+      </div>
+      ${x.notes?`<div style="font-size:11.5px;color:var(--muted);margin-top:8px">📝 ${esc(x.notes)}</div>`:''}
+      <div class="appt-actions">
+        <button class="btn-sm" onclick="openInvoice({clientId:${x.id}})">🧾 New Invoice</button>
+        <button class="btn-sm" onclick="openClient(${x.id})">Edit</button>
+        <button class="btn-danger" onclick="deleteClient(${x.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openClient(id){
+  const x = id ? clients.find(c => c.id === id) : null;
+  const setV = (k,v) => { document.getElementById('cl-'+k).value = v || ''; };
+  setV('id', x ? x.id : ''); setV('name', x && x.name); setV('type', (x && x.type) || 'individual');
+  setV('contactName', x && x.contactName); setV('email', x && x.email); setV('phone', x && x.phone);
+  setV('address', x && x.address); setV('notes', x && x.notes);
+  document.getElementById('clientModalTitle').textContent = x ? 'Edit Client' : 'New Client';
+  openModal('clientModal');
+}
+function saveClient(){
+  const g = k => document.getElementById('cl-'+k).value.trim();
+  const name = g('name');
+  if (!name) { showToast('⚠️ Client name required'); return; }
+  const id = parseInt(g('id')) || 0;
+  const dup = findClient(name);
+  if (dup && dup.id !== id) { showToast('⚠️ A client with that name already exists'); return; }
+  const rec = { name, type:g('type'), contactName:g('contactName'), email:g('email'), phone:g('phone'), address:g('address'), notes:g('notes') };
+  if (id) { const i = clients.findIndex(c => c.id === id); clients[i] = { ...clients[i], ...rec }; }
+  else clients.push({ id: Date.now(), created: new Date().toISOString(), ...rec });
+  save(); renderClients(); closeModal('clientModal'); showToast('✓ Client saved');
+}
+function deleteClient(id){
+  const x = clients.find(c => c.id === id); if (!x) return;
+  if (!confirm('Delete ' + x.name + ' from your client list?\n\nTheir appointments and invoices stay.')) return;
+  clients = clients.filter(c => c.id !== id);
+  save(); renderClients(); showToast('Deleted');
+}
+
+// Invoice ↔ client autofill
+function fillInvFromClient(){
+  const x = findClient(document.getElementById('inv-client').value); if (!x) return;
+  const setIfEmpty = (id,v) => { const el = document.getElementById(id); if (el && !el.value && v) el.value = v; };
+  setIfEmpty('inv-email', x.email); setIfEmpty('inv-contact', x.phone); setIfEmpty('inv-address', x.address);
+}
+// Keep the client list current from invoices — adds new clients, fills missing details
+function upsertClientFromInvoice(inv){
+  if (!inv.client) return null;
+  let x = findClient(inv.client);
+  if (!x) {
+    x = { id: Date.now() + 7, name: inv.client, type: inv.line === 'loan' ? 'title' : 'individual',
+          contactName:'', email: inv.email||'', phone: inv.contact||'', address: inv.address||'', notes:'', created: new Date().toISOString() };
+    clients.push(x);
+  } else {
+    if (!x.email && inv.email) x.email = inv.email;
+    if (!x.phone && inv.contact) x.phone = inv.contact;
+    if (!x.address && inv.address) x.address = inv.address;
+  }
+  return x.id;
+}
+
+// ══════════════════════════════════════════
+// APOSTILLE — real workflow stages, filing day, tracking links
+// ══════════════════════════════════════════
+const AP_WAIT = ['Client','You','Client','Client','You','Filing agent','Filing agent','Carrier',''];
+
+function migrateApostilleStages(){
+  // v1 stages: Intake, Notarization, SOS Submit, SOS Processing, Shipping, Delivered
+  const map = [0, 4, 5, 6, 7, 8];
+  let changed = false;
+  apostilleJobs.forEach(j => {
+    if (j.stageV === 2) return;
+    j.stage = map[Math.min(Math.max(j.stage||0,0),5)];
+    j.stageV = 2; changed = true;
+  });
+  if (changed) localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
+}
+
+// Filing agent files at the Texas SOS Tue–Thu; documents must reach her by 11:30 AM
+function nextFilingDay(){
+  const now = new Date();
+  for (let i = 0; i < 9; i++) {
+    const d = new Date(now); d.setDate(now.getDate() + i);
+    const dow = d.getDay();
+    if (dow < 2 || dow > 4) continue;
+    if (i === 0 && (now.getHours() > 11 || (now.getHours() === 11 && now.getMinutes() >= 30))) continue;
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  }
+  return '';
+}
+
+function trackUrl(num){
+  const t = (num||'').replace(/\s+/g,'');
+  if (!t) return '';
+  if (/^1Z[0-9A-Z]{16}$/i.test(t)) return 'https://www.ups.com/track?tracknum=' + t;
+  if (/^(94|93|92|95|82)\d{18,24}$/.test(t) || /^[A-Z]{2}\d{9}US$/i.test(t)) return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + t;
+  if (/^\d{12}$|^\d{15}$|^\d{20}$/.test(t)) return 'https://www.fedex.com/fedextrack/?trknbr=' + t;
+  if (/^\d{22}$/.test(t)) return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + t;
+  return '';
+}
+function apostWaitLine(j){
+  if (j.stage >= AP_DONE) return '';
+  const agent = (pricing.business.filingAgent || 'filing agent');
+  let who = AP_WAIT[j.stage] === 'Filing agent' ? agent : AP_WAIT[j.stage];
+  let extra = '';
+  if (j.stage === 4) { const d = nextFilingDay(); if (d) extra = ` · Next filing day <strong>${d}</strong> — to ${esc(agent)} by 11:30 AM`; }
+  return `<div class="apost-stage-label" style="color:${AP_WAIT[j.stage]==='You'?'var(--rose-deep)':'var(--muted)'}">Waiting on: <strong>${esc(who)}</strong>${extra}</div>`;
+}
+function trackingHTML(j){
+  if (!j.tracking) return '';
+  const u = trackUrl(j.tracking);
+  return `<div class="apost-tracking">📦 ${u?`<a href="${u}" target="_blank" rel="noopener" style="color:var(--blue)">Track ${esc(j.tracking)}</a>`:'Tracking: '+esc(j.tracking)}</div>`;
+}
+function fillStageSelect(){
+  const sel = document.getElementById('ap-edit-stage'); if (!sel) return;
+  sel.innerHTML = AP_STAGES.map((s,i) => `<option value="${i}">${i+1} — ${s}</option>`).join('');
+}
+
+// ══════════════════════════════════════════
+// DEPOSITIONS — logged per job
+// ══════════════════════════════════════════
+const DEPO_PARTS = ['base','over','wit','other'];
+function calcDepo(prefix){
+  const v = k => parseFloat(document.getElementById(prefix+'-depo-'+k)?.value) || 0;
+  const total = DEPO_PARTS.reduce((s,k) => s + v(k), 0);
+  const feeEl = document.getElementById(prefix === 'f' ? 'f-fee' : 'edit-fee');
+  if (total > 0 && feeEl) feeEl.value = total.toFixed(2);
+  const out = document.getElementById(prefix+'-depo-total'); if (out) out.textContent = money(total);
+}
+function readDepo(prefix){
+  const v = k => parseFloat(document.getElementById(prefix+'-depo-'+k)?.value) || 0;
+  const d = { hours: v('hours') }; DEPO_PARTS.forEach(k => d[k] = v(k));
+  return (d.hours || DEPO_PARTS.some(k => d[k])) ? d : null;
+}
+function fillDepo(prefix, d){
+  ['hours', ...DEPO_PARTS].forEach(k => { const el = document.getElementById(prefix+'-depo-'+k); if (el) el.value = d && d[k] ? d[k] : ''; });
+  const out = document.getElementById(prefix+'-depo-total');
+  if (out) out.textContent = money(d ? DEPO_PARTS.reduce((s,k) => s + (d[k]||0), 0) : 0);
+}
+function saveDepoExtra(){
+  localStorage.setItem('nbk_depo_extra', JSON.stringify({
+    income: document.getElementById('depo-income-input')?.value || '',
+    expense: document.getElementById('depo-expense-input')?.value || '' }));
+  renderTax();
+}
+function loadDepoExtra(){
+  try {
+    const d = JSON.parse(localStorage.getItem('nbk_depo_extra') || 'null'); if (!d) return;
+    const i = document.getElementById('depo-income-input'), e = document.getElementById('depo-expense-input');
+    if (i && d.income !== undefined) i.value = d.income;
+    if (e && d.expense !== undefined) e.value = d.expense;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+// NO-SHOW / LATE CANCELLATION — charged per your policy
+// ══════════════════════════════════════════
+function openNoShow(id){
+  const a = appointments.find(x => x.id === id); if (!a) return;
+  document.getElementById('ns-id').value = id;
+  document.getElementById('ns-client').textContent = a.client + ' · ' + typeLabel(a.type) + ' · ' + fmtDate(a.date);
+  const isLoan = a.type === 'loan';
+  document.getElementById('ns-policy').textContent = isLoan
+    ? 'Loan signings: full service fee plus travel, because documents are printed and lender deadlines apply.'
+    : 'No-shows and late cancellations: the travel fee plus any printing costs already incurred — not the full service fee.';
+  const zone = document.getElementById('ns-zone');
+  zone.innerHTML = '<option value="">No travel charge</option>' + ['trav_1','trav_2','trav_3'].map(k => {
+    const it = priceItem(k); return it ? `<option value="${k}">${esc(it.label)} — $${it.price}</option>` : '';
+  }).join('');
+  zone.value = (a.addons||[]).includes('travel') ? 'trav_1' : '';
+  const pr = priceItem('print');
+  document.getElementById('ns-print-lbl').textContent = 'Printing already incurred' + (pr ? ' — $' + pr.price : '');
+  document.getElementById('ns-print').checked = !isLoan && (a.addons||[]).includes('printing');   // loan fee already covers printing
+  document.getElementById('ns-full-row').style.display = isLoan ? 'block' : 'none';
+  const loanItem = priceItem('mob_loan');
+  document.getElementById('ns-full').value = isLoan ? ((a.fee > 0 ? a.fee : (loanItem ? loanItem.price : 0))) : '';
+  document.getElementById('ns-invoice').checked = true;
+  calcNoShow();
+  openModal('noShowModal');
+}
+function noShowLines(){
+  const a = appointments.find(x => x.id === parseInt(document.getElementById('ns-id').value)); if (!a) return [];
+  const lines = [];
+  if (a.type === 'loan') {
+    const full = parseFloat(document.getElementById('ns-full').value) || 0;
+    if (full) lines.push({ desc:'Late cancellation / no-show — loan signing service fee', qty:1, price:full, pass:false });
+  }
+  const z = priceItem(document.getElementById('ns-zone').value);
+  if (z) lines.push({ desc:'Late cancellation / no-show — ' + z.label, qty:1, price:z.price, pass:false });
+  const pr = priceItem('print');
+  if (document.getElementById('ns-print').checked && pr) lines.push({ desc:'Late cancellation / no-show — printing incurred', qty:1, price:pr.price, pass:false });
+  return lines;
+}
+function calcNoShow(){
+  const total = noShowLines().reduce((s,l) => s + l.qty * l.price, 0);
+  document.getElementById('ns-total').textContent = money(total);
+}
+function applyNoShow(){
+  const id = parseInt(document.getElementById('ns-id').value);
+  const a = appointments.find(x => x.id === id); if (!a) return;
+  const lines = noShowLines();
+  const total = lines.reduce((s,l) => s + l.qty * l.price, 0);
+  a.status = 'cancelled'; a.noShow = true; a.fee = total;
+  a.notaryCount = 0; a.extraSigners = 0; a.notarialFee = 0;
+  if (total > 0 && a.paid === 'paid') a.paid = 'unpaid';
+  a.notes = ((a.notes ? a.notes + ' · ' : '') + 'No-show / late cancel charge ' + money(total) + ' per policy (' + todayISO() + ')');
+  save(); renderAll(); renderDashboard(); renderTax();
+  closeModal('noShowModal');
+  if (total > 0 && document.getElementById('ns-invoice').checked) {
+    openInvoice({ fromAppt: id });
+    invDraftLines = lines;
+    ['inv-acts','inv-extra','inv-ron-acts'].forEach(k => document.getElementById(k).value = '');
+    renderInvLines();
+  } else showToast('✓ Marked cancelled · ' + money(total));
+}
+
+// ══════════════════════════════════════════
+// VAULT — your credential list, ready to load
+// ══════════════════════════════════════════
+const NBK_CRED_LIST = [
+  { name:'Texas Notary Commission',           cat:'commission',    issuer:'Texas Secretary of State',             warn:90,  notes:'New 4-year term began Sep 2026 — enter the expiration from your commission certificate.' },
+  { name:'Texas Notary Bond',                 cat:'insurance',     issuer:'Bonding company',                     warn:90,  notes:'Bond runs with the commission term.' },
+  { name:'E&O Insurance Policy',              cat:'insurance',     issuer:'',                                     warn:60,  notes:'' },
+  { name:'NNA Certified Notary Signing Agent', cat:'certification', issuer:'National Notary Association',          warn:60,  notes:'Certification and background screening renew annually.' },
+  { name:'BBB Accreditation',                 cat:'membership',    issuer:'Better Business Bureau',               warn:30,  notes:'Renewed June 2026 · paid in 3-month installments.' },
+  { name:'SAM.gov Registration',              cat:'license',       issuer:'SAM.gov / GSA',                        warn:60,  notes:'UEI Q8TXEPRN9866 · CAGE 06A41 · renew every year.' },
+  { name:'SBA VetCert — SDVOSB / VOSB',       cat:'certification', issuer:'U.S. Small Business Administration',   warn:90,  notes:'' },
+  { name:'SBA WOSB Certification',            cat:'certification', issuer:'U.S. Small Business Administration',   warn:90,  notes:'' },
+  { name:'Texas HUB / VetHUB (CMBL)',         cat:'license',       issuer:'Texas Comptroller',                    warn:90,  notes:'Vendor ID 1922101945800.' },
+];
+function missingCreds(){
+  const have = new Set(credentials.map(c => (c.name||'').trim().toLowerCase()));
+  return NBK_CRED_LIST.filter(d => !have.has(d.name.toLowerCase()));
+}
+function renderVaultPreload(){
+  const el = document.getElementById('vaultPreload'); if (!el) return;
+  const miss = missingCreds();
+  el.innerHTML = miss.length ? `<div class="notice" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <span>${miss.length} of your credentials aren't in the vault yet.</span>
+      <button class="btn-sm" onclick="loadMyCreds()">Add them</button></div>` : '';
+}
+function loadMyCreds(){
+  const miss = missingCreds();
+  miss.forEach((d,i) => credentials.push({ id: Date.now() + i, cat:d.cat, name:d.name, issuer:d.issuer, number:'', issued:'', expiry:'',
+    warnDays:d.warn, cost:0, renewalUrl:'', notes:d.notes, created:new Date().toISOString() }));
+  saveCredentials(); renderVault(); renderVaultDashboard();
+  showToast('✓ Added ' + miss.length + ' · tap Edit on each to set its expiration');
+}
+
+// ══════════════════════════════════════════
+// EMAIL INVOICES — prescripted message, client you choose
+// ══════════════════════════════════════════
+const PDF_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+let emailPdf = null;   // { invId, file }
+
+function loadScript(src){
+  return new Promise((res, rej) => {
+    if (window.html2pdf) return res();
+    const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('PDF tool could not load'));
+    document.head.appendChild(s);
+  });
+}
+async function invoicePdfFile(inv){
+  await loadScript(PDF_LIB);
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:-10000px;top:0;width:7.5in;background:#fff';
+  box.innerHTML = invoiceDocHTML(inv);
+  document.body.appendChild(box);
+  try {
+    const blob = await html2pdf().set({ margin:0.5, filename:inv.number+'.pdf', image:{type:'jpeg',quality:0.95},
+      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff' }, jsPDF:{ unit:'in', format:'letter', orientation:'portrait' } })
+      .from(box.firstElementChild).outputPdf('blob');
+    return new File([blob], (inv.number + ' ' + inv.client).replace(/[^\w\- ]+/g,'') + '.pdf', { type:'application/pdf' });
+  } finally { box.remove(); }
+}
+
+function fillTemplate(tpl, inv){
+  const b = pricing.business, t = invTotals(inv);
+  const first = (inv.client||'').trim().split(/\s+/)[0] || 'there';
+  const pay = inv.payLink ? 'Pay securely online: ' + inv.payLink + '\n(Enter ' + money(t.balance) + ' and invoice number ' + inv.number + ' at checkout.)\n' : '';
+  const items = (inv.lines||[]).map(l => '• ' + l.desc + (l.qty>1 ? ' × ' + l.qty : '') + ' — ' + money(l.qty*l.price)).join('\n');
+  const map = {
+    client_first: first, client: inv.client||'', invoice_number: inv.number||'', total: money(t.total),
+    balance_due: money(t.balance), deposit: money(t.deposit), due_date: inv.due ? fmtDate(inv.due) : 'upon receipt',
+    service_date: inv.serviceDate ? fmtDate(inv.serviceDate) : '', service_line: (LINE_LABELS[inv.line]||'services').toLowerCase(),
+    line_items: items, pay_link: inv.payLink||'', pay_line: pay, paid_date: inv.paidDate ? fmtDate(inv.paidDate) : fmtDate(todayISO()),
+    business: b.name||'', phone: b.phone||'', email: b.email||'',
+  };
+  return (tpl||'').replace(/\{(\w+)\}/g, (m,k) => map[k] !== undefined ? map[k] : m);
+}
+
+function openEmail(id){
+  const inv = invoices.find(x => x.id === id); if (!inv) return;
+  document.getElementById('em-id').value = id;
+  const client = findClient(inv.client);
+  document.getElementById('em-to').value = inv.email || (client && client.email) || '';
+  const sel = document.getElementById('em-tpl');
+  sel.innerHTML = (pricing.emailTemplates||[]).map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  sel.value = inv.status === 'paid' ? 'receipt' : (invStatus(inv) === 'overdue' ? 'reminder' : 'invoice');
+  if (!sel.value && sel.options.length) sel.selectedIndex = 0;
+  applyEmailTemplate();
+  document.getElementById('em-mark').checked = invStatus(inv) === 'draft';
+  document.getElementById('em-mark-row').style.display = invStatus(inv) === 'draft' ? 'flex' : 'none';
+  refreshClientLists();
+  openModal('emailModal');
+  // Build the PDF in the background so "Share with PDF" is instant on iPhone
+  const btn = document.getElementById('em-share');
+  emailPdf = null;
+  if (navigator.canShare) {
+    btn.disabled = true; btn.textContent = 'Preparing PDF…';
+    invoicePdfFile(inv).then(file => {
+      emailPdf = { invId: id, file };
+      btn.disabled = false; btn.textContent = '📎 Send with PDF attached';
+    }).catch(() => { btn.textContent = 'PDF unavailable offline'; });
+  } else {
+    btn.disabled = false; btn.textContent = '⬇️ Download PDF';
+  }
+}
+function applyEmailTemplate(){
+  const inv = invoices.find(x => x.id === parseInt(document.getElementById('em-id').value)); if (!inv) return;
+  const tpl = (pricing.emailTemplates||[]).find(t => t.id === document.getElementById('em-tpl').value); if (!tpl) return;
+  document.getElementById('em-subject').value = fillTemplate(tpl.subject, inv);
+  document.getElementById('em-body').value = fillTemplate(tpl.body, inv);
+}
+function afterEmail(inv){
+  const to = document.getElementById('em-to').value.trim();
+  if (to && !inv.email) inv.email = to;
+  if (document.getElementById('em-mark').checked && invStatus(inv) === 'draft') { inv.status = 'sent'; applyInvoiceStatus(inv); }
+  inv.lastEmailed = todayISO();
+  upsertClientFromInvoice(inv);
+  save(); refreshAfterInvoice();
+}
+function sendEmailMail(){
+  const inv = invoices.find(x => x.id === parseInt(document.getElementById('em-id').value)); if (!inv) return;
+  const to = document.getElementById('em-to').value.trim();
+  if (!to) { showToast('⚠️ Add the client\'s email'); return; }
+  const url = 'mailto:' + encodeURIComponent(to).replace(/%40/g,'@')
+    + '?subject=' + encodeURIComponent(document.getElementById('em-subject').value)
+    + '&body=' + encodeURIComponent(document.getElementById('em-body').value);
+  afterEmail(inv);
+  closeModal('emailModal');
+  window.location.href = url;
+}
+async function sendEmailShare(){
+  const inv = invoices.find(x => x.id === parseInt(document.getElementById('em-id').value)); if (!inv) return;
+  const subject = document.getElementById('em-subject').value, body = document.getElementById('em-body').value;
+  try {
+    if (navigator.canShare && emailPdf && emailPdf.invId === inv.id && navigator.canShare({ files:[emailPdf.file] })) {
+      await navigator.share({ files:[emailPdf.file], title: subject, text: body });
+    } else {
+      const file = (emailPdf && emailPdf.invId === inv.id) ? emailPdf.file : await invoicePdfFile(inv);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }
+    afterEmail(inv); closeModal('emailModal'); showToast('✓ ' + inv.number + ' ready to send');
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;   // she closed the share sheet
+    showToast('⚠️ ' + (e.message || 'Could not prepare the PDF'));
+  }
+}
+
+// Email templates editor (Pricing tab)
+function renderTplEditor(){
+  const sel = document.getElementById('tpl-pick'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = (pricing.emailTemplates||[]).map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+  loadTpl();
+}
+function loadTpl(){
+  const t = (pricing.emailTemplates||[]).find(x => x.id === document.getElementById('tpl-pick').value); if (!t) return;
+  document.getElementById('tpl-subject').value = t.subject; document.getElementById('tpl-body').value = t.body;
+}
+function saveTpl(){
+  const t = (pricing.emailTemplates||[]).find(x => x.id === document.getElementById('tpl-pick').value); if (!t) return;
+  t.subject = document.getElementById('tpl-subject').value; t.body = document.getElementById('tpl-body').value;
+  savePricing(); showToast('✓ Template saved');
+}
+function resetTpl(){
+  const id = document.getElementById('tpl-pick').value;
+  const d = PRICING_DEFAULTS.emailTemplates.find(x => x.id === id); if (!d) return;
+  const i = pricing.emailTemplates.findIndex(x => x.id === id);
+  pricing.emailTemplates[i] = clone(d); savePricing(); loadTpl(); showToast('↻ Template reset');
 }
 
 // ── MODAL OVERLAY CLOSE
