@@ -2278,6 +2278,11 @@ body { background: #FFFFFF; color: var(--charcoal); }
 .brand-text { min-width: 0; }
 .brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-right { flex-shrink: 0; }
+
+/* ── Passphrase screen ── */
+.login-hint { font-size: 13px; color: var(--charcoal-2); text-align: center; line-height: 1.5; margin-bottom: 12px; }
+.login-hint:empty { display: none; }
+.login-forgot { display: inline-block; margin: 6px auto 0; width: 100%; background: none; border: none; color: var(--muted); font-family: var(--font-ui); font-size: 12px; text-decoration: underline; cursor: pointer; }
 </style>
 </head>
 
@@ -2298,11 +2303,16 @@ body { background: #FFFFFF; color: var(--charcoal); }
   </div>
 
   <div class="login-form">
+    <div class="login-hint" id="loginHint"></div>
     <div class="pw-field-wrap">
       <input type="password" id="pwInput" placeholder="Enter passphrase" autocomplete="current-password">
     </div>
+    <div class="pw-field-wrap" id="pwConfirmWrap" style="display:none">
+      <input type="password" id="pwConfirm" placeholder="Confirm passphrase" autocomplete="new-password">
+    </div>
     <button id="loginBtn" onclick="login()">Access Command Center</button>
     <div id="loginError"></div>
+    <button type="button" class="login-forgot" id="forgotBtn" onclick="forgotPassphrase()">Forgot passphrase?</button>
   </div>
 
   <div class="login-seal">Private · Secured · Stored Locally</div>
@@ -2660,7 +2670,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
           <option value="10">October</option><option value="11">November</option><option value="12">December</option>
         </select>
       </div>
-      <div class="field"><label>Year</label><select id="goal-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+      <div class="field"><label>Year</label><select id="goal-year" class="year-pick"></select></div>
     </div>
     <div class="field"><label>Revenue Target ($)</label><input type="number" id="goal-amount" placeholder="e.g. 3000" step="100"></div>
     <div class="field"><label>Appointment Target</label><input type="number" id="goal-appts" placeholder="e.g. 20" step="1"></div>
@@ -2799,7 +2809,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
           <option value="10">October</option><option value="11">November</option><option value="12">December</option>
         </select>
       </div>
-      <div class="field"><label>Year</label><select id="exp-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+      <div class="field"><label>Year</label><select id="exp-year" class="year-pick"></select></div>
     </div>
     <button class="archive-btn" onclick="exportMonthly()">📥 Archive Month</button>
     <div id="monthly-preview" class="export-success"></div>
@@ -2808,7 +2818,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="card">
     <div class="card-header"><div class="card-header-accent"></div>Year-End Tax Package</div>
     <p style="font-size:12px;color:rgba(11,24,41,.45);margin-bottom:14px;line-height:1.6">Downloads 4 files formatted for your accountant. Export in January each year.</p>
-    <div class="field"><label>Tax Year</label><select id="exp-tax-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+    <div class="field"><label>Tax Year</label><select id="exp-tax-year" class="year-pick"></select></div>
     <div class="tax-box" id="yearPreviewBox" style="margin-bottom:14px">
       <div class="tax-title">Year Preview</div>
       <div class="tax-row"><span class="tax-lbl">Total Appointments</span><span class="tax-val gold" id="yp-appts">—</span></div>
@@ -2825,6 +2835,15 @@ body { background: #FFFFFF; color: var(--charcoal); }
   </div>
 
   <!-- ══ BACKUP & RESTORE — the safety net ══ -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Change Passphrase</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">Your passphrase is stored only on this device, scrambled so it can't be read. Each device (phone, iMac) has its own.</p>
+    <div class="field"><label>Current Passphrase</label><input type="password" id="cp-current" autocomplete="current-password"></div>
+    <div class="field"><label>New Passphrase</label><input type="password" id="cp-new" autocomplete="new-password" placeholder="At least 8 characters"></div>
+    <div class="field"><label>Confirm New Passphrase</label><input type="password" id="cp-confirm" autocomplete="new-password"></div>
+    <button class="btn-primary" onclick="changePassphrase()">Update Passphrase</button>
+  </div>
+
   <div class="card" style="border:2px solid var(--gold-mid)">
     <div class="card-header"><div class="card-header-accent"></div>🛟 Backup &amp; Restore</div>
     <div class="backup-warning">
@@ -3621,34 +3640,90 @@ body { background: #FFFFFF; color: var(--charcoal); }
 // ── CONSTANTS
 const TX_FEE   = 10;
 
-// ── FIX #2: SHA-256 password (same structure as fixed file)
-const STORED_HASH = 'b3c4f9e8d2a17c5b0e6f3d9a8b2e4c7f1a5d8b3e6c9f2a4d7b0e3c6f9a2d5b8';
+// ── PASSPHRASE — set on each device, never stored in this file.
+// Saved as a salted PBKDF2-SHA256 hash in this browser only.
+const PASS_KEY = 'nbk_pass';
+let loginFails = 0, loginLockUntil = 0;
 
-async function hashPassword(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+function hasPassphrase(){ try { return !!JSON.parse(localStorage.getItem(PASS_KEY) || 'null'); } catch(e) { return false; } }
+const toHex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+const fromHex = h => new Uint8Array(h.match(/.{2}/g).map(x => parseInt(x,16)));
+async function derive(pw, saltHex, iter){
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  return toHex(await crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt: fromHex(saltHex), iterations: iter }, key, 256));
+}
+async function setPassphrase(pw){
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16))), iter = 150000;
+  localStorage.setItem(PASS_KEY, JSON.stringify({ v:1, salt, iter, hash: await derive(pw, salt, iter) }));
+}
+async function checkPassphrase(pw){
+  const rec = JSON.parse(localStorage.getItem(PASS_KEY) || 'null'); if (!rec) return false;
+  return (await derive(pw, rec.salt, rec.iter)) === rec.hash;
+}
+function loginErr(msg){
+  const e = document.getElementById('loginError'); e.textContent = msg;
+  clearTimeout(loginErr.t); loginErr.t = setTimeout(() => e.textContent = '', 4000);
+}
+function setupLoginScreen(){
+  const setup = !hasPassphrase();
+  document.getElementById('pwConfirmWrap').style.display = setup ? 'block' : 'none';
+  document.getElementById('forgotBtn').style.display    = setup ? 'none' : 'inline-block';
+  document.getElementById('loginBtn').textContent = setup ? 'Create Passphrase' : 'Access Command Center';
+  const pw = document.getElementById('pwInput');
+  pw.placeholder = setup ? 'New passphrase (8+ characters)' : 'Enter passphrase';
+  pw.autocomplete = setup ? 'new-password' : 'current-password';
+  document.getElementById('loginHint').textContent = setup ? 'Create a passphrase for this device. Only a scrambled copy is saved here — choose one you will remember.' : '';
+}
+function enterApp(){
+  sessionStorage.setItem('nbk_auth','1');
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  document.getElementById('pwInput').value = ''; document.getElementById('pwConfirm').value = '';
+  initApp();
+  handleShortcut();
 }
 async function login() {
+  if (!window.crypto || !crypto.subtle) { loginErr('Open the app at texasnotarykristy.com/NBK-Command-Center (secure connection required).'); return; }
   const pw = document.getElementById('pwInput').value;
-  const hash = await hashPassword(pw);
-  const legacyOk = (pw === 'NBKkristy2026!');
-  if (hash === STORED_HASH || legacyOk) {
-    sessionStorage.setItem('nbk_auth','1');
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appShell').style.display = 'block';
-    initApp();
-    handleShortcut();
-  } else {
-    document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
-    document.getElementById('pwInput').value = '';
-    setTimeout(()=>document.getElementById('loginError').textContent='', 3000);
+  if (!hasPassphrase()) {
+    const c = document.getElementById('pwConfirm').value;
+    if (pw.length < 8) { loginErr('Use at least 8 characters.'); return; }
+    if (pw !== c)     { loginErr("Those don't match. Try again."); return; }
+    await setPassphrase(pw);
+    enterApp();
+    showToast('🔒 Passphrase set for this device');
+    return;
   }
+  if (Date.now() < loginLockUntil) { loginErr('Too many tries. Wait ' + Math.ceil((loginLockUntil - Date.now())/1000) + ' seconds.'); return; }
+  if (await checkPassphrase(pw)) { loginFails = 0; enterApp(); return; }
+  loginFails++;
+  document.getElementById('pwInput').value = '';
+  if (loginFails >= 5) { loginLockUntil = Date.now() + 30000; loginFails = 0; loginErr('Too many tries. Wait 30 seconds.'); }
+  else loginErr('Incorrect passphrase. Try again.');
+}
+async function changePassphrase(){
+  const cur = document.getElementById('cp-current').value, nw = document.getElementById('cp-new').value, cf = document.getElementById('cp-confirm').value;
+  if (!(await checkPassphrase(cur))) { showToast('⚠️ Current passphrase is incorrect'); return; }
+  if (nw.length < 8) { showToast('⚠️ Use at least 8 characters'); return; }
+  if (nw !== cf)     { showToast("⚠️ New passphrases don't match"); return; }
+  await setPassphrase(nw);
+  ['cp-current','cp-new','cp-confirm'].forEach(id => document.getElementById(id).value = '');
+  showToast('🔒 Passphrase updated');
+}
+function forgotPassphrase(){
+  if (!confirm("There's no way to recover a forgotten passphrase — it isn't stored anywhere you or anyone else can read.\n\nYou can erase this device's Command Center data, create a new passphrase, then restore your latest Full Backup from the Export tab.\n\nContinue?")) return;
+  const typed = prompt('Type ERASE to wipe the Command Center data on this device:');
+  if ((typed||'').trim().toUpperCase() !== 'ERASE') { loginErr('Nothing was erased.'); return; }
+  Object.keys(localStorage).filter(k => k.startsWith('nbk_')).forEach(k => localStorage.removeItem(k));
+  sessionStorage.clear();
+  location.reload();
 }
 function logout() {
   sessionStorage.removeItem('nbk_auth');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appShell').style.display   = 'none';
   document.getElementById('pwInput').value = '';
+  setupLoginScreen();
 }
 
 // ── DATA
@@ -4471,6 +4546,11 @@ function initApp() {
   });
   const gm = document.getElementById('goal-month');
   if(gm) gm.value = String(now.getMonth()+1).padStart(2,'0');
+  document.querySelectorAll('.year-pick').forEach(sel => {
+    const y = now.getFullYear();
+    sel.innerHTML = [y-1, y, y+1].map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.value = String(y);
+  });
   refreshAddonFees();
   updateIrsNotes();
   migrateApostilleStages();
@@ -5186,14 +5266,22 @@ function renderTax(){
   renderPL(L, seTax);
   renderQuarterly(perQtr);
 }
+// Estimated-tax quarters for any year; a due date on a weekend rolls to Monday
+function quarterSchedule(){
+  const y = new Date().getFullYear(), out = [];
+  const due = (yy,m,d) => { const t = new Date(yy,m,d); while (t.getDay()===0||t.getDay()===6) t.setDate(t.getDate()+1); return t; };
+  const lbl = t => t.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  [y-1, y].forEach(yy => {
+    [[1,'Jan–Mar',due(yy,3,15)],[2,'Apr–Jun',due(yy,5,15)],[3,'Jul–Sep',due(yy,8,15)],[4,'Oct–Dec',due(yy+1,0,15)]].forEach(([q,per,d]) =>
+      out.push({ name:'Q'+q+' '+yy, period:per+' '+yy, due:lbl(d), date:d, key:'q'+q+'_'+yy }));
+  });
+  const d1 = due(y+1,3,15); out.push({ name:'Q1 '+(y+1), period:'Jan–Mar '+(y+1), due:lbl(d1), date:d1, key:'q1_'+(y+1) });
+  // show from the most recent unpaid/upcoming window: drop last-year quarters already paid or long past
+  const today = new Date(); today.setHours(0,0,0,0);
+  return out.filter(q => q.key.endsWith('_'+y) || q.key==='q1_'+(y+1) || (q.date >= new Date(today.getFullYear(),0,1) && quarterlyStatus[q.key] !== 'paid'));
+}
 function renderQuarterly(perQtr){
-  const quarters=[
-    {name:'Q1 2026',period:'Jan–Mar 2026',due:'April 15, 2026',key:'q1_2026'},
-    {name:'Q2 2026',period:'Apr–Jun 2026',due:'June 16, 2026',key:'q2_2026'},
-    {name:'Q3 2026',period:'Jul–Sep 2026',due:'September 15, 2026',key:'q3_2026'},
-    {name:'Q4 2026',period:'Oct–Dec 2026',due:'January 15, 2027',key:'q4_2026'},
-    {name:'Q1 2027',period:'Jan–Mar 2027',due:'April 15, 2027',key:'q1_2027'},
-  ];
+  const quarters=quarterSchedule();
   const today=new Date();
   const c=document.getElementById('quarterlySchedule');if(!c)return;
   c.innerHTML=quarters.map(q=>{
@@ -5407,12 +5495,7 @@ function renderDashboard(){
 
   // Next tax
   const today2=new Date();
-  const qDates=[
-    {name:'Q1 2026 — April 15, 2026',date:new Date('2026-04-15'),key:'q1_2026'},
-    {name:'Q2 2026 — June 16, 2026',date:new Date('2026-06-16'),key:'q2_2026'},
-    {name:'Q3 2026 — September 15, 2026',date:new Date('2026-09-15'),key:'q3_2026'},
-    {name:'Q4 2026 — January 15, 2027',date:new Date('2027-01-15'),key:'q4_2026'},
-  ];
+  const qDates=quarterSchedule().map(q=>({name:q.name+' — '+q.due,date:q.date,key:q.key}));
   const next=qDates.find(q=>q.date>=today2&&quarterlyStatus[q.key]!=='paid');
   document.getElementById('d-next-tax').innerHTML=next?
     `<div style="font-size:14px;font-weight:700;color:var(--ink-deep)">${next.name}</div><div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:3px">See Tax tab for payment estimate</div>`:
@@ -6592,18 +6675,22 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 });
 
 // ── ENTER KEY LOGIN
-document.getElementById('pwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+document.getElementById('pwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){ if(hasPassphrase()) login(); else document.getElementById('pwConfirm').focus(); }});
+document.getElementById('pwConfirm')?.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 
 // ══════════════════════════════════════════
 // STARTUP — must be the LAST thing in this script.
 // Every let/const above is now initialized, so
 // initApp() can safely reach all of them.
 // ══════════════════════════════════════════
-if (sessionStorage.getItem('nbk_auth') === '1') {
+if (sessionStorage.getItem('nbk_auth') === '1' && hasPassphrase()) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display    = 'block';
   initApp();
   handleShortcut();
+} else {
+  sessionStorage.removeItem('nbk_auth');
+  setupLoginScreen();
 }
 
 // ── PWA: handle home-screen shortcut deep links
