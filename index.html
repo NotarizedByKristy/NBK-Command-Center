@@ -2627,7 +2627,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
     <div class="tax-row"><span class="tax-lbl">Est. Federal Income Tax (22%)</span><span class="tax-val red" id="t-fed-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Total Estimated Tax</span><span class="tax-val gold" id="t-total-tax">$0</span></div>
     <div class="tax-row"><span class="tax-lbl">Per Quarter (÷4)</span><span class="tax-val green" id="t-per-quarter">$0</span></div>
-    <div class="tax-note">Estimates only — confirm with your tax professional before filing. Fees for performing notarial acts are excluded from self-employment tax under IRC §1402(c)(1) as functions of a public office; they are still subject to ordinary income tax. Travel, printing, coordination and the non-notarial portion of loan-signing fees remain fully SE-taxable. Deposition income from DepoDirect/Esquire is tracked separately below.</div>
+    <div class="tax-note">Estimates only — confirm with your tax professional before filing. Fees for performing notarial acts are excluded from self-employment tax under IRC §1402(c)(1) as functions of a public office; they are still subject to ordinary income tax. Travel, printing, coordination and the non-notarial portion of loan-signing fees remain fully SE-taxable. Deposition (court reporting) pay from DepoDirect/Esquire is included in these totals as its own line — it is fully SE-taxable.</div>
   </div>
 
   <div class="card">
@@ -2637,7 +2637,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
 
   <div class="card">
     <div class="card-header"><div class="card-header-accent"></div>Deposition Income (1099)</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Totals itself from the depositions you log in Appts (DepoDirect, Skribe). Use "Other" only for pay you didn't log as a job.</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Totals itself from the depositions you log in Appts (DepoDirect, Skribe). Use "Other" only for pay you didn't log as a job. These amounts are already included in the estimated tax above.</p>
     <div class="two-col">
       <div class="field"><label>Other Depo Income ($)</label><input type="number" id="depo-income-input" placeholder="0.00" step="0.01" onchange="saveDepoExtra()"></div>
       <div class="field"><label>Depo Expenses ($)</label><input type="number" id="depo-expense-input" placeholder="0.00" step="0.01" onchange="saveDepoExtra()"></div>
@@ -3745,7 +3745,7 @@ const NON_NOTARIAL = ['depo','officiant','translation'];
 
 const LINE_LABELS = {
   general:'General Notary', loan:'Loan Signing', ron:'RON', apostille:'Apostille',
-  officiant:'Wedding Officiant', translation:'Translation', overhead:'Overhead / Unassigned'
+  officiant:'Wedding Officiant', translation:'Translation', depo:'Court Reporting (1099)', overhead:'Overhead / Unassigned'
 };
 
 // Default rate card — Aug–Sep 2026. Every price is editable in the Pricing tab.
@@ -3895,13 +3895,14 @@ function apptExempt(a){
 }
 
 // ── LEDGER: every income/expense/mile for a period prefix ('2026' or '2026-10'),
-// split by service line. Deposition 1099 income is tracked separately (Tax tab).
+// split by service line. Deposition (court reporting) 1099 pay is its own line and counts
+// toward net profit, SE tax and the quarterly estimates — it is never SE-exempt.
 function ledger(prefix){
   const L = { lines:{}, gross:0, exempt:0, exp:0, miles:0, mileDed:0, acts:0, overrides:0 };
   const line = k => L.lines[k] || (L.lines[k] = { gross:0, exempt:0, exp:0, miles:0, mileDed:0, count:0 });
 
   appointments.forEach(a => {
-    if (a.type === 'depo' || !(a.date||'').startsWith(prefix)) return;
+    if (!(a.date||'').startsWith(prefix)) return;
     const l = line(a.type || 'general');
     l.gross  += a.fee || 0;
     l.exp    += a.expense || 0;
@@ -3934,6 +3935,13 @@ function ledger(prefix){
     if (tripEx && !(j.notarialFee > 0)) line('apostille').exempt += Math.min(tripEx, j.fee||0);
   });
 
+  // "Other depo income / expenses" entered on the Tax tab apply to the current tax year
+  if (prefix === String(new Date().getFullYear())) {
+    let dx = null; try { dx = JSON.parse(localStorage.getItem('nbk_depo_extra') || 'null'); } catch(e) {}
+    const oi = parseFloat(dx && dx.income) || 0, oe = parseFloat(dx && dx.expense) || 0;
+    if (oi || oe) { const l = line('depo'); l.gross += oi; l.exp += oe; }
+  }
+
   expenses.forEach(e => { if ((e.date||'').startsWith(prefix)) line('overhead').exp += e.amount || 0; });
   mileage.forEach(m => {
     if (!(m.date||'').startsWith(prefix)) return;
@@ -3949,7 +3957,7 @@ function ledger(prefix){
 
 // Schedule C net → SE base → SE tax (15.3% × 92.35%, nothing owed under $400)
 function seCalc(L){
-  const net    = Math.max(0, L.gross - L.exp - L.mileDed);
+  const net    = L.gross - L.exp - L.mileDed;           // can be a loss
   const seBase = Math.max(0, net - L.exempt);
   const seTax  = (seBase * 0.9235) < 400 ? 0 : seBase * 0.9235 * 0.153;
   return { net, seBase, seTax };
@@ -3957,7 +3965,7 @@ function seCalc(L){
 
 function renderPL(L, seTax){
   const el = document.getElementById('t-lines'); if (!el) return;
-  const order = ['general','loan','ron','apostille','officiant','translation','overhead'];
+  const order = ['general','loan','ron','apostille','officiant','translation','depo','overhead'];
   const keys = Object.keys(L.lines).filter(k => { const l = L.lines[k]; return l.gross || l.exp || l.miles; })
     .sort((a,b) => order.indexOf(a) - order.indexOf(b));
   if (!keys.length) { el.innerHTML = '<p style="font-size:13px;color:rgba(11,24,41,.4)">No activity logged this year yet.</p>'; return; }
@@ -3970,7 +3978,7 @@ function renderPL(L, seTax){
       <div class="pl-grid">${cell('Gross',m(l.gross))}${cell('SE-Exempt',m(l.exempt),'var(--green)')}${cell('Costs + Miles',m(l.exp+l.mileDed),'var(--red)')}${cell('Net',m(net),net<0?'var(--red)':'')}</div>
     </div>`;
   }).join('') + `<div class="pl-total"><div class="pl-grid">
-      ${cell('Gross',m(L.gross))}${cell('SE-Exempt',m(L.exempt))}${cell('Net Profit',m(Math.max(0,L.gross-L.exp-L.mileDed)))}${cell('Est. SE Tax',m(seTax))}
+      ${cell('Gross',m(L.gross))}${cell('SE-Exempt',m(L.exempt))}${cell('Net Profit',m(L.gross-L.exp-L.mileDed),(L.gross-L.exp-L.mileDed)<0?'var(--red)':'')}${cell('Est. SE Tax',m(seTax))}
     </div></div>`;
 }
 
@@ -4792,7 +4800,7 @@ function editAppt(id){
   document.getElementById('edit-expense').value=a.expense||'';
   document.getElementById('edit-miles').value=a.miles||'';
   document.getElementById('edit-notes').value=a.notes||'';
-  document.getElementById('editMilesRow').style.display=a.type==='depo'?'none':'block';
+  document.getElementById('editMilesRow').style.display='block';
   document.getElementById('editNotaryRow').style.display=NON_NOTARIAL.includes(a.type)?'none':'block';
   document.getElementById('edit-extra-signers').value=a.extraSigners||'';
   document.getElementById('editDepoFields').style.display=a.type==='depo'?'block':'none'; fillDepo('edit', a.depo);
@@ -5177,7 +5185,7 @@ function saveMileage(){
   const mdr=document.getElementById('mDistResult');if(mdr)mdr.style.display='none';
 }
 function renderMileage(){
-  const apptMile=appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({id:'a'+a.id,desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,fromAppt:true,tag:'APPT'}));
+  const apptMile=appointments.filter(a=>a.miles).map(a=>({id:'a'+a.id,desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,fromAppt:true,tag:'APPT'}));
   // Include apostille trip miles
   const apostMile=[];
   apostilleJobs.forEach(j=>{
@@ -5248,7 +5256,7 @@ function renderTax(){
   set('t-gross', '$' + L.gross.toFixed(2));
   set('t-expenses', '-$' + L.exp.toFixed(2));
   set('t-mileage', '-$' + L.mileDed.toFixed(2));
-  set('t-net', '$' + netProfit.toFixed(2));
+  set('t-net', (netProfit<0?'-$':'$') + Math.abs(netProfit).toFixed(2));
   set('t-exempt', '-$' + L.exempt.toFixed(2));
   set('t-se-base', '$' + seBase.toFixed(2));
   set('t-exempt-src', (L.overrides
@@ -5413,7 +5421,7 @@ function renderDashboard(){
   const apptIncome=monthAppts.reduce((s,a)=>s+(a.fee||0),0);
   const apptExp=monthAppts.reduce((s,a)=>s+(a.expense||0),0);
   const apptNotary=monthAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.notaryCount||0),0);
-  const apptMiles=monthAppts.filter(a=>a.type!=='depo').reduce((s,a)=>s+(a.miles||0),0);
+  const apptMiles=monthAppts.reduce((s,a)=>s+(a.miles||0),0);
   const apptUnpaid=monthAppts.filter(a=>a.paid!=='paid').reduce((s,a)=>s+(a.fee||0),0);
 
   // Apostille data for this month (trips + expenses + income)
@@ -5549,7 +5557,7 @@ function csvQ(s){return `"${String(s==null?'':s).replace(/"/g,'""')}"`;}
 
 // Service-line P&L block shared by the monthly archive and the year package
 function plCSV(L){
-  const order=['general','loan','ron','apostille','officiant','translation','overhead'];
+  const order=['general','loan','ron','apostille','officiant','translation','depo','overhead'];
   let csv='SERVICE LINE P&L\nService Line,Jobs,Gross,SE-Exempt (Notarial),Subject to SE Tax,Expenses,Miles,Mileage Deduction,Net\n';
   order.filter(k=>L.lines[k]).forEach(k=>{const l=L.lines[k];
     csv+=[LINE_LABELS[k],l.count,l.gross.toFixed(2),l.exempt.toFixed(2),Math.max(0,l.gross-l.exempt).toFixed(2),l.exp.toFixed(2),l.miles.toFixed(1),l.mileDed.toFixed(2),(l.gross-l.exp-l.mileDed).toFixed(2)].join(',')+'\n';});
@@ -5613,28 +5621,28 @@ function exportYearPackage(){
 
   let csv3=`NBK MILEAGE LOG — TAX YEAR ${yr}\nDescription,Miles,IRS Rate,Deduction,Date,Source\n`;
   const trips=[];
-  ya.filter(a=>a.miles&&a.type!=='depo').forEach(a=>trips.push({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'}));
+  ya.filter(a=>a.miles).forEach(a=>trips.push({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date,src:'Appointment'}));
   apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles&&(t.date||'').startsWith(yr)).forEach(t=>trips.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date,src:'Apostille'})));
   ym.forEach(m=>trips.push({desc:m.desc,miles:m.miles,date:m.date,src:'Standalone'}));
   trips.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv3+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date,m.src].join(',')+'\n';});
   csv3+=`\nTOTAL MILES,${L.miles.toFixed(1)},,$${L.mileDed.toFixed(2)}\nRates applied by trip date (IRS Notice 2026-10 and mid-year revision)\n`;
   dlCSV(csv3,`NBK_${yr}_Mileage.csv`);
 
-  let csv4=`NBK TAX SUMMARY — ${yr}\n${pricing.business.name}\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSCHEDULE C (NOTARY, APOSTILLE, OFFICIANT, TRANSLATION)\nGross Income,$${L.gross.toFixed(2)}\nTotal Business Expenses,$${L.exp.toFixed(2)}\nTotal Business Miles,${L.miles.toFixed(1)}\nMileage Deduction,$${L.mileDed.toFixed(2)}\nNet Profit,$${s.net.toFixed(2)}\n\n`;
+  let csv4=`NBK TAX SUMMARY — ${yr}\n${pricing.business.name}\nPrepared: ${new Date().toLocaleDateString('en-US')}\n\nSCHEDULE C (NOTARY, APOSTILLE, OFFICIANT, TRANSLATION, COURT REPORTING)\nGross Income,$${L.gross.toFixed(2)}\nTotal Business Expenses,$${L.exp.toFixed(2)}\nTotal Business Miles,${L.miles.toFixed(1)}\nMileage Deduction,$${L.mileDed.toFixed(2)}\nNet Profit,${s.net<0?'-':''}$${Math.abs(s.net).toFixed(2)}\n\n`;
   csv4+=plCSV(L);
   csv4+=`\nSELF-EMPLOYMENT TAX EXEMPTION\nNotarial acts,${L.acts}\nExempt notarial fees (IRC 1402(c)(1)),$${L.exempt.toFixed(2)}\nBasis,Tex. Gov't Code 406.024 — $10 first signer + $1 each additional signer; oath/jurat $10; RON per 406.111 where invoiced\nIncome subject to SE tax,$${s.seBase.toFixed(2)}\nSE Tax (15.3% × 92.35%),$${s.seTax.toFixed(2)}\n½ SE Tax Deduction,$${(s.seTax/2).toFixed(2)}\nEst. Federal Income Tax (22%),$${fedTax.toFixed(2)}\nTotal Estimated Tax,$${(s.seTax+fedTax).toFixed(2)}\n`;
-  csv4+=`\n1099 CONTRACTOR INCOME\nDeposition Income (logged appts),$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n`;
+  csv4+=`\n1099 CONTRACTOR INCOME (already included in Schedule C gross above)\nDeposition Income (logged appts),$${depoIncome.toFixed(2)}\nDeposition Appointments,${da.length}\n`;
   const perQ=((s.seTax+fedTax)/4).toFixed(2);
   csv4+=`\nQUARTERLY PAYMENTS\nQuarter,Est. Amount,Due Date,Status\n`;
   [['Q1','April 15, '+yr,'q1_'+yr],['Q2','June 15, '+yr,'q2_'+yr],['Q3','September 15, '+yr,'q3_'+yr],['Q4','January 15, '+(parseInt(yr)+1),'q4_'+yr]].forEach(q=>{csv4+=`${q[0]},$${perQ},${csvQ(q[1])},${quarterlyStatus[q[2]]==='paid'?'Paid':'Unpaid'}\n`;});
-  csv4+='\n* Estimates only. Consult your tax professional.\n* Fees for performing notarial acts are excluded from self-employment tax under\n  IRC 1402(c)(1) as functions of a public office. They remain subject to income tax.\n  Schedule SE filers typically note "Exempt-Notary" for this amount.\n* Travel, printing, coordination, officiant, translation and non-notarial loan-signing fees remain SE-taxable.\n* Pass-through costs billed at cost are booked as offsetting expenses.\n* Deposition income reported separately on 1099-NEC.\n';
+  csv4+='\n* Estimates only. Consult your tax professional.\n* Fees for performing notarial acts are excluded from self-employment tax under\n  IRC 1402(c)(1) as functions of a public office. They remain subject to income tax.\n  Schedule SE filers typically note "Exempt-Notary" for this amount.\n* Travel, printing, coordination, officiant, translation and non-notarial loan-signing fees remain SE-taxable.\n* Pass-through costs billed at cost are booked as offsetting expenses.\n* Deposition (court reporting) income is included in Schedule C gross and is fully SE-taxable;\n  it is also reported to you on 1099-NEC by the payer — match the 1099 to the deposition line.\n';
   dlCSV(csv4,`NBK_${yr}_Tax_Summary_For_Accountant.csv`);
   showToast('📦 Year package — 4 files downloaded');
 }
 
 function exportAllAppointments(){let csv='Type,Client,Date,Time,Location,Company,Status,Notarial Acts,Add\'l Signers,SE-Exempt,Fee,Paid,Invoice,Expenses,Miles,Notes\n';appointments.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(a=>{csv+=[a.type,csvQ(a.client),a.date,a.time||'',csvQ(a.location),csvQ(a.company),a.status,a.notaryCount||0,a.extraSigners||0,apptExempt(a).toFixed(2),(a.fee||0).toFixed(2),a.paid,a.invoiceNumber||'',(a.expense||0).toFixed(2),a.miles||0,csvQ(a.notes)].join(',')+'\n';});dlCSV(csv,'NBK_All_Appointments_'+todayISO()+'.csv');showToast('📥 All appointments exported');}
 function exportAllExpenses(){let csv='Category,Description,Amount,Date\n';expenses.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(e=>{csv+=[csvQ(e.cat),csvQ(e.desc),e.amount.toFixed(2),e.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Expenses_'+todayISO()+'.csv');showToast('📥 All expenses exported');}
-function exportAllMileage(){let csv='Description,Miles,IRS Rate,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles&&a.type!=='depo').map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))];apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles).forEach(t=>all.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date})));all.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+todayISO()+'.csv');showToast('📥 All mileage exported');}
+function exportAllMileage(){let csv='Description,Miles,IRS Rate,Deduction,Date\n';const all=[...mileage,...appointments.filter(a=>a.miles).map(a=>({desc:a.client+' ('+typeLabel(a.type)+')',miles:a.miles,date:a.date}))];apostilleJobs.forEach(j=>(j.trips||[]).filter(t=>t.miles).forEach(t=>all.push({desc:j.client+' — Apostille trip',miles:t.miles,date:t.date})));all.sort((a,b)=>a.date>b.date?1:-1).forEach(m=>{csv+=[csvQ(m.desc),m.miles,irsRate(m.date),mileDed(m.miles,m.date).toFixed(2),m.date].join(',')+'\n';});dlCSV(csv,'NBK_All_Mileage_'+todayISO()+'.csv');showToast('📥 All mileage exported');}
 function exportApostilleJobs(){let csv='Client,Document,Country,Received,Stage,Fee,Balance,International,Tracking,Invoice,Notes\n';apostilleJobs.forEach(j=>{csv+=[csvQ(j.client),csvQ(j.doctype),csvQ(j.country),j.received||'',AP_STAGES[j.stage]||'',(j.fee||0).toFixed(2),(j.balance||0).toFixed(2),j.intl?'Yes':'No',csvQ(j.tracking),j.invoiceNumber||'',csvQ(j.notes)].join(',')+'\n';});dlCSV(csv,'NBK_Apostille_Jobs_'+todayISO()+'.csv');showToast('📥 Apostille jobs exported');}
 function exportAllInvoices(){let csv='Number,Client,Contact,Service Line,Service Date,Issued,Due,Status,Total,SE-Exempt,Billed at Cost,Sent,Paid,Method,Linked To\n';invoices.slice().sort((a,b)=>a.number>b.number?1:-1).forEach(i=>{csv+=[i.number,csvQ(i.client),csvQ(i.contact),LINE_LABELS[i.line]||i.line,i.serviceDate||'',i.date||'',i.due||'',invStatus(i),(i.total||0).toFixed(2),(i.exempt||0).toFixed(2),(i.pass||0).toFixed(2),i.sentDate||'',i.paidDate||'',csvQ(i.method),i.postedTo||i.link||''].join(',')+'\n';});dlCSV(csv,'NBK_Invoices_'+todayISO()+'.csv');showToast('📥 Invoices exported');}
 
