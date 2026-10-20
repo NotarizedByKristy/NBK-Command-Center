@@ -2439,7 +2439,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
   </div>
 
   <div class="card" id="d-goal-section">
-    <div class="card-header"><div class="card-header-accent"></div>Monthly Goal</div>
+    <div class="card-header"><div class="card-header-accent"></div>Targets · Command Center</div>
     <div id="d-goal-content"><p style="font-size:13px;color:rgba(11,24,41,.4)">Set a goal in Goals tab to see progress here.</p></div>
   </div>
 
@@ -2662,7 +2662,22 @@ body { background: #FFFFFF; color: var(--charcoal); }
 <div id="tab-goals" class="tab-content">
   <div class="page-title">Revenue Goals</div>
   <div class="card">
-    <div class="card-header"><div class="card-header-accent"></div>Set Monthly Goal</div>
+    <div class="card-header"><div class="card-header-accent"></div>Commission Plan · Yearly Targets</div>
+    <p style="font-size:12px;color:rgba(11,24,41,.55);margin:0 0 10px">Enter the income you want each year. The Home screen splits it into quarter and month targets and recalculates them from what you actually earn, so a slow month raises the next target and a strong month lowers it.</p>
+    <div class="two-col">
+      <div class="field"><label>Measure targets by</label><select id="tg-measure"><option value="gross">Gross income</option><option value="net">Net profit</option></select></div>
+      <div class="field"><label>Commission ends</label><input type="date" id="tg-end"></div>
+    </div>
+    <div class="two-col" id="tg-years"></div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(11,24,41,.5);margin:6px 0 4px">SERVICE MIX · SHARE OF INCOME (%)</div>
+    <div class="two-col" id="tg-mix"></div>
+    <div id="tg-mix-total" style="font-size:11px;color:rgba(11,24,41,.5);margin:-4px 0 12px"></div>
+    <button class="btn-primary" onclick="saveTargets()">Save Targets</button>
+    <div id="tg-summary" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-header-accent"></div>Set Monthly Goal (optional override)</div>
+    <div style="font-size:11px;color:rgba(11,24,41,.5);margin:-4px 0 10px">Only needed if you want a specific month to use your own number instead of the automatic target.</div>
     <div class="two-col">
       <div class="field">
         <label>Month</label>
@@ -3775,6 +3790,7 @@ let expenses       = JSON.parse(localStorage.getItem('nbk_expenses')  || '[]');
 let mileage        = JSON.parse(localStorage.getItem('nbk_mileage')   || '[]');
 let apostilleJobs  = JSON.parse(localStorage.getItem('nbk_apostille') || '[]');
 let goals          = JSON.parse(localStorage.getItem('nbk_goals')     || '[]');
+let targets        = (()=>{ try{ return JSON.parse(localStorage.getItem('nbk_targets')||'null')||{}; }catch(e){ return {}; } })();
 let credentials    = JSON.parse(localStorage.getItem('nbk_credentials') || '[]');
 let quarterlyStatus= JSON.parse(localStorage.getItem('nbk_quarters')  || '{}');
 const TX_ACT_FEE   = 10;   // Texas Gov't Code 406.024 — per notarial act
@@ -4554,6 +4570,7 @@ function save() {
   localStorage.setItem('nbk_mileage',   JSON.stringify(mileage));
   localStorage.setItem('nbk_apostille', JSON.stringify(apostilleJobs));
   localStorage.setItem('nbk_goals',     JSON.stringify(goals));
+  localStorage.setItem('nbk_targets',   JSON.stringify(targets));
   localStorage.setItem('nbk_credentials', JSON.stringify(credentials));
   localStorage.setItem('nbk_quarters',  JSON.stringify(quarterlyStatus));
   localStorage.setItem('nbk_invoices',  JSON.stringify(invoices));
@@ -5488,6 +5505,7 @@ function saveGoal(){
   document.getElementById('goal-amount').value='';document.getElementById('goal-appts').value='';
 }
 function renderGoals(){
+  renderTargetsForm();
   const c=document.getElementById('goalsList');
   if(!goals.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🎯</div><p>No goals set yet.</p></div>';return;}
   c.innerHTML=[...goals].sort((a,b)=>b.key>a.key?1:-1).map(g=>{
@@ -5513,6 +5531,184 @@ function renderGoals(){
       <div style="margin-top:12px"><button class="btn-danger" onclick="deleteGoal('${g.key}')" style="font-size:10px;padding:4px 10px">Delete</button></div>
     </div>`;
   }).join('');
+}
+
+// ── v7: Commission plan — yearly targets that cascade to quarter/month and adapt to actual earnings
+const TG_YEARS_FROM = 2026;
+function tgEnd(){ return targets.commissionEnd || '2030-08-04'; }
+function tgYears(){ const y=[]; for(let i=TG_YEARS_FROM;i<=parseInt(tgEnd().slice(0,4));i++) y.push(i); return y; }
+function earnedFor(prefix){ const L=ledger(prefix); return (targets.measure==='net') ? seCalc(L).net : L.gross; }
+function money0(v){ return (v<0?'-$':'$')+Math.abs(Math.round(v)).toLocaleString(); }
+function targetPlan(now){
+  now = now || new Date();
+  const yr=now.getFullYear(), m=now.getMonth(); // 0-based
+  const T = parseFloat((targets.years||{})[yr])||0;
+  if(!T) return null;
+  const mk = i => yr+'-'+String(i+1).padStart(2,'0');
+  const monthly = []; for(let i=0;i<12;i++) monthly.push(i<=m ? earnedFor(mk(i)) : 0);
+  const ytd = earnedFor(String(yr));                 // includes year-level items (e.g. Tax-tab depo extras)
+  const before = monthly.slice(0,m).reduce((a,b)=>a+b,0);
+  const extra = ytd - monthly.slice(0,m+1).reduce((a,b)=>a+b,0); // year-level income not tied to a month
+  const earnedBeforeMonth = before + extra;
+  const monthsLeft = 12 - m;
+  const auto = Math.max(0,(T - earnedBeforeMonth)/monthsLeft);
+  const manual = goals.find(g=>g.key===mk(m));
+  const monthTarget = manual ? manual.amount : auto;
+  const monthEarned = monthly[m];
+  const q = Math.floor(m/3), qStart=q*3, qEnd=qStart+2;
+  const qDone = monthly.slice(qStart,m).reduce((a,b)=>a+b,0);
+  const quarterTarget = qDone + monthTarget + auto*(qEnd-m);
+  const quarterEarned = qDone + monthEarned;
+  const startY=new Date(yr,0,1), endY=new Date(yr+1,0,1);
+  const yearFrac = (now-startY)/(endY-startY);
+  const expected = T*yearFrac;
+  const projected = yearFrac>0.02 ? ytd/yearFrac : null;
+  const dim = new Date(yr,m+1,0).getDate(), daysLeft = dim-now.getDate()+1;
+  const monthLeft = Math.max(0, monthTarget-monthEarned);
+  const fees = appointments.filter(a=>(a.date||'').startsWith(String(yr)) && a.fee>0 && a.status!=='cancelled').map(a=>a.fee);
+  const avgFee = fees.length ? fees.reduce((a,b)=>a+b,0)/fees.length : 0;
+  return { yr, m, q, T, ytd, monthTarget, monthEarned, manual:!!manual, quarterTarget, quarterEarned,
+           expected, projected, daysLeft, monthLeft, avgFee, monthly, auto };
+}
+function tgBar(label, earned, target, sub){
+  const pct = target>0 ? Math.max(0,Math.min(100,Math.round(earned/target*100))) : 100;
+  const color=pct>=100?'#3E7D5A':pct>=75?'#9C7424':pct>=50?'#5D6E8C':'#B5485A';
+  return `<div style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px"><span style="font-weight:700;color:var(--ink-deep)">${label}</span><span><strong style="color:${color}">${money0(earned)}</strong> <span style="color:rgba(11,24,41,.45)">of ${money0(target)} · ${pct}%</span></span></div>
+    <div style="background:var(--parchment);border-radius:4px;height:7px;overflow:hidden;margin-top:4px"><div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div></div>
+    ${sub?`<div style="font-size:10px;color:rgba(11,24,41,.5);margin-top:3px">${sub}</div>`:''}
+  </div>`;
+}
+function commissionBlock(now){
+  const end=new Date(tgEnd()+'T00:00:00'), start=new Date(end); start.setFullYear(end.getFullYear()-4);
+  const pct=Math.max(0,Math.min(100,(now-start)/(end-start)*100));
+  const days=Math.max(0,Math.ceil((end-now)/86400000));
+  const sinceStart = appointments.filter(a=>a.date && new Date(a.date+'T00:00:00')>=start).reduce((s,a)=>s+(a.fee||0),0)
+    + apostilleJobs.filter(j=>j.received && new Date(j.received+'T00:00:00')>=start).reduce((s,j)=>s+(j.fee||0),0);
+  return `<div style="margin-top:6px;padding-top:10px;border-top:1px solid var(--parchment-2)">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(11,24,41,.55)"><span>⚓ Commission term · ends ${end.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span><span><strong style="color:var(--ink-deep)">${days.toLocaleString()}</strong> days left</span></div>
+    <div style="background:var(--parchment);border-radius:4px;height:5px;overflow:hidden;margin-top:4px"><div style="width:${pct.toFixed(1)}%;height:100%;background:var(--ink-mid)"></div></div>
+    <div style="font-size:10px;color:rgba(11,24,41,.5);margin-top:3px">${pct.toFixed(0)}% of the term complete · ${money0(sinceStart)} booked this term</div>
+  </div>`;
+}
+function renderTargetsDash(gc, now){
+  const P = targetPlan(now);
+  if(!P){
+    return false;
+  }
+  const mName = now.toLocaleDateString('en-US',{month:'long'});
+  const diff = P.ytd - P.expected;
+  const pace = diff>=0 ? `<span style="color:#3E7D5A;font-weight:700">▲ ${money0(diff)} ahead of pace</span>` : `<span style="color:#B5485A;font-weight:700">▼ ${money0(-diff)} behind pace</span>`;
+  let need;
+  if(P.monthLeft<=0) need = `🎉 ${mName} target reached.`;
+  else {
+    const per = P.daysLeft>=7 ? `${money0(P.monthLeft/(P.daysLeft/7))} per week for the rest of ${mName}` : `${money0(P.monthLeft)} in the next ${P.daysLeft} day${P.daysLeft>1?'s':''}`;
+    const jobs = P.avgFee>0 ? ` · about ${Math.ceil(P.monthLeft/P.avgFee)} job${Math.ceil(P.monthLeft/P.avgFee)>1?'s':''} at your ${money0(P.avgFee)} average` : '';
+    need = `Need <strong>${per}</strong>${jobs}.`;
+  }
+  const measure = targets.measure==='net' ? 'net profit' : 'gross income';
+  gc.innerHTML = `
+    ${tgBar(mName, P.monthEarned, P.monthTarget, P.manual ? 'Using the goal you set for this month' : `Auto target: what's left of the year ÷ ${12-P.m} months remaining`)}
+    ${tgBar('Q'+(P.q+1)+' '+P.yr, P.quarterEarned, P.quarterTarget, 'Earned so far this quarter + targets for the months left')}
+    ${tgBar(P.yr+' year', P.ytd, P.T, pace + (P.projected!==null?` · on track for ${money0(P.projected)}`:''))}
+    <div style="background:var(--parchment);border-radius:var(--r-sm);padding:9px 11px;font-size:12px;color:var(--ink-deep)">${need}</div>
+    ${mixBlock(P, now)}
+    <div style="font-size:10px;color:rgba(11,24,41,.4);margin-top:6px">Targets measured by ${measure}. Change them in Goals.</div>
+    ${commissionBlock(now)}`;
+  return true;
+}
+
+// ── v7: service mix — split the month target across services by share, convert to job counts at real average fees
+const MIX_TYPES = [['depo','Depositions'],['ron','RON'],['loan','Loan signings'],['general','General notary']];
+const MIX_DEFAULT = { depo:40, ron:25, loan:20, general:15 };
+const MIX_FALLBACK_FEE = { depo:175, ron:75, loan:125, general:125 };
+function mixShares(){ const m={...MIX_DEFAULT, ...(targets.mix||{})}; const t=MIX_TYPES.reduce((s,[k])=>s+(+m[k]||0),0)||1; const o={}; MIX_TYPES.forEach(([k])=>o[k]=(+m[k]||0)/t); return o; }
+function typeStats(prefix){
+  const o={}; MIX_TYPES.forEach(([k])=>o[k]={n:0,amt:0});
+  appointments.forEach(a=>{ if(!(a.date||'').startsWith(prefix)||a.status==='cancelled'||!o[a.type]) return; o[a.type].n++; o[a.type].amt+=a.fee||0; });
+  return o;
+}
+function avgFees(yr){
+  const out={};
+  MIX_TYPES.forEach(([k])=>{
+    let f=appointments.filter(a=>a.type===k&&a.fee>0&&a.status!=='cancelled'&&(a.date||'').startsWith(String(yr))).map(a=>a.fee);
+    if(f.length<3) f=f.concat(appointments.filter(a=>a.type===k&&a.fee>0&&a.status!=='cancelled'&&(a.date||'').startsWith(String(yr-1))).map(a=>a.fee));
+    out[k]= f.length ? f.reduce((a,b)=>a+b,0)/f.length : MIX_FALLBACK_FEE[k];
+  });
+  return out;
+}
+function mixBlock(P, now){
+  const sh=mixShares(), fees=avgFees(P.yr);
+  const mk=now.toISOString().slice(0,7);
+  const prev=new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const pk=prev.getFullYear()+'-'+String(prev.getMonth()+1).padStart(2,'0');
+  const cur=typeStats(mk), last=typeStats(pk);
+  const rows=MIX_TYPES.filter(([k])=>sh[k]>0).map(([k,label])=>{
+    const goal$=P.monthTarget*sh[k], goalN=Math.max(1,Math.ceil(goal$/fees[k]));
+    const left=Math.max(0,goalN-cur[k].n);
+    const lastPct = (()=>{ const tot=MIX_TYPES.reduce((s,[t])=>s+last[t].amt,0); return tot? Math.round(last[k].amt/tot*100):0; })();
+    const done=cur[k].n>=goalN;
+    return `<tr style="border-top:1px solid var(--parchment-2)">
+      <td style="padding:5px 0;font-weight:600">${label} <span style="color:rgba(11,24,41,.4);font-weight:400">${Math.round(sh[k]*100)}%</span></td>
+      <td style="text-align:center">${last[k].n}<div style="font-size:9px;color:rgba(11,24,41,.4)">${lastPct}% of $</div></td>
+      <td style="text-align:center;font-weight:700;color:${done?'#3E7D5A':'var(--ink-deep)'}">${cur[k].n} / ${goalN}</td>
+      <td style="text-align:right;color:${done?'#3E7D5A':'#B5485A'};font-weight:700">${done?'✓':left+' more'}</td></tr>`;
+  }).join('');
+  const lastName=prev.toLocaleDateString('en-US',{month:'short'}), curName=now.toLocaleDateString('en-US',{month:'short'});
+  return `<div style="margin-top:10px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(11,24,41,.5);margin-bottom:4px">SERVICE MIX PLAN</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;color:var(--ink-deep)">
+      <tr style="font-size:10px;color:rgba(11,24,41,.45)"><th style="text-align:left;font-weight:600">Service</th><th style="font-weight:600">${lastName}</th><th style="font-weight:600">${curName} done / goal</th><th></th></tr>
+      ${rows}
+    </table>
+    <div style="font-size:10px;color:rgba(11,24,41,.4);margin-top:4px">Job goals = your share of the ${curName} target ÷ your average fee for that service (${MIX_TYPES.map(([k,l])=>l.split(' ')[0]+' '+money0(fees[k])).join(' · ')}). Apostille, translation and officiant income still counts toward the total.</div>
+  </div>`;
+}
+function renderMixForm(){
+  const box=document.getElementById('tg-mix'); if(!box) return;
+  const m={...MIX_DEFAULT, ...(targets.mix||{})};
+  box.innerHTML=MIX_TYPES.map(([k,l])=>`<div class="field"><label>${l}</label><input type="number" min="0" max="100" step="5" id="tg-mix-${k}" value="${m[k]}" oninput="mixTotalNote()"></div>`).join('');
+  mixTotalNote();
+}
+function mixTotalNote(){
+  const t=MIX_TYPES.reduce((s,[k])=>s+(parseFloat(document.getElementById('tg-mix-'+k)?.value)||0),0);
+  const el=document.getElementById('tg-mix-total'); if(el) el.innerHTML = t===100 ? 'Total 100% ✓' : `<span style="color:var(--red)">Total ${t}% — the app will scale these to 100%.</span>`;
+}
+function renderTargetsForm(){
+  renderMixForm();
+  const box=document.getElementById('tg-years'); if(!box) return;
+  document.getElementById('tg-measure').value = targets.measure||'gross';
+  document.getElementById('tg-end').value = tgEnd();
+  box.innerHTML = tgYears().map(y=>`<div class="field"><label>${y} target ($)${y===parseInt(tgEnd().slice(0,4))?' · ends '+new Date(tgEnd()+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</label><input type="number" step="500" min="0" id="tg-y-${y}" value="${(targets.years||{})[y]||''}" placeholder="e.g. 60000"></div>`).join('');
+  const sum=document.getElementById('tg-summary'); if(!sum) return;
+  const ys=tgYears().filter(y=>(targets.years||{})[y]);
+  if(!ys.length){ sum.innerHTML=''; return; }
+  const nowY=new Date().getFullYear();
+  const P=targetPlan();
+  let html = `<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(11,24,41,.5);margin-bottom:6px">PROGRESS BY YEAR</div>` + ys.map(y=>{
+    const T=targets.years[y], e=y<=nowY?earnedFor(String(y)):0;
+    return tgBar(String(y), e, T, y>nowY?'Not started':(y===nowY?'In progress':'Final'));
+  }).join('');
+  if(P){
+    const qs=[0,1,2,3].map(q=>{
+      const ms=[q*3,q*3+1,q*3+2];
+      let tgt=0, got=0;
+      ms.forEach(i=>{ got+=P.monthly[i]; tgt+= i<P.m ? P.monthly[i] : (i===P.m ? P.monthTarget : P.auto); });
+      const done = q*3+2 < P.m;
+      return `<div style="flex:1;min-width:70px;background:var(--parchment);border-radius:6px;padding:7px;text-align:center"><div style="font-size:10px;font-weight:700;color:rgba(11,24,41,.5)">Q${q+1}</div><div style="font-size:13px;font-weight:700;color:var(--ink-deep)">${money0(done?got:tgt)}</div><div style="font-size:9px;color:rgba(11,24,41,.45)">${done?'earned':(q===P.q?money0(got)+' so far':'target')}</div></div>`;
+    }).join('');
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(11,24,41,.5);margin:8px 0 6px">${P.yr} BY QUARTER</div><div style="display:flex;gap:6px;flex-wrap:wrap">${qs}</div>`;
+  }
+  sum.innerHTML = html;
+}
+function saveTargets(){
+  const end=document.getElementById('tg-end').value||'2030-08-04';
+  targets.measure=document.getElementById('tg-measure').value;
+  targets.commissionEnd=end;
+  targets.years=targets.years||{};
+  targets.mix={}; MIX_TYPES.forEach(([k])=>{ targets.mix[k]=parseFloat(document.getElementById('tg-mix-'+k)?.value)||0; });
+  tgYears().forEach(y=>{ const el=document.getElementById('tg-y-'+y); if(!el) return; const v=parseFloat(el.value)||0; if(v) targets.years[y]=v; else delete targets.years[y]; });
+  save(); renderTargetsForm(); renderDashboard(); showToast('✓ Targets saved');
 }
 function deleteGoal(key){if(!confirm('Delete this goal?'))return;goals=goals.filter(g=>g.key!==key);save();renderGoals();renderDashboard();}
 
@@ -5624,7 +5820,8 @@ function renderDashboard(){
   const moKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const goal=goals.find(g=>g.key===moKey);
   const gc=document.getElementById('d-goal-content');
-  if(goal){
+  if(renderTargetsDash(gc, now)){ /* yearly plan drives the card */ }
+  else if(goal){
     const pct=Math.min(100,Math.round((income/goal.amount)*100));
     const color=pct>=100?'#3E7D5A':pct>=75?'#9C7424':pct>=50?'#5D6E8C':'#B5485A';
     const r=34, circ=2*Math.PI*r, dash=circ*(pct/100), gap=circ-dash;
@@ -5643,7 +5840,7 @@ function renderDashboard(){
       </div>
     </div>`;
   } else {
-    gc.innerHTML='<p style="font-size:13px;color:rgba(11,24,41,.4)">No goal set for this month. Set one in Goals.</p>';
+    gc.innerHTML='<p style="font-size:13px;color:rgba(11,24,41,.4)">Set your yearly income target in Goals and this card will show your month, quarter and year targets.</p>';
   }
 
   // Active apostille
@@ -6187,6 +6384,7 @@ function exportFullBackup() {
       expenses,
       mileage,
       goals,
+      targets,
       quarterlyStatus,
       invoices,
       clients,
@@ -6345,6 +6543,7 @@ function confirmRestore() {
     expenses       = d.expenses       || [];
     mileage        = d.mileage        || [];
     goals          = d.goals          || [];
+    if (d.targets) targets = d.targets;
     quarterlyStatus= d.quarterlyStatus|| {};
     invoices       = d.invoices       || [];
     clients        = d.clients        || [];
@@ -6368,6 +6567,7 @@ function confirmRestore() {
     goals = [...goals, ...((d.goals||[]).filter(g=>!goalKeys.has(g.key)))];
     // Quarterly: incoming paid flags win
     quarterlyStatus = { ...quarterlyStatus, ...(d.quarterlyStatus||{}) };
+    if (d.targets && !(targets.years && Object.keys(targets.years).length)) targets = d.targets;
   }
 
   // Restore the depo income fields
