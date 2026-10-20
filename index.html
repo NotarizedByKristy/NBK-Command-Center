@@ -856,6 +856,8 @@ body {
 /* ════════════════════════════════════════
    APPOINTMENT CARDS
 ════════════════════════════════════════ */
+@keyframes apptFlash { 0%,100%{box-shadow:none} 25%,75%{box-shadow:0 0 0 3px var(--gold-mid,#c9a227)} }
+.appt-card.appt-flash { animation: apptFlash 1.3s ease-in-out 2; }
 .appt-card {
   background: var(--white);
   border-radius: var(--r);
@@ -2465,6 +2467,7 @@ body { background: #FFFFFF; color: var(--charcoal); }
 <!-- ── APPOINTMENTS ── -->
 <div id="tab-appointments" class="tab-content">
   <div class="page-title">Appointments <span class="page-badge" id="apptCount">0</span></div>
+  <button class="btn-primary" onclick="openAddAppt()" style="margin-bottom:12px">+ Add Appointment</button>
   <div class="filter-bar" id="apptFilterBar">
     <button class="filter-pill active" onclick="filterAppts('all',this)">All</button>
     <button class="filter-pill" onclick="filterAppts('loan',this)">Loan</button>
@@ -2477,8 +2480,8 @@ body { background: #FFFFFF; color: var(--charcoal); }
   <div class="month-row">
     <select id="apptMonthFilter" onchange="renderAppts()"><option value="all">All Months</option></select>
   </div>
-  <div id="apptList"><div class="empty-state"><div class="empty-icon">📋</div><p>No appointments yet.<br>Tap below to add one.</p></div></div>
-  <button class="btn-primary" onclick="openAddAppt()" style="margin-top:10px">+ Add Appointment</button>
+  <div class="field"><input type="search" id="apptSearch" placeholder="Search name, order/job #, company or notes" oninput="renderAppts()" aria-label="Search appointments"></div>
+  <div id="apptList"><div class="empty-state"><div class="empty-icon">📋</div><p>No appointments yet.<br>Tap + Add Appointment above.</p></div></div>
 </div>
 
 <!-- ── INVOICES ── -->
@@ -3078,6 +3081,20 @@ body { background: #FFFFFF; color: var(--charcoal); }
         <span id="fDistText"></span><input type="hidden" id="f-miles-calc">
       </div>
     </div>
+
+    <div class="dropoff-box" style="margin-top:10px;padding:10px;border:1.5px dashed var(--gold-mid);border-radius:var(--r-sm)">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;margin:0">
+        <input type="checkbox" id="f-drop-on" onchange="toggleDropoff('f')" style="width:18px;height:18px;flex:0 0 auto"> 📦 Add UPS / FedEx drop-off trip
+      </label>
+      <div id="f-drop-fields" style="display:none;margin-top:10px">
+        <div class="field"><label>Drop-off location</label><input type="text" id="f-drop-addr" onchange="calcDropoff('f')"></div>
+        <div class="two-col">
+          <div class="field"><label>How</label><select id="f-drop-mode" onchange="calcDropoff('f')"><option value="separate">Separate trip</option><option value="onway">On way home</option></select></div>
+          <div class="field"><label>Drop-off miles</label><input type="number" id="f-drop-miles" step="0.1" placeholder="auto"></div>
+        </div>
+        <div id="f-drop-msg" style="font-size:11px;color:rgba(11,24,41,.55)"></div>
+      </div>
+    </div>
     <div class="irs-note"><strong class="irs-rate-lbl">IRS rate</strong></div>
   </div>
   <div class="notice" id="depoMileNotice" style="display:none;margin-top:10px">🎙️ Deposition mileage tracked separately for 1099 records.</div>
@@ -3133,9 +3150,35 @@ body { background: #FFFFFF; color: var(--charcoal); }
     <div class="field"><label>Fee ($)</label><input type="number" id="edit-fee" step="0.01"></div>
     <div class="field"><label>Payment</label><select id="edit-paid"><option value="unpaid">Unpaid</option><option value="invoiced">Invoiced</option><option value="paid">Paid ✓</option></select></div>
   </div>
-  <div class="two-col">
-    <div class="field"><label>Expenses ($)</label><input type="number" id="edit-expense" step="0.01"></div>
-    <div class="field" id="editMilesRow"><label>Miles</label><input type="number" id="edit-miles" step="0.1"></div>
+  <div class="field"><label>Expenses ($)</label><input type="number" id="edit-expense" step="0.01"></div>
+  <div id="editMilesRow">
+    <div class="mode-btns">
+      <button class="modeBtn active" id="eModeManualBtn" onclick="setEditMileMode('manual')">✏️ Miles</button>
+      <button class="modeBtn inactive" id="eModeAddrBtn" onclick="setEditMileMode('address')">📍 Addresses</button>
+    </div>
+    <div class="field"><label>Trip miles (total, round trip included)</label><input type="number" id="edit-miles" step="0.1"></div>
+    <div id="eAddressMode" style="display:none">
+      <div class="field"><label>From</label><input type="text" id="e-addr-start" placeholder="Starting address"></div>
+      <div class="field"><label>To</label><input type="text" id="e-addr-end" placeholder="Destination address"></div>
+      <div class="two-col" style="margin-bottom:10px">
+        <div class="field"><label>Round Trip</label><select id="e-addr-rt"><option value="yes">Yes ×2</option><option value="no">No</option></select></div>
+        <div style="display:flex;align-items:flex-end"><button onclick="calcEditMileage()" class="btn-secondary" style="width:100%;padding:11px;font-size:11px">Calculate</button></div>
+      </div>
+      <div id="eDistResult" style="display:none;background:var(--parchment);border-radius:var(--r-sm);padding:11px;font-size:12px;color:var(--ink-deep);border:1.5px solid var(--gold-mid);margin-bottom:10px"><span id="eDistText"></span></div>
+    </div>
+    <div class="dropoff-box" style="margin-top:10px;padding:10px;border:1.5px dashed var(--gold-mid);border-radius:var(--r-sm)">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;margin:0">
+        <input type="checkbox" id="e-drop-on" onchange="toggleDropoff('e')" style="width:18px;height:18px;flex:0 0 auto"> 📦 Add UPS / FedEx drop-off trip
+      </label>
+      <div id="e-drop-fields" style="display:none;margin-top:10px">
+        <div class="field"><label>Drop-off location</label><input type="text" id="e-drop-addr" onchange="calcDropoff('e')"></div>
+        <div class="two-col">
+          <div class="field"><label>How</label><select id="e-drop-mode" onchange="calcDropoff('e')"><option value="separate">Separate trip</option><option value="onway">On way home</option></select></div>
+          <div class="field"><label>Drop-off miles</label><input type="number" id="e-drop-miles" step="0.1" placeholder="auto"></div>
+        </div>
+        <div id="e-drop-msg" style="font-size:11px;color:rgba(11,24,41,.55)"></div>
+      </div>
+    </div>
   </div>
   <div class="field"><label>Notes</label><textarea id="edit-notes"></textarea></div>
   <!-- Edit addons inline as a compact multi-select -->
@@ -4618,6 +4661,8 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 // ── APPOINTMENTS
 function openAddAppt(){
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  if(!document.getElementById('f-addr-start').value) document.getElementById('f-addr-start').value = homeAddr();
+  resetDropoff('f', 0, '');
   openModal('addApptModal');
 }
 function selectType(el){
@@ -4687,6 +4732,8 @@ function saveAppointment(){
       miles = parseFloat(document.getElementById('f-miles-calc').value)||0;
     }
   }
+  const fDrop = (selectedType!=='depo' && document.getElementById('f-drop-on').checked) ? (parseFloat(document.getElementById('f-drop-miles').value)||0) : 0;
+  miles = Math.round((miles + fDrop)*10)/10;
   const addons = getCheckedReqs('reqGrid');
   appointments.unshift({
     id:Date.now(), type:selectedType, client, date,
@@ -4702,7 +4749,7 @@ function saveAppointment(){
     notarialFee: parseFloat(document.getElementById('f-notarial-fee')?.value)||0,
     dueDate: document.getElementById('f-due')?.value || '',
     expense:parseFloat(document.getElementById('f-expense').value)||0,
-    miles, addons,
+    miles, addons, dropoffMiles: fDrop, dropoffAddr: fDrop ? document.getElementById('f-drop-addr').value : '',
     notes:document.getElementById('f-notes').value,
     created:new Date().toISOString()
   });
@@ -4729,6 +4776,7 @@ function resetApptForm(){
   document.querySelectorAll('#reqGrid .req-item').forEach(el=>el.classList.remove('checked'));
   const preview=document.getElementById('addonFeePreview');if(preview)preview.style.display='none';
   const fdr=document.getElementById('fDistResult');if(fdr)fdr.style.display='none';
+  resetDropoff('f', 0, '');
 }
 
 // FIX #4: scoped filter-bar
@@ -4739,7 +4787,9 @@ function filterAppts(f,el){
 }
 function renderAppts(){
   const mo   = document.getElementById('apptMonthFilter')?.value||'all';
+  const q    = (document.getElementById('apptSearch')?.value||'').trim().toLowerCase();
   const list = appointments.filter(a=>{
+    if (q && ![a.client,a.company,a.location,a.notes,a.invoiceNumber,a.date,a.paid,a.status].join(' ').toLowerCase().includes(q)) return false;
     return (apptTypeFilter==='all'||a.type===apptTypeFilter) && (mo==='all'||a.date?.startsWith(mo));
   }).sort((a,b)=>b.date>a.date?1:-1);
   document.getElementById('apptCount').textContent=list.length;
@@ -4756,7 +4806,7 @@ function renderAppts(){
     // Apostille link badge
     const apostilleBadge = a.apostilleJobId ?
       `<span class="apost-link-badge" onclick="showTab('apostille')">🌐 Apostille Job</span>` : '';
-    return`<div class="appt-card type-${a.type}">
+    return`<div class="appt-card type-${a.type}" id="appt-${a.id}">
       <div class="appt-header">
         <span class="type-tag ${a.type}">${typeLabel(a.type)}</span>
         <span class="status-badge ${statusClass(a.status)}">${a.status?.toUpperCase()}</span>
@@ -4798,9 +4848,15 @@ function editAppt(id){
   document.getElementById('edit-fee').value=a.fee||'';
   document.getElementById('edit-paid').value=a.paid||'unpaid';
   document.getElementById('edit-expense').value=a.expense||'';
-  document.getElementById('edit-miles').value=a.miles||'';
+  const eDrop=a.dropoffMiles||0;
+  document.getElementById('edit-miles').value=(a.miles? Math.round((a.miles-eDrop)*10)/10 : '')||'';
+  setEditMileMode('manual');
+  document.getElementById('e-addr-start').value=homeAddr();
+  document.getElementById('e-addr-end').value=a.location||'';
+  document.getElementById('eDistResult').style.display='none';
+  resetDropoff('e', eDrop, a.dropoffAddr||'');
   document.getElementById('edit-notes').value=a.notes||'';
-  document.getElementById('editMilesRow').style.display='block';
+  document.getElementById('editMilesRow').style.display=a.type==='depo'?'none':'block';
   document.getElementById('editNotaryRow').style.display=NON_NOTARIAL.includes(a.type)?'none':'block';
   document.getElementById('edit-extra-signers').value=a.extraSigners||'';
   document.getElementById('editDepoFields').style.display=a.type==='depo'?'block':'none'; fillDepo('edit', a.depo);
@@ -4812,6 +4868,7 @@ function saveEdit(){
   const id=parseInt(document.getElementById('edit-id').value);
   const idx=appointments.findIndex(x=>x.id===id);if(idx===-1)return;
   const isDepo=appointments[idx].type==='depo';
+  const eDropMiles=document.getElementById('e-drop-on').checked?(parseFloat(document.getElementById('e-drop-miles').value)||0):0;
   appointments[idx]={...appointments[idx],
     client:document.getElementById('edit-client').value,
     date:document.getElementById('edit-date').value,
@@ -4826,7 +4883,9 @@ function saveEdit(){
     fee:parseFloat(document.getElementById('edit-fee').value)||0,
     paid:document.getElementById('edit-paid').value,
     expense:parseFloat(document.getElementById('edit-expense').value)||0,
-    miles:isDepo?0:(parseFloat(document.getElementById('edit-miles').value)||0),
+    miles:isDepo?0:Math.round(((parseFloat(document.getElementById('edit-miles').value)||0)+eDropMiles)*10)/10,
+    dropoffMiles:isDepo?0:eDropMiles,
+    dropoffAddr:(!isDepo&&eDropMiles)?document.getElementById('e-drop-addr').value:'',
     notes:document.getElementById('edit-notes').value,
     addons:getCheckedReqs('editReqGrid')
   };
@@ -5162,6 +5221,11 @@ function setMileMode(mode){
 }
 function setApptMileMode(mode){
   apptMileMode=mode;
+  if(mode==='address'){
+    const st=document.getElementById('f-addr-start'), en=document.getElementById('f-addr-end');
+    if(!st.value) st.value=homeAddr();
+    if(!en.value) en.value=document.getElementById('f-location').value||'';
+  }
   const manBtn=document.getElementById('fModeManualBtn'), adrBtn=document.getElementById('fModeAddrBtn');
   const manDiv=document.getElementById('fManualMode'),    adrDiv=document.getElementById('fAddressMode');
   if(mode==='manual'){manDiv.style.display='block';adrDiv.style.display='none';manBtn.className='modeBtn active';adrBtn.className='modeBtn inactive';}
@@ -5236,6 +5300,104 @@ async function calcApptMileage(){
     hm.value=total.toFixed(1);
     rt2.innerHTML=`One way: <strong>${miOne.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${mileDed(total).toFixed(2)}</span><br><span style="font-size:10px;color:rgba(11,24,41,.4)">Tap Save to record</span>`;
   }catch(err){rt2.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;hm.value='';}
+}
+
+// ── v6: shared routing helpers, edit-modal address mode, UPS/FedEx drop-off trips
+const DEFAULT_DROPOFF = 'The UPS Store, 857 Cibolo Valley Dr Ste 228, Cibolo, TX 78108';
+function homeAddr(){ return (pricing&&pricing.business&&pricing.business.address)||'421 Landmark Falls, Cibolo, TX 78108'; }
+function dropoffDefault(){ try{ return localStorage.getItem('nbk_dropoff_addr')||DEFAULT_DROPOFF; }catch(e){ return DEFAULT_DROPOFF; } }
+const _geoCache = {};
+async function geoAddr(a){
+  const k=a.trim().toLowerCase(); if(_geoCache[k]) return _geoCache[k];
+  const tries=[a, a.replace(/^[^,]*store[^,]*,\s*/i,'').replace(/\s+(ste|suite|#)\s*\S+/i,'')];
+  for(const q of tries){
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`,{headers:{'Accept-Language':'en'}});
+    const d=await r.json(); if(d.length){ return _geoCache[k]={lat:d[0].lat,lon:d[0].lon}; }
+  }
+  throw new Error('Address not found: '+a);
+}
+async function routeMiles(pts){
+  const g=[]; for(const p of pts) g.push(await geoAddr(p));
+  const rr=await fetch(`https://router.project-osrm.org/route/v1/driving/${g.map(x=>x.lon+','+x.lat).join(';')}?overview=false`);
+  const dd=await rr.json(); if(dd.code!=='Ok') throw new Error('Route not found');
+  return dd.routes[0].distance/1609.344;
+}
+let editMileMode='manual';
+function setEditMileMode(mode){
+  editMileMode=mode;
+  document.getElementById('eAddressMode').style.display = mode==='address'?'block':'none';
+  document.getElementById('eModeManualBtn').className = 'modeBtn '+(mode==='manual'?'active':'inactive');
+  document.getElementById('eModeAddrBtn').className   = 'modeBtn '+(mode==='address'?'active':'inactive');
+  if(mode==='address'){
+    const st=document.getElementById('e-addr-start'), en=document.getElementById('e-addr-end');
+    if(!st.value) st.value=homeAddr();
+    if(!en.value) en.value=document.getElementById('edit-location').value||'';
+  }
+}
+async function calcEditMileage(){
+  const s=document.getElementById('e-addr-start').value.trim(), e=document.getElementById('e-addr-end').value.trim();
+  const rt=document.getElementById('e-addr-rt').value==='yes';
+  if(!s||!e){showToast('⚠️ Enter both addresses');return;}
+  const rd=document.getElementById('eDistResult'), tx=document.getElementById('eDistText');
+  tx.textContent='Calculating…'; rd.style.display='block';
+  try{
+    const one=await routeMiles([s,e]), total=rt?one*2:one;
+    document.getElementById('edit-miles').value=total.toFixed(1);
+    tx.innerHTML=`One way: <strong>${one.toFixed(1)} mi</strong>${rt?' × 2 = <strong>'+total.toFixed(1)+' mi</strong>':''}<br><span style="color:var(--green);font-weight:700">Deduction: $${mileDed(total).toFixed(2)}</span><br><span style="font-size:10px;color:rgba(11,24,41,.4)">Filled into Trip miles. Tap Save Changes to record.</span>`;
+  }catch(err){tx.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}</span>`;}
+}
+function resetDropoff(pfx, miles, addr){
+  const on=document.getElementById(pfx+'-drop-on'); if(!on) return;
+  on.checked = miles>0;
+  document.getElementById(pfx+'-drop-fields').style.display = miles>0?'block':'none';
+  document.getElementById(pfx+'-drop-addr').value = addr||dropoffDefault();
+  document.getElementById(pfx+'-drop-mode').value = 'separate';
+  document.getElementById(pfx+'-drop-miles').value = miles>0?miles:'';
+  document.getElementById(pfx+'-drop-msg').textContent = miles>0?'Saved drop-off miles. Change the location to recalculate.':'';
+}
+function toggleDropoff(pfx){
+  const on=document.getElementById(pfx+'-drop-on').checked;
+  document.getElementById(pfx+'-drop-fields').style.display = on?'block':'none';
+  if(on && !document.getElementById(pfx+'-drop-miles').value) calcDropoff(pfx);
+}
+async function calcDropoff(pfx){
+  const addr=document.getElementById(pfx+'-drop-addr').value.trim();
+  const mode=document.getElementById(pfx+'-drop-mode').value;
+  const msg=document.getElementById(pfx+'-drop-msg'), out=document.getElementById(pfx+'-drop-miles');
+  const home=homeAddr();
+  if(!addr){msg.textContent='Enter a drop-off location.';return;}
+  try{ localStorage.setItem('nbk_dropoff_addr', addr); }catch(e){}
+  msg.textContent='Calculating…';
+  try{
+    let extra, how;
+    if(mode==='onway'){
+      const sig=(pfx==='e'?document.getElementById('edit-location'):document.getElementById('f-location')).value.trim();
+      if(!sig){msg.textContent='⚠️ Add the signing Location first, or use "Separate trip from home".';return;}
+      const viaDrop=await routeMiles([sig,addr,home]), direct=await routeMiles([sig,home]);
+      extra=Math.max(0,viaDrop-direct);
+      how=`Signing → drop-off → home is ${viaDrop.toFixed(1)} mi vs ${direct.toFixed(1)} mi straight home`;
+    } else {
+      const one=await routeMiles([home,addr]); extra=one*2;
+      how=`Home → drop-off and back: ${one.toFixed(1)} × 2`;
+    }
+    out.value=extra.toFixed(1);
+    msg.innerHTML=`${how} = <strong>+${extra.toFixed(1)} mi</strong> added to this appointment when you save.`;
+  }catch(err){msg.innerHTML=`<span style="color:var(--red)">⚠️ ${err.message}. You can type the miles in.</span>`;}
+}
+// ── v6: jump from Home to an appointment
+function goToAppt(id){
+  const a=appointments.find(x=>x.id===id); if(!a) return;
+  showTab('appointments');
+  apptTypeFilter='all';
+  document.querySelectorAll('#apptFilterBar .filter-pill').forEach((p,i)=>p.classList.toggle('active',i===0));
+  const mf=document.getElementById('apptMonthFilter'); if(mf) mf.value='all';
+  const sb=document.getElementById('apptSearch'); if(sb) sb.value=a.client||'';
+  renderAppts();
+  setTimeout(()=>{
+    const card=document.getElementById('appt-'+id); if(!card) return;
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    card.classList.add('appt-flash'); setTimeout(()=>card.classList.remove('appt-flash'),2600);
+  },60);
 }
 
 // ── TAX — KristyOS allocation: per-trip IRS rate, TX statutory fee math, exemption capped at fee collected
@@ -5398,8 +5560,8 @@ function renderMoneyOwed(){
     + '<div style="font-size:26px;font-family:\'EB Garamond\',serif;color:var(--red);margin-bottom:12px">$'
     + dueSum.toFixed(2) + '</div>'
     + late.map(o =>
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;'
-        + 'padding:9px 0;border-top:1px solid rgba(11,24,41,.07)">'
+        '<div ' + (o.id ? 'onclick="goToAppt(' + o.id + ')" ' : '') + 'style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;'
+        + (o.id ? 'cursor:pointer;' : '') + 'padding:9px 0;border-top:1px solid rgba(11,24,41,.07)">'
         + '<div style="min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;'
         + 'text-overflow:ellipsis;white-space:nowrap">' + esc(o.client) + '</div>'
         + '<div style="font-size:11px;color:rgba(11,24,41,.45)">' + o.days + ' day'
@@ -5497,8 +5659,11 @@ function renderDashboard(){
     platforms[a.company].owed+=a.fee;platforms[a.company].count++;
   });
   const pkeys=Object.keys(platforms);
+  const unpaidBy = p => appointments.filter(a=>a.paid==='unpaid'&&a.fee&&a.company===p).sort((x,y)=>(x.date||'')>(y.date||'')?1:-1);
   document.getElementById('d-platforms').innerHTML=pkeys.length?
-    pkeys.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--parchment-2)"><div><div style="font-size:13px;font-weight:700;color:var(--ink-deep)">${p}</div><div style="font-size:10px;color:rgba(11,24,41,.4)">${platforms[p].count} unpaid</div></div><div style="font-family:var(--font-display);font-size:17px;color:var(--red);font-weight:700">$${platforms[p].owed.toFixed(2)}</div></div>`).join(''):
+    pkeys.map(p=>`<div style="padding:7px 0;border-bottom:1px solid var(--parchment-2)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:13px;font-weight:700;color:var(--ink-deep)">${p}</div><div style="font-size:10px;color:rgba(11,24,41,.4)">${platforms[p].count} unpaid · tap one to update</div></div><div style="font-family:var(--font-display);font-size:17px;color:var(--red);font-weight:700">$${platforms[p].owed.toFixed(2)}</div></div>`
+      + unpaidBy(p).map(a=>`<button type="button" onclick="goToAppt(${a.id})" style="display:flex;justify-content:space-between;width:100%;margin-top:5px;padding:7px 9px;background:var(--parchment);border:1px solid var(--parchment-2);border-radius:6px;font-size:12px;color:var(--ink-deep);cursor:pointer;text-align:left"><span>${fmtDate(a.date)} · ${a.client}</span><span style="font-weight:700">$${(a.fee||0).toFixed(2)} ›</span></button>`).join('')
+      + `</div>`).join(''):
     '<p style="font-size:13px;color:rgba(11,24,41,.4)">All appointments paid. ✓</p>';
 
   // Next tax
