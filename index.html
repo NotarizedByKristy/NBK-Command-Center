@@ -3659,8 +3659,8 @@ body { background: #FFFFFF; color: var(--charcoal); }
     <select id="cal-len"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="90">1½ hours</option><option value="120">2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option></select>
   </div>
   <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="calGoogle()">Google Calendar</button>
-  <button class="btn-secondary" style="width:100%" onclick="calIcs()">Apple / Outlook Calendar</button>
-  <div class="notary-hint" style="margin-top:10px;line-height:1.5">Apple / Outlook adds alerts 1 day and 1 hour before. Google Calendar uses your Google default alerts.</div>
+  <button class="btn-secondary" style="width:100%" id="cal-ics-btn" onclick="calIcs()">Apple / Outlook Calendar</button>
+  <div class="notary-hint" style="margin-top:10px;line-height:1.5" id="cal-hint">Apple / Outlook adds alerts 1 day and 1 hour before. Google Calendar uses your Google default alerts.</div>
   <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('calModal')">Cancel</button>
 </div>
 </div>
@@ -4882,6 +4882,12 @@ function openCal(id){
   document.getElementById('cal-when').textContent = (a.date ? fmtDate(a.date) : '') + (a.time ? ' · ' + fmt12(a.time) : ' · all day') + (a.location ? ' · ' + a.location : '');
   document.getElementById('cal-len').value = String(CAL_LEN[a.type] || 60);
   document.getElementById('cal-len').closest('.field').style.display = a.time ? 'block' : 'none';
+  // iPhone/iPad Home Screen apps can't open calendar files the app creates, so offer Google only there
+  const ios = calIsIOS();
+  document.getElementById('cal-ics-btn').style.display = ios ? 'none' : 'block';
+  document.getElementById('cal-hint').textContent = ios
+    ? 'Adds to Google Calendar with your Google default alerts. With your Google account turned on in iPhone Settings → Calendar → Accounts, it also shows in the iPhone Calendar app.'
+    : 'Apple / Outlook adds alerts 1 day and 1 hour before. Google Calendar uses your Google default alerts.';
   openModal('calModal');
 }
 function calTimes(a){
@@ -4897,6 +4903,7 @@ function calTimes(a){
   const f = x => x.getFullYear() + pad(x.getMonth()+1) + pad(x.getDate()) + 'T' + pad(x.getHours()) + pad(x.getMinutes()) + '00';
   return { allDay:false, start:f(st), end:f(en) };
 }
+function calIsIOS(){ return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
 function calTitle(a){ return typeLabel(a.type) + ' — ' + (a.client || 'Appointment'); }
 function calDetails(a){
   const L = [];
@@ -4942,11 +4949,7 @@ function calIcs(){
          'END:VEVENT','END:VCALENDAR');
   const ics = L.map(calFold).join('\r\n') + '\r\n';
   const name = (calTitle(a).replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'') || 'Appointment') + '.ics';
-  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (iOS) {
-    // iPhone/iPad open a calendar file straight into the "Add to Calendar" sheet
-    window.location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
-  } else {
+  {
     const url = URL.createObjectURL(new Blob([ics], { type:'text/calendar;charset=utf-8' }));
     const link = document.createElement('a'); link.href = url; link.download = name;
     document.body.appendChild(link); link.click(); link.remove();
