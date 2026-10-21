@@ -3648,6 +3648,23 @@ body { background: #FFFFFF; color: var(--charcoal); }
 </div>
 
 <!-- NO-SHOW / LATE CANCEL -->
+<div class="modal-overlay" id="calModal">
+<div class="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Add to Calendar</div>
+  <input type="hidden" id="cal-id">
+  <div style="font-size:13px;font-weight:600;margin-bottom:2px" id="cal-client"></div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="cal-when"></div>
+  <div class="field"><label>Length</label>
+    <select id="cal-len"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="90">1½ hours</option><option value="120">2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option></select>
+  </div>
+  <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="calGoogle()">Google Calendar</button>
+  <button class="btn-secondary" style="width:100%" onclick="calIcs()">Apple / Outlook Calendar</button>
+  <div class="notary-hint" style="margin-top:10px;line-height:1.5">Apple / Outlook adds alerts 1 day and 1 hour before. Google Calendar uses your Google default alerts.</div>
+  <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('calModal')">Cancel</button>
+</div>
+</div>
+
 <div class="modal-overlay" id="noShowModal">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -4845,6 +4862,7 @@ function renderAppts(){
       ${a.notes?`<div style="font-size:11px;color:rgba(11,24,41,.4);margin-top:8px;padding-top:8px;border-top:1px solid var(--parchment-2)">📝 ${a.notes}</div>`:''}
       <div class="appt-actions">
         <button class="btn-sm" onclick="editAppt(${a.id})">Edit</button>
+        ${a.status!=='cancelled'&&a.date?`<button class="btn-sm" onclick="openCal(${a.id})">📅 Calendar</button>`:''}
         ${a.type!=='depo'?`<button class="btn-sm" onclick="invoiceFromAppt(${a.id})">🧾 ${a.invoiceId?'Invoice':'Create Invoice'}</button>`:''}
         ${a.type!=='depo'&&a.status!=='cancelled'?`<button class="btn-sm" onclick="openNoShow(${a.id})">No-show / Late cancel</button>`:''}
         <button class="btn-danger" onclick="deleteAppt(${a.id})">Delete</button>
@@ -4852,6 +4870,92 @@ function renderAppts(){
     </div>`;
   }).join('');
 }
+// ══════════════════════════════════════════
+// ADD TO CALENDAR — Google link or .ics file (with alerts)
+// ══════════════════════════════════════════
+const CAL_LEN = { loan:60, general:45, ron:30, depo:180, officiant:60, translation:30 };
+function calAppt(){ const id = parseInt(document.getElementById('cal-id').value); return appointments.find(x => x.id === id); }
+function openCal(id){
+  const a = appointments.find(x => x.id === id); if (!a) return;
+  document.getElementById('cal-id').value = id;
+  document.getElementById('cal-client').textContent = typeLabel(a.type) + ' — ' + (a.client || '');
+  document.getElementById('cal-when').textContent = (a.date ? fmtDate(a.date) : '') + (a.time ? ' · ' + fmt12(a.time) : ' · all day') + (a.location ? ' · ' + a.location : '');
+  document.getElementById('cal-len').value = String(CAL_LEN[a.type] || 60);
+  document.getElementById('cal-len').closest('.field').style.display = a.time ? 'block' : 'none';
+  openModal('calModal');
+}
+function calTimes(a){
+  const pad = n => String(n).padStart(2,'0');
+  const d = a.date.replace(/-/g,'');
+  if (!a.time) {   // all-day event
+    const n = new Date(a.date + 'T12:00:00'); n.setDate(n.getDate() + 1);
+    return { allDay:true, start:d, end: n.getFullYear() + pad(n.getMonth()+1) + pad(n.getDate()) };
+  }
+  const [h, m] = a.time.split(':').map(Number);
+  const st = new Date(a.date + 'T00:00:00'); st.setHours(h, m || 0, 0, 0);
+  const en = new Date(st.getTime() + (parseInt(document.getElementById('cal-len').value) || 60) * 60000);
+  const f = x => x.getFullYear() + pad(x.getMonth()+1) + pad(x.getDate()) + 'T' + pad(x.getHours()) + pad(x.getMinutes()) + '00';
+  return { allDay:false, start:f(st), end:f(en) };
+}
+function calTitle(a){ return typeLabel(a.type) + ' — ' + (a.client || 'Appointment'); }
+function calDetails(a){
+  const L = [];
+  if (a.company) L.push('Company: ' + a.company);
+  if (a.time) L.push('Time: ' + fmt12(a.time));
+  if (a.fee) L.push('Fee: $' + Number(a.fee).toFixed(2) + (a.paid === 'paid' ? ' (paid)' : ''));
+  if (a.notaryCount) L.push('Notarial acts: ' + a.notaryCount + (a.extraSigners ? ' + ' + a.extraSigners + ' add\'l signer(s)' : ''));
+  const reqs = (a.addons || []).map(k => ADDON_LABELS[k] || k);
+  if (reqs.length) L.push('Bring / requirements: ' + reqs.join(', '));
+  if (a.dropoffMiles) L.push('Courier drop-off after: ' + (a.dropoffAddr || 'yes'));
+  if (a.notes) L.push('Notes: ' + a.notes);
+  L.push('', 'From NBK Command Center');
+  return L.join('\n');
+}
+function calGoogle(){
+  const a = calAppt(); if (!a) return;
+  const t = calTimes(a);
+  const q = new URLSearchParams({ action:'TEMPLATE', text: calTitle(a), dates: t.start + '/' + t.end, details: calDetails(a), location: a.location || '' });
+  const link = document.createElement('a');
+  link.href = 'https://calendar.google.com/calendar/render?' + q.toString();
+  link.target = '_blank'; link.rel = 'noopener';
+  document.body.appendChild(link); link.click(); link.remove();
+  closeModal('calModal');
+}
+function calEsc(v){ return String(v || '').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n'); }
+function calFold(line){   // iCalendar lines must stay under 75 characters
+  const out = []; let s = line;
+  while (s.length > 73) { out.push(s.slice(0, 73)); s = ' ' + s.slice(73); }
+  out.push(s); return out.join('\r\n');
+}
+function calIcs(){
+  const a = calAppt(); if (!a) return;
+  const t = calTimes(a);
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Notarized By Kristy//Command Center//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
+    'UID:nbk-appt-' + a.id + '@texasnotarykristy.com', 'DTSTAMP:' + stamp,
+    t.allDay ? 'DTSTART;VALUE=DATE:' + t.start : 'DTSTART:' + t.start,
+    t.allDay ? 'DTEND;VALUE=DATE:' + t.end : 'DTEND:' + t.end,
+    'SUMMARY:' + calEsc(calTitle(a)), 'DESCRIPTION:' + calEsc(calDetails(a))];
+  if (a.location) L.push('LOCATION:' + calEsc(a.location));
+  L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + calEsc(calTitle(a)),'TRIGGER:-P1D','END:VALARM',
+         'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + calEsc(calTitle(a)),'TRIGGER:-PT1H','END:VALARM',
+         'END:VEVENT','END:VCALENDAR');
+  const ics = L.map(calFold).join('\r\n') + '\r\n';
+  const name = (calTitle(a).replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'') || 'Appointment') + '.ics';
+  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (iOS) {
+    // iPhone/iPad open a calendar file straight into the "Add to Calendar" sheet
+    window.location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  } else {
+    const url = URL.createObjectURL(new Blob([ics], { type:'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = name;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('📅 Calendar file downloaded — open it to add the appointment');
+  }
+  closeModal('calModal');
+}
+
 function editAppt(id){
   const a=appointments.find(x=>x.id===id);if(!a)return;
   document.getElementById('edit-id').value=id;
